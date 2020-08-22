@@ -1,25 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-
-    <record model="ir.actions.act_window" id="action_coa">
-        <field name="name">COA</field>
-        <field name="res_model">qaqc.coa</field>
+    <record model="ir.actions.act_window" id="action_ritase_order">
+        <field name="name">Ritase</field>
+        <field name="res_model">mining.ritase.order</field>
         <field name="view_type">form</field>
         <field name="view_mode">tree,form</field>
     </record>
 
-    
-    <menuitem id="qaqc_top" name="QAQC" sequence="10" />
+    <menuitem id="mining_production_top" name="Production" sequence="4" web_icon="mining_production,static/description/icon.png" />
+        
+        <!-- <menuitem name="Shipping"
+                id="shipping_shipping"
+                parent="shipping_top" 
+                action="action_shipping"
+                sequence= "1"
+                /> -->
 
-    <menuitem id="qaqc_sub" name="QAQC" sequence="10" 
-			parent="qaqc_top"/>
-    
-    <menuitem name="COA"
-              id="qaqc_coa"
-              parent="qaqc_sub" 
-              action="action_coa"
-              sequence= "2"
-              />
+        <!-- <menuitem name="Barge"
+                id="shipping_barge"
+                parent="shipping_top" 
+                action="action_barge"
+                sequence= "2"
+                /> -->
+        
+        <menuitem id="production" name="Production" sequence="1" 
+                parent="mining_production_top"/>
 
+            <menuitem name="Ritase"
+                id="mining_ritase"
+                parent="production" 
+                action="action_ritase_order"
+                sequence= "1"
+                />
 </odoo>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mining_ritase_order_list" model="ir.ui.view">
+        <field name="name">mining_ritase_order_list</field>
+        <field name="model">mining.ritase.order</field>
+        <field name="type">tree</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="Ritase List">
+                <field name="name" />
+                <field name="date" />
+                <field name="location_id" />
+                <field name="dest_location_id" />
+                <field name="ritase_count" />
+                <field name="state" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_mining_ritase_order_form" model="ir.ui.view">
+            <field name="name">mining.ritase.order.form</field>
+            <field name="model">mining.ritase.order</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <form string="Ritase">
+                    <header>
+                        <button name="button_draft" states="cancel" string="Set to Open" type="object" />
+                        <button name="button_confirm" string="Confirm" type="object" states="open" class="btn-primary"  />
+                        <button name="button_cancel" states="open,confirm" string="Cancel" type="object" />
+                        <field name="state" widget="statusbar" statusbar_visible="open,confirm" readonly="1" />
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button type="object"
+                                name="action_view_picking"
+                                class="oe_stat_button"
+                                icon="fa-truck" attrs="{'invisible':[('state', 'in', ('open')),('picking_ids','=',[])]}">
+                                <field name="picking_count" widget="statinfo" string="Shipment" help="Incoming Shipments"/>
+                                <field name="picking_ids" invisible="1"/>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only" string="Ritase Name" ></label>
+                            <h1>
+                                <field name="name" />
+                            </h1>
+                        </div>
+                        <group>
+                            <field name="date" />
+                        </group>
+                        <group>
+                            <group>
+                                <field name="warehouse_id" widget="selection" />
+                                <field name="location_id" />
+                            </group>
+                            <group>
+                                <field name="dest_warehouse_id" widget="selection" />
+                                <field name="dest_location_id" />
+                            </group>
+                        </group>
+                        <group>
+                            <field name="product_id" />
+                            <field name="shift" />
+                            <field name="buckets" />
+                            <field name="load_vehicle_id" />
+                            <field name="pile_vehicle_id" />
+                            <field name="ritase_count" />
+                            <field name="picking_type_id" invisible="1"/>
+                        </group>
+                        
+                        <notebook>
+                            <page string="Dump Truck Activity"  >
+                                <field name="dumptruck_activity_ids" >
+                                    <tree string="Dump Truck Activity" >
+                                        <field name="vehicle_id" />
+                                        <field name="driver_id" />
+                                        <field name="ritase_count" />
+									</tree>
+                                </field >
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+    </record>
+</odoo>

@@ -1,18 +1,23 @@
 # -*- coding: utf-8 -*-
 
 {
-    'name': 'Sale Mining',
+    'name': 'Mining Production',
     'version': '1.0',
     'author': 'Technoindo.com',
-    'category': 'Sales Management',
+    'category': 'Mining',
     'depends': [
-        'sale_contract',
         'shipping',
         'sale_qaqc',
+        'fleet',
+        'stock',
     ],
     'data': [
         'views/menu.xml',
-        'views/qaqc_coa.xml',
+        "views/ritase_order.xml",
+        "views/dumptruck_activity.xml",
+        "views/stock_views.xml",
+
+        "data/ritase_data.xml",
     ],
     'qweb': [
         # 'static/src/xml/cashback_templates.xml',
@@ -22,5 +27,5 @@
     ],
     "installable": True,
 	"auto_instal": False,
-	"application": False,
+	"application": True,
 }
