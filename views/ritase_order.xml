@@ -24,10 +24,10 @@
             <field name="arch" type="xml">
                 <form string="Ritase">
                     <header>
-                        <button name="button_draft" states="cancel" string="Set to Open" type="object" />
-                        <button name="button_confirm" string="Confirm" type="object" states="open" class="btn-primary"  />
-                        <button name="button_cancel" states="open,confirm" string="Cancel" type="object" />
-                        <field name="state" widget="statusbar" statusbar_visible="open,confirm" readonly="1" />
+                        <button name="button_draft" states="cancel" string="Set to Open" type="object" groups="mining_production.production_group_manager" />
+                        <button name="button_confirm" string="Confirm" type="object" states="open" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="button_cancel" states="open,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" />
+                        <field name="state" widget="statusbar" statusbar_visible="open,confirm" readonly="1"  />
                     </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
@@ -47,6 +47,7 @@
                         </div>
                         <group>
                             <field name="date" />
+                            <field name="partner_id" />
                         </group>
                         <group>
                             <group>
@@ -60,6 +61,7 @@
                         </group>
                         <group>
                             <field name="product_id" />
+                            <field name="product_uom" />
                             <field name="shift" />
                             <field name="buckets" />
                             <field name="load_vehicle_id" />

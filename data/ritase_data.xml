@@ -11,5 +11,12 @@
             <field name="number_increment">1</field>
         </record>
 
+        <!-- <record id="uom_ritase" model="product.uom">
+            <field name="name">Rit</field>
+            <field name="category_id">Unit</field>
+            <field name="uom_type">reference/</field>
+            <field name="rounding">0.01</field>
+        </record> -->
+
     </data>
 </odoo>

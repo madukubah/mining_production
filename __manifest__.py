@@ -6,8 +6,8 @@
     'author': 'Technoindo.com',
     'category': 'Mining',
     'depends': [
-        'shipping',
-        'sale_qaqc',
+        # 'shipping',
+        # 'mining_qaqc',
         'fleet',
         'stock',
     ],
@@ -18,6 +18,9 @@
         "views/stock_views.xml",
 
         "data/ritase_data.xml",
+
+        "security/security.xml",
+        "security/ir.model.access.csv",
     ],
     'qweb': [
         # 'static/src/xml/cashback_templates.xml',
