@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="mining_ritase_order_list" model="ir.ui.view">
-        <field name="name">mining_ritase_order_list</field>
-        <field name="model">mining.ritase.order</field>
+    <record id="production_ritase_order_list" model="ir.ui.view">
+        <field name="name">production_ritase_order_list</field>
+        <field name="model">production.ritase.order</field>
         <field name="type">tree</field>
         <field name="priority" eval="8"/>
         <field name="arch" type="xml">
             <tree string="Ritase List">
                 <field name="name" />
                 <field name="date" />
+                <field name="partner_id" />
                 <field name="location_id" />
                 <field name="dest_location_id" />
                 <field name="ritase_count" />
@@ -17,9 +18,9 @@
         </field>
     </record>
 
-    <record id="view_mining_ritase_order_form" model="ir.ui.view">
-            <field name="name">mining.ritase.order.form</field>
-            <field name="model">mining.ritase.order</field>
+    <record id="view_production_ritase_order_form" model="ir.ui.view">
+            <field name="name">production.ritase.order.form</field>
+            <field name="model">production.ritase.order</field>
             <field name="priority">1</field>
             <field name="arch" type="xml">
                 <form string="Ritase">

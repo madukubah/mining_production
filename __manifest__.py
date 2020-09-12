@@ -13,9 +13,14 @@
     ],
     'data': [
         'views/menu.xml',
+        "views/production_operation_template.xml",
         "views/ritase_order.xml",
         "views/dumptruck_activity.xml",
         "views/stock_views.xml",
+        "views/hourmeter_order.xml",
+        "views/cost_code.xml",
+        "views/production_block.xml",
+        "views/production_losstime.xml",
 
         "data/ritase_data.xml",
 

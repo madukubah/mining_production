@@ -8,11 +8,11 @@ from odoo.exceptions import UserError
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    ritase_order_id = fields.Many2one("mining.ritase.order", related='move_lines.ritase_order_id',
+    ritase_order_id = fields.Many2one("production.ritase.order", related='move_lines.ritase_order_id',
         string="Ritase", readonly=True)
 
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
-    ritase_order_id = fields.Many2one("mining.ritase.order",
+    ritase_order_id = fields.Many2one("production.ritase.order",
         'Ritase', ondelete='set null', index=True, readonly=True)

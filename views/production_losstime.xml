@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="production_losstime_list" model="ir.ui.view">
+        <field name="name">production.losstime.list</field>
+        <field name="model">production.losstime</field>
+        <field name="type">tree</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="Cost Code List">
+                <field name="shift" />
+                <field name="cost_code_id" />
+                <field name="block_id" />
+                <field name="vehicle_id" />
+                <field name="date" />
+                <field name="state" />
+                <field name="hour" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_production_losstime_form" model="ir.ui.view">
+            <field name="name">production.losstime.form</field>
+            <field name="model">production.losstime</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <form string="Cost Code">
+                    <sheet>
+                        <group>
+                            <field name="name" invisible="1" />
+                            <field name="shift" />
+                            <field name="cost_code_id" />
+                            <field name="block_id" />
+                            <field name="vehicle_id" />
+                            <field name="date" />
+                            <field name="state" />
+                            <field name="hour" />
+                            <field name="remarks" />
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+    </record>
+</odoo>

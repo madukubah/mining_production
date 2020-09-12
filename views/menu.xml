@@ -3,26 +3,48 @@
 
     <record model="ir.actions.act_window" id="action_ritase_order">
         <field name="name">Ritase</field>
-        <field name="res_model">mining.ritase.order</field>
+        <field name="res_model">production.ritase.order</field>
         <field name="view_type">form</field>
         <field name="view_mode">tree,form</field>
     </record>
 
-    <menuitem id="mining_production_top" name="Production" sequence="4" web_icon="mining_production,static/description/icon.png" />
-        
-        <!-- <menuitem name="Shipping"
-                id="shipping_shipping"
-                parent="shipping_top" 
-                action="action_shipping"
-                sequence= "1"
-                /> -->
+    <record model="ir.actions.act_window" id="action_hourmeter_order">
+        <field name="name">Hourmeter</field>
+        <field name="res_model">production.hourmeter.order</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
 
-        <!-- <menuitem name="Barge"
-                id="shipping_barge"
-                parent="shipping_top" 
-                action="action_barge"
-                sequence= "2"
-                /> -->
+    <record model="ir.actions.act_window" id="action_production_cost_code">
+        <field name="name">Cost Code</field>
+        <field name="res_model">production.cost.code</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
+    <record model="ir.actions.act_window" id="action_production_block">
+        <field name="name">Production Block</field>
+        <field name="res_model">production.block</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_production_losstime">
+        <field name="name">Production Losstime</field>
+        <field name="res_model">production.losstime</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- <record model="ir.actions.act_window" id="action_production_operation_template">
+        <field name="name">Operation Template</field>
+        <field name="res_model">production.operation.template</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record> -->
+
+    <menuitem id="mining_production_top" name="Production" sequence="4" web_icon="mining_production,static/description/icon.png" />
         
         <menuitem id="production" name="Production" sequence="1" 
                 parent="mining_production_top"/>
@@ -33,4 +55,40 @@
                 action="action_ritase_order"
                 sequence= "1"
                 />
+
+            <menuitem name="Hourmeter"
+                id="mining_hourmeter"
+                parent="production" 
+                action="action_hourmeter_order"
+                sequence= "1"
+                />
+            
+            <menuitem name="Losstime"
+                id="production_losstime"
+                parent="production" 
+                action="action_production_losstime"
+                sequence= "1"
+                />
+        
+        <menuitem id="mining_production_config" name="Configuration" sequence="99" 
+                parent="mining_production_top"/>
+        
+            <menuitem name="Cost Code"
+                    id="production_cost_code"
+                    parent="mining_production_config" 
+                    action="action_production_cost_code"
+                    sequence= "1"
+                    />
+            <menuitem name="Production Block"
+                    id="production_block"
+                    parent="mining_production_config" 
+                    action="action_production_block"
+                    sequence= "2"
+                    />
+            <!-- <menuitem name="Production Operation Template"
+                    id="production_operation_template"
+                    parent="mining_production_config" 
+                    action="action_production_operation_template"
+                    sequence= "2"
+                    /> -->
 </odoo>

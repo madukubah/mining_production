@@ -3,8 +3,8 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 import time
 
-class MiningRitase(models.Model):
-	_name = "mining.ritase.order"
+class ProductionRitase(models.Model):
+	_name = "production.ritase.order"
 	_order = 'id desc'
 	
 	@api.model
@@ -33,6 +33,7 @@ class MiningRitase(models.Model):
             ondelete="restrict", required=True, states=READONLY_STATES)
 	location_id = fields.Many2one(
             'stock.location', 'Origin Location',
+			# related="warehouse_id.lot_stock_id",
 			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict", required=True, states=READONLY_STATES)
 	
@@ -41,17 +42,23 @@ class MiningRitase(models.Model):
 			ondelete="restrict", required=True, states=READONLY_STATES)
 	dest_location_id = fields.Many2one(
             'stock.location', 'Destination Location',
+			# related="dest_warehouse_id.lot_stock_id",
+			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict", required=True, states=READONLY_STATES)
 	
-	shift = fields.Integer( string="Shift", default=0, digits=0, states=READONLY_STATES)
+	shift = fields.Selection([
+        ( "1" , '1'),
+        ( "2" , '2'),
+        ], string='Shift', index=True, required=True, states=READONLY_STATES )
 	buckets = fields.Integer( string="Buckets", default=0, digits=0, states=READONLY_STATES)
 	product_id = fields.Many2one('product.product', 'Material', required=True, states=READONLY_STATES )
 	product_uom = fields.Many2one(
             'product.uom', 'Product Unit of Measure', 
-			# related='product_id.uom_id',
             required=True,
 			domain=[ ('category_id.name','=',"Mining")  ],
-            default=lambda self: self._context.get('product_uom', False))
+            default=lambda self: self._context.get('product_uom', False),
+			states=READONLY_STATES
+			)
 
 	load_vehicle_id = fields.Many2one('fleet.vehicle', 'Load Unit', required=True, states=READONLY_STATES )
 	pile_vehicle_id = fields.Many2one('fleet.vehicle', 'Pile Unit', required=True, states=READONLY_STATES )
@@ -77,13 +84,13 @@ class MiningRitase(models.Model):
 		for order in self:
 			if order.state in ['confirm']:
 				raise UserError(_('Cannot delete  order which is in state \'%s\'.') %(order.state,))
-		return super(MiningRitase, self).unlink()
+		return super(ProductionRitase, self).unlink()
 		
 	@api.model
 	def create(self, values):
 		seq = self.env['ir.sequence'].next_by_code('ritase')
 		values["name"] = seq
-		res = super(MiningRitase, self ).create(values)
+		res = super(ProductionRitase, self ).create(values)
 		return res
 		
 	@api.depends('dumptruck_activity_ids')	
@@ -235,10 +242,20 @@ class MiningRitase(models.Model):
 
 class DumpTruckActivity(models.Model):
 	_name = "mining.dumptruck.activity"
+	# _inherit = "production.operation.template"
+	_inherits = {'production.operation.template': 'operation_template_id'}
 
-	ritase_order_id = fields.Many2one("mining.ritase.order", string="Ritase", ondelete="restrict" )
-	vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
-	driver_id	= fields.Many2one('res.partner', string='Driver', required=True )
+	# operation_template_id = fields.Many2one(
+    #     'production.operation.template', 'Operation Template',
+    #     auto_join=True, index=True, ondelete="cascade", required=True)
+
+	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="restrict" )
+	date = fields.Date('Date', help='', related="ritase_order_id.date", readonly=True, default=time.strftime("%Y-%m-%d") )
+	shift = fields.Selection([
+        ( "1" , '1'),
+        ( "2" , '2'),
+        ], string='Shift', readonly=True, index=True, related="ritase_order_id.shift", )
+
 	log_ids = fields.One2many(
         'mining.dumptruck.activity.log',
         'dumptruck_activity_id',

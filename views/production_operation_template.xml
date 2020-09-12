@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="production_operation_template_list" model="ir.ui.view">
+        <field name="name">production.operation.template.list</field>
+        <field name="model">production.operation.template</field>
+        <field name="type">tree</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="Operation Template List">
+                <field name="shift" />
+                <field name="cost_code_id" />
+                <field name="block_id" />
+                <field name="vehicle_id" />
+                <field name="date" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_production_operation_template_form" model="ir.ui.view">
+            <field name="name">production.operation.template.form</field>
+            <field name="model">production.operation.template</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <form string="Operation Template">
+                    <sheet>
+                        <group>
+                            <field name="name" invisible="1" />
+                            <field name="shift" />
+                            <field name="cost_code_id" />
+                            <field name="block_id" />
+                            <field name="vehicle_id" />
+                            <field name="driver_id" />
+                            <field name="date" />
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+    </record>
+</odoo>

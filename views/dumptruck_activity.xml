@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="view_mining_dumptruck_activity_form" model="ir.ui.view">
+    <!-- <record id="view_mining_dumptruck_activity_form" model="ir.ui.view">
             <field name="name">mining.dumptruck.activity.form</field>
             <field name="model">mining.dumptruck.activity</field>
             <field name="priority">1</field>
@@ -10,6 +10,9 @@
                     <sheet>
                         <group>
                             <field name="ritase_order_id" invisible="1"/>
+                            <field name="shift" />
+                            <field name="cost_code_id" />
+                            <field name="block_id" />
                             <field name="vehicle_id" />
                             <field name="driver_id" />
                         </group>
@@ -17,7 +20,7 @@
                         <notebook>
                             <page string="Logs"  >
                                 <field name="log_ids" >
-                                    <tree string="Logs" >
+                                    <tree string="Logs" editable="bottom" >
                                         <field name="datetime" />
 									</tree>
                                 </field >
@@ -25,6 +28,33 @@
                         </notebook>
                     </sheet>
                 </form>
+            </field>
+    </record> -->
+    <record id="view_mining_dumptruck_activity_form" model="ir.ui.view">
+            <field name="name">mining.dumptruck.activity.form</field>
+            <field name="model">mining.dumptruck.activity</field>
+            <field name="mode">primary</field>
+            <field eval="7" name="priority"/>
+            <field name="inherit_id" ref="view_production_operation_template_form"/>
+            <field name="arch" type="xml">
+                <form position="attributes">
+                    <attribute name="string">Dump Truck Activity</attribute>
+                </form>
+                <field name="name" position="after">
+                    <field name="ritase_order_id" invisible="1"/>
+                    <!-- <field name="operation_template_id" class="oe_inline" readonly="1" invisible="1" /> -->
+                </field>
+                <sheet position="inside">
+                    <notebook>
+                        <page string="Logs"  >
+                            <field name="log_ids" >
+                                <tree string="Logs" editable="bottom" >
+                                    <field name="datetime" />
+                                </tree>
+                            </field >
+                        </page>
+                    </notebook>
+                </sheet>
             </field>
     </record>
     <record id="view_mining_dumptruck_activity_log_form" model="ir.ui.view">
