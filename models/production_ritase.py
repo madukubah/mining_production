@@ -17,7 +17,7 @@ class ProductionRitase(models.Model):
 		return types[:1]
 
 	READONLY_STATES = {
-        'confirm': [('readonly', True)],
+        'confirm': [('readonly', True)] ,
     }
 
 	name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
