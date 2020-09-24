@@ -20,6 +20,26 @@
             <field name="number_increment">1</field>
         </record>
 
+        <record id="sequence_production_order" model="ir.sequence">
+            <field name="name">Production Order</field>
+            <field name="code">production_order</field>
+            <field name="prefix">PROD/</field>
+            <field name="padding">4</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+
+        <record id="dp_production" model="decimal.precision">
+            <field name="name">Production</field>
+            <field name="digits">3</field>
+        </record>
+
+        <!-- Procurement rules and routes -->
+        <record id="route_warehouse0_mining_production" model='stock.location.route'>
+            <field name="name">Production</field>
+            <field name="sequence">5</field>
+        </record>
+
         <!-- <record id="uom_ritase" model="product.uom">
             <field name="name">Rit</field>
             <field name="category_id">Unit</field>

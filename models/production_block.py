@@ -10,4 +10,3 @@ class ProductionBlock(models.Model):
     
     name = fields.Char(string="Name", size=100 , required=True )
     code = fields.Char(string="Code", size=10 , required=True )
-

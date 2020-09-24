@@ -16,3 +16,6 @@ class StockMove(models.Model):
 
     ritase_order_id = fields.Many2one("production.ritase.order",
         'Ritase', ondelete='set null', index=True, readonly=True)
+    
+    production_order_id = fields.Many2one("production.order",
+        'Production Order', ondelete='set null')

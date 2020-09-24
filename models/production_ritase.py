@@ -51,7 +51,7 @@ class ProductionRitase(models.Model):
         ( "2" , '2'),
         ], string='Shift', index=True, required=True, states=READONLY_STATES )
 	buckets = fields.Integer( string="Buckets", default=0, digits=0, states=READONLY_STATES)
-	product_id = fields.Many2one('product.product', 'Material', required=True, states=READONLY_STATES )
+	product_id = fields.Many2one('product.product', 'Material', domain=[ ('type','=','product' ) ], required=True, states=READONLY_STATES )
 	product_uom = fields.Many2one(
             'product.uom', 'Product Unit of Measure', 
             required=True,
@@ -108,7 +108,7 @@ class ProductionRitase(models.Model):
 		for order in self:
 			for pick in order.picking_ids:
 				if pick.state == 'done':
-					raise UserError(_('Unable to cancel purchase order %s as some receptions have already been done.') % (order.name))
+					raise UserError(_('Unable to cancel order %s as some receptions have already been done.') % (order.name))
 
 			for pick in order.picking_ids.filtered(lambda r: r.state != 'cancel'):
 				pick.action_cancel()

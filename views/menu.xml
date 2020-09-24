@@ -37,6 +37,20 @@
         <field name="view_mode">tree,form</field>
     </record>
 
+    <record model="ir.actions.act_window" id="action_production_pit">
+        <field name="name">Production Pit</field>
+        <field name="res_model">production.pit</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_production_order">
+        <field name="name">Production Order</field>
+        <field name="res_model">production.order</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
     <!-- <record model="ir.actions.act_window" id="action_production_operation_template">
         <field name="name">Operation Template</field>
         <field name="res_model">production.operation.template</field>
@@ -49,25 +63,39 @@
         <menuitem id="production" name="Production" sequence="1" 
                 parent="mining_production_top"/>
 
+            <menuitem name="Production Order"
+                id="production_order"
+                parent="production" 
+                action="action_production_order"
+                sequence= "1"
+                />
+
             <menuitem name="Ritase"
                 id="mining_ritase"
                 parent="production" 
                 action="action_ritase_order"
-                sequence= "1"
+                sequence= "2"
                 />
 
             <menuitem name="Hourmeter"
                 id="mining_hourmeter"
                 parent="production" 
                 action="action_hourmeter_order"
-                sequence= "1"
+                sequence= "3"
                 />
             
             <menuitem name="Losstime"
                 id="production_losstime"
                 parent="production" 
                 action="action_production_losstime"
-                sequence= "1"
+                sequence= "4"
+                />
+            
+            <menuitem name="Vehicles Fuel Logs"
+                id="production_fleet_vehicle_log_fuel_action"
+                parent="production" 
+                action="fleet.fleet_vehicle_log_fuel_action"
+                sequence= "5"
                 />
         
         <menuitem id="mining_production_config" name="Configuration" sequence="99" 
@@ -84,6 +112,12 @@
                     parent="mining_production_config" 
                     action="action_production_block"
                     sequence= "2"
+                    />
+            <menuitem name="Production Pit"
+                    id="production_pit"
+                    parent="mining_production_config" 
+                    action="action_production_pit"
+                    sequence= "3"
                     />
             <!-- <menuitem name="Production Operation Template"
                     id="production_operation_template"

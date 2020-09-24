@@ -12,6 +12,8 @@
         'stock',
     ],
     'data': [
+        "views/stock_warehouse_views.xml",
+        "views/stock_move_views.xml",
         'views/menu.xml',
         "views/production_operation_template.xml",
         "views/ritase_order.xml",
@@ -21,8 +23,11 @@
         "views/cost_code.xml",
         "views/production_block.xml",
         "views/production_losstime.xml",
+        "views/production_pit.xml",
+        "views/production_order.xml",
+        "views/procurement_views.xml",
 
-        "data/ritase_data.xml",
+        "data/production_data.xml",
 
         "security/security.xml",
         "security/ir.model.access.csv",

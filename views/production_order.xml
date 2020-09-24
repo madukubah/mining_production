@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="production_order_list" model="ir.ui.view">
+        <field name="name">production.order.list</field>
+        <field name="model">production.order</field>
+        <field name="type">tree</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="Production Order List" decoration-muted="state=='cancel'" decoration-success="state=='done'" >
+                <field name="name" />
+                <field name="date" />
+                <field name="product_id" />
+                <field name="product_uom_id" />
+                <field name="product_qty" />
+                <field name="state" />
+                <field name="active" invisible="1" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_production_order_form" model="ir.ui.view">
+            <field name="name">production.order.form</field>
+            <field name="model">production.order</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <form string="Production Order">
+                    <header>
+                        <button name="button_draft" string="Set to Draft" type="object" states="confirm" class="btn-primary"  />
+                        <button name="button_confirm" string="Confirm" type="object" states="draft" class="btn-primary"  />
+                        <button name="button_done" string="Produce" type="object" states="confirm" class="btn-primary"   />
+                        <button name="button_cancel" string="Cancel" type="object" />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                                <field name="active" widget="boolean_button" options='{"terminology": "archive"}'/>
+                            </button>
+                            <button name="%(action_production_order_moves)d" type="action" string="Inventory Moves" class="oe_stat_button" icon="fa-arrows-v" attrs="{'invisible': [('state', 'not in', ('confirm', 'cancel', 'done'))]}"/>
+                        </div>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only" string="Name" ></label>
+                            <h1>
+                                <field name="name" />
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="has_moves" invisible="1"/>
+                                <field name="product_id" attrs="{'readonly': [('has_moves', '=', True)]}" domain="[('bom_ids', '!=', False)]"/>
+                                <field name="product_tmpl_id" invisible="1"/>
+                                <label for="product_qty"/>
+                                <div class="o_row">
+                                    <field name="product_qty" attrs="{'readonly': [('has_moves', '=', True)]}"/>
+                                    <field name="product_uom_id" options="{'no_open':True,'no_create':True}" attrs="{'readonly': [('has_moves', '=', True)]}"/>
+                                </div>
+                                <field name="shift" />
+                                <field name="cost_code_id" />
+                                <field name="picking_type_id" domain="[('code', '=', 'mining_production')]" attrs="{'readonly': [('has_moves', '=', True)]}"/>
+                                <field name="user_id" invisible="1" />
+                            </group>
+                            <group>
+                                <field name="date" />
+                                <field name="employee_id" />
+                                <field name="pit_id" />
+                                <field name="location_id" />
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+    </record>
+</odoo>

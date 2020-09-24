@@ -6,7 +6,7 @@
         <field name="type">tree</field>
         <field name="priority" eval="8"/>
         <field name="arch" type="xml">
-            <tree string="Ritase List">
+            <tree string="Ritase List" decoration-muted="state=='cancel'" >
                 <field name="name" />
                 <field name="date" />
                 <field name="partner_id" />
