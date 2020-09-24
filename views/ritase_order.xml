@@ -9,7 +9,7 @@
             <tree string="Ritase List" decoration-muted="state=='cancel'" >
                 <field name="name" />
                 <field name="date" />
-                <field name="partner_id" />
+                <field name="employee_id" />
                 <field name="location_id" />
                 <field name="dest_location_id" />
                 <field name="ritase_count" />
@@ -48,7 +48,7 @@
                         </div>
                         <group>
                             <field name="date" />
-                            <field name="partner_id" />
+                            <field name="employee_id" />
                         </group>
                         <group>
                             <group>

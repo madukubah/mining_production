@@ -21,7 +21,9 @@ class ProductionRitase(models.Model):
     }
 
 	name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
-	partner_id	= fields.Many2one('res.partner', string='Checker', required=True, states=READONLY_STATES )
+	# partner_id	= fields.Many2one('res.partner', string='Checker', required=True, states=READONLY_STATES )
+	employee_id	= fields.Many2one('hr.employee', string='Checker', states=READONLY_STATES )
+
 
 	date = fields.Date('Date', help='',  default=time.strftime("%Y-%m-%d"), states=READONLY_STATES )
 	picking_type_id = fields.Many2one('stock.picking.type', 'Deliver To', required=True, default=_default_picking_type,\

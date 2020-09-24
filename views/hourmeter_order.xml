@@ -9,7 +9,7 @@
             <tree string="Hourmeter List">
                 <field name="name" />
                 <field name="date" />
-                <field name="partner_id" />
+                <field name="employee_id" />
                 <field name="state" />
             </tree>
         </field>
@@ -45,7 +45,7 @@
                         </div>
                         <group>
                             <field name="date" />
-                            <field name="partner_id" />
+                            <field name="employee_id" />
                             <field name="shift" />
                         </group>
                         

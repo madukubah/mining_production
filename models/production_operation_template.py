@@ -18,7 +18,7 @@ class ProductionOperationTemplate(models.Model):
     cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict", required=True )
     block_id = fields.Many2one('production.block', string='Block', ondelete="restrict", required=True )
     vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
-    driver_id	= fields.Many2one('res.partner', string='Driver', required=True )
+    driver_id	= fields.Many2one('hr.employee', string='Driver', required=True )
     
     @api.depends('vehicle_id', 'date')
     def _compute_vehicle_log_name(self):

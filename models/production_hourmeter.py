@@ -13,7 +13,7 @@ class ProductionHourmeter(models.Model):
     }
 
     name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
-    partner_id	= fields.Many2one('res.partner', string='Checker', required=True, states=READONLY_STATES )
+    employee_id	= fields.Many2one('hr.employee', string='Checker', states=READONLY_STATES )
     date = fields.Date('Date', help='',  default=time.strftime("%Y-%m-%d"), states=READONLY_STATES )
     shift = fields.Integer( string="Shift", default=0, digits=0, states=READONLY_STATES)
     vehicle_hourmeter_log_ids = fields.One2many(
@@ -43,7 +43,7 @@ class ProductionVehicleHourmeterLog(models.Model):
     date = fields.Date('Date', help='', related="hourmeter_order_id.date", default=time.strftime("%Y-%m-%d")  )
     cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict", required=True )
     block_id = fields.Many2one('production.block', string='Block', ondelete="restrict", required=True )
-    driver_id	= fields.Many2one('res.partner', string='Driver', required=True )
+    driver_id	= fields.Many2one('hr.employee', string='Driver', required=True )
     vehicle_id  = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
     start = fields.Float('Start Hour')
     end = fields.Float('End Hour')
