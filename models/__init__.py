@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from . import mining_production_config
 from . import stock_warehouse
 from . import stock_picking
 from . import production_operation_template

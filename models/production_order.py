@@ -10,6 +10,7 @@ _logger = logging.getLogger(__name__)
 
 class ProductionOrder(models.Model):
     _name = "production.order"
+    _order = "id desc"
     
     @api.model
     def _get_default_picking_type(self):
@@ -111,11 +112,14 @@ class ProductionOrder(models.Model):
 
     @api.multi
     def button_confirm(self):
+        for order in self:
+            order._generate_moves()
         self.state = 'confirm'
 
     @api.multi
     def button_done(self):
-        self.post_inventory()
+        for order in self:
+            order.post_inventory()
         self.state = 'done'
 
     @api.multi
@@ -127,10 +131,20 @@ class ProductionOrder(models.Model):
         for order in self:
             for move in order.move_ids:
                 if move.state == 'done':
-                    raise UserError(_('Unable to cancel order %s as some Stock have already Created.') % (order.name))
+                    raise UserError(_('Unable to cancel order %s as some Stock have already Done.') % (order.name))
             moves = order.move_ids | order.move_ids.mapped('returned_move_ids')
             moves.filtered(lambda r: r.state != 'cancel').action_cancel()
         self.state = 'cancel'
+
+    @api.multi
+    def unlink(self):
+        for order in self:
+            for move in order.move_ids:
+                if move.state == 'done':
+                    raise UserError(_('Unable to cancel order %s as some Stock have already Done.') % (order.name))
+            moves = order.move_ids | order.move_ids.mapped('returned_move_ids')
+            moves.filtered(lambda r: r.state != 'cancel').action_cancel()
+        return super(ProductionOrder, self ).unlink()
         
     @api.model
     def create(self, values):
@@ -143,7 +157,6 @@ class ProductionOrder(models.Model):
             values['procurement_group_id'] = self.env["procurement.group"].create({'name': values['name']}).id
 
         res = super(ProductionOrder, self ).create(values)
-        res._generate_moves()
         return res
     
     @api.multi
@@ -153,6 +166,13 @@ class ProductionOrder(models.Model):
         return True
 
     def _generate_finished_moves(self):
+        ProductionConfig = self.env['mining.production.config'].sudo()
+        lots = self.env['stock.move.lots']
+
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Default Lot In Configuration file') )
+
         move = self.env['stock.move'].create({
             'name': self.name,
             'date': self.date,
@@ -168,7 +188,15 @@ class ProductionOrder(models.Model):
             'origin': self.name,
             'group_id': self.procurement_group_id.id,
         })
-        _logger.warning( move )
+        vals = {
+                'move_id': move.id,
+                'product_id': move.product_id.id,
+                'production_order_id': move.production_order_id.id,
+                'quantity': self.product_qty,
+                'quantity_done': self.product_qty,
+                'lot_id': production_config[0].lot_id.id,
+            }
+        lots.create(vals)
         move.action_confirm()
         return move
 
@@ -177,3 +205,23 @@ class ProductionOrder(models.Model):
         for order in self:
             moves_to_finish = order.move_ids.filtered(lambda x: x.state not in ('done','cancel'))
             moves_to_finish.action_done()
+            
+            for move in moves_to_finish:
+                #Group quants by lots
+                lot_quants = {}
+                raw_lot_quants = {}
+                if move.has_tracking != 'none':
+                    for quant in move.quant_ids:
+                        lot_quants.setdefault(quant.lot_id.id, self.env['stock.quant'])
+                        raw_lot_quants.setdefault(quant.lot_id.id, self.env['stock.quant'])
+                        lot_quants[quant.lot_id.id] |= quant
+                
+            order.action_assign()
+        return True
+
+    @api.multi
+    def action_assign(self):
+        for production in self:
+            move_to_assign = production.move_ids.filtered(lambda x: x.state in ('confirmed', 'waiting', 'assigned'))
+            move_to_assign.action_assign()
+        return True

@@ -12,6 +12,7 @@
         'stock',
     ],
     'data': [
+        "views/mining_production_config.xml",
         "views/stock_warehouse_views.xml",
         "views/stock_move_views.xml",
         'views/menu.xml',

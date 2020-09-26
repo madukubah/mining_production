@@ -45,8 +45,3 @@ class Pit(models.Model):
     @api.multi
     def unlink(self):
         raise UserError(_("Cannot Delete Data, Please Archive It ") )
-        # for rec in self:
-        #     if rec.location_id:
-        #         rec.location_id.toggle_active()
-        
-        # return super(Pit, self ).unlink()

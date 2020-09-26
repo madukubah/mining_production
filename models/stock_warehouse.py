@@ -56,7 +56,6 @@ class StockWarehouse(models.Model):
         picking_type_obj = self.env['stock.picking.type']
         seq_obj = self.env['ir.sequence']
         for warehouse in self:
-            #man_seq_id = seq_obj.sudo().create('name': warehouse.name + _(' Sequence Manufacturing'), 'prefix': warehouse.code + '/MANU/', 'padding')
             wh_stock_loc = warehouse.lot_stock_id
             seq = seq_obj.search([('code', '=', 'production_order')], limit=1)
             other_pick_type = picking_type_obj.search([('warehouse_id', '=', warehouse.id)], order = 'sequence desc', limit=1)

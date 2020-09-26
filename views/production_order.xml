@@ -37,7 +37,7 @@
                             <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
                                 <field name="active" widget="boolean_button" options='{"terminology": "archive"}'/>
                             </button>
-                            <button name="%(action_production_order_moves)d" type="action" string="Inventory Moves" class="oe_stat_button" icon="fa-arrows-v" attrs="{'invisible': [('state', 'not in', ('confirm', 'cancel', 'done'))]}"/>
+                            <button name="%(action_production_order_moves)d" type="action" string="Inventory Moves" class="oe_stat_button" icon="fa-arrows-v" attrs="{'invisible': [('state', 'not in', ('confirm', 'done'))]}"/>
                         </div>
                         <div class="oe_title">
                             <label for="name" class="oe_edit_only" string="Name" ></label>
@@ -67,6 +67,26 @@
                                 <field name="location_id" />
                             </group>
                         </group>
+                        <notebook>
+                            <page string="Finished Products">
+                                <field name="move_ids" options="{'reload_on_button': True}" >
+                                    <tree editable="bottom" delete="0" default_order="is_done desc,sequence" decoration-muted="is_done" decoration-warning="quantity_done&gt;product_uom_qty" decoration-success="quantity_done==product_uom_qty" create="0">
+                                        <field name="product_id" required="1"/>
+                                        <field name="product_uom" groups="product.group_uom"/>
+                                        <field name="is_done" invisible="1"/>
+                                        <field name="sequence" invisible="1"/>
+                                        <field name="has_tracking" invisible="1"/>
+                                        <field name="location_id" domain="[('id', 'child_of', parent.location_id)]" invisible="1"/>
+                                        <field name="location_dest_id" domain="[('id', 'child_of', parent.location_dest_id)]" invisible="1"/>
+                                        <field name="state" invisible="1"/>
+                                        <field name="product_uom_qty" readonly="1" attrs="{'required': [('product_id', '!=', False)]}" string="To Produce"/>
+                                        <field name="quantity_done" attrs="{'readonly': ['|', ('is_done', '=', True), ('has_tracking', 'in', ['lot','serial'])]}" string="Produced"/>
+                                        <button name="mining_split_move_lot" string="Register lots" type="object" icon="fa-list"
+                                            attrs="{'invisible': [('has_tracking', 'not in', ['lot','serial'])]}"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
                     </sheet>
                 </form>
             </field>
