@@ -21,7 +21,6 @@ class ProductionRitase(models.Model):
     }
 
 	name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
-	# partner_id	= fields.Many2one('res.partner', string='Checker', required=True, states=READONLY_STATES )
 	employee_id	= fields.Many2one('hr.employee', string='Checker', states=READONLY_STATES )
 
 
@@ -35,7 +34,6 @@ class ProductionRitase(models.Model):
             ondelete="restrict", required=True, states=READONLY_STATES)
 	location_id = fields.Many2one(
             'stock.location', 'Origin Location',
-			# related="warehouse_id.lot_stock_id",
 			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict", required=True, states=READONLY_STATES)
 	
@@ -44,7 +42,6 @@ class ProductionRitase(models.Model):
 			ondelete="restrict", required=True, states=READONLY_STATES)
 	dest_location_id = fields.Many2one(
             'stock.location', 'Destination Location',
-			# related="dest_warehouse_id.lot_stock_id",
 			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict", required=True, states=READONLY_STATES)
 	
@@ -244,12 +241,7 @@ class ProductionRitase(models.Model):
 
 class DumpTruckActivity(models.Model):
 	_name = "mining.dumptruck.activity"
-	# _inherit = "production.operation.template"
 	_inherits = {'production.operation.template': 'operation_template_id'}
-
-	# operation_template_id = fields.Many2one(
-    #     'production.operation.template', 'Operation Template',
-    #     auto_join=True, index=True, ondelete="cascade", required=True)
 
 	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="restrict" )
 	date = fields.Date('Date', help='', related="ritase_order_id.date", readonly=True, default=time.strftime("%Y-%m-%d") )

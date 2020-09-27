@@ -22,9 +22,9 @@
             <field name="arch" type="xml">
                 <form string="Hourmeter">
                     <header>
-                        <!-- <button name="button_draft" states="cancel" string="Set to Open" type="object" groups="mining_production.production_group_manager" />
+                        <button name="button_draft" states="cancel" string="Set to Open" type="object" groups="mining_production.production_group_manager" />
                         <button name="button_confirm" string="Confirm" type="object" states="open" class="btn-primary" groups="mining_production.production_group_manager" />
-                        <button name="button_cancel" states="open,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" /> -->
+                        <button name="button_cancel" states="open,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" />
                         <field name="state" widget="statusbar" statusbar_visible="open,confirm" readonly="1"  />
                     </header>
                     <sheet>
@@ -52,7 +52,8 @@
                         <notebook>
                             <page string="HE Hourmeter"  >
                                 <field name="vehicle_hourmeter_log_ids"  >
-                                    <tree string="HE Hourmeter" editable="bottom"  >
+                                    <!-- <tree string="HE Hourmeter" editable="bottom"  > -->
+                                    <tree string="HE Hourmeter" >
                                         <field name="hourmeter_order_id" invisible="1" />
                                         <field name="name" invisible="1" />
                                         <field name="date" invisible="1" />

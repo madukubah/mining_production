@@ -12,10 +12,10 @@
         'stock',
     ],
     'data': [
-        "views/mining_production_config.xml",
         "views/stock_warehouse_views.xml",
         "views/stock_move_views.xml",
         'views/menu.xml',
+        "views/mining_production_config.xml",
         "views/production_operation_template.xml",
         "views/ritase_order.xml",
         "views/dumptruck_activity.xml",
@@ -27,6 +27,7 @@
         "views/production_pit.xml",
         "views/production_order.xml",
         "views/procurement_views.xml",
+        "views/hourmeter_log.xml",
 
         "data/production_data.xml",
 

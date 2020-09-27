@@ -87,14 +87,7 @@ class ProductionOrder(models.Model):
     @api.onchange('product_id', 'picking_type_id', 'company_id')
     def onchange_product_id(self):
         """ Finds UoM of changed product. """
-        if not self.product_id:
-            self.bom_id = False
-        else:
-            bom = self.env['mrp.bom']._bom_find(product=self.product_id, picking_type=self.picking_type_id, company_id=self.company_id.id)
-            if bom.type == 'normal':
-                self.bom_id = bom.id
-            else:
-                self.bom_id = False
+        if self.product_id:
             self.product_uom_id = self.product_id.uom_id.id
             return {'domain': {'product_uom_id': [('category_id', '=', self.product_id.uom_id.category_id.id)]}}
 
@@ -148,6 +141,11 @@ class ProductionOrder(models.Model):
         
     @api.model
     def create(self, values):
+        ProductionConfig = self.env['mining.production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Default Lot In Configuration file') )
+
         if not values.get('name', False) or values['name'] == _('New'):
             if values.get('picking_type_id'):
                 values['name'] = self.env['stock.picking.type'].browse(values['picking_type_id']).sequence_id.next_by_id()
@@ -167,7 +165,7 @@ class ProductionOrder(models.Model):
 
     def _generate_finished_moves(self):
         ProductionConfig = self.env['mining.production.config'].sudo()
-        lots = self.env['stock.move.lots']
+        lots = self.env['mining.stock.move.lots']
 
         production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
         if not production_config :

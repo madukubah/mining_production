@@ -67,7 +67,7 @@
                                 <field name="location_id" />
                             </group>
                         </group>
-                        <notebook>
+                        <!-- <notebook>
                             <page string="Finished Products">
                                 <field name="move_ids" options="{'reload_on_button': True}" >
                                     <tree editable="bottom" delete="0" default_order="is_done desc,sequence" decoration-muted="is_done" decoration-warning="quantity_done&gt;product_uom_qty" decoration-success="quantity_done==product_uom_qty" create="0">
@@ -86,7 +86,7 @@
                                     </tree>
                                 </field>
                             </page>
-                        </notebook>
+                        </notebook> -->
                     </sheet>
                 </form>
             </field>

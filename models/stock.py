@@ -157,7 +157,7 @@ class StockMove(models.Model):
 
     @api.multi
     def create_lots(self):
-        lots = self.env['stock.move.lots']
+        lots = self.env['mining.stock.move.lots']
         for move in self:
             unlink_move_lots = move.move_lot_ids.filtered(lambda x : (x.quantity_done == 0) and x.done_wo)
             unlink_move_lots.sudo().unlink()
