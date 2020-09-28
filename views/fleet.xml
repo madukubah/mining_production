@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- <record id="production_fleet_vehicle_log_services_list" model="ir.ui.view">
+        <field name="name">production_fleet_vehicle_log_services_list</field>
+        <field name="model">fleet.vehicle.log.services</field>
+        <field name="type">tree</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="Service Logs List">
+                <field name="name" />
+                <field name="category"/>
+            </tree>
+        </field>
+    </record> -->
+
+    <record id="view_production_fleet_vehicle_log_services_form" model="ir.ui.view">
+            <field name="name">fleet.vehicle.log.services.form</field>
+            <field name="model">fleet.vehicle.log.services</field>
+            <field name="inherit_id" ref="fleet.fleet_vehicle_log_services_view_form"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <field name="cost_subtype_id" position="after">
+                    <field name="product_uom_qty" />
+                </field>
+            </field>
+    </record>
+
+    <record id='fleet_production_vehicle_cost_view_tree' model='ir.ui.view'>
+        <field name="name">fleet.vehicle.cost.tree</field>
+        <field name="model">fleet.vehicle.cost</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_cost_view_tree"/>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <field name="date" position="after">
+                <field name="state"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_production_fleet_vehicle_cost_form" model="ir.ui.view">
+            <field name="name">fleet.vehicle.cost.form</field>
+            <field name="model">fleet.vehicle.cost</field>
+            <field name="inherit_id" ref="fleet.fleet_vehicle_costs_view_form"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet" position="before">
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                    </header>
+                </xpath>
+                <field name="vehicle_id" position="after">
+                    <field name="cop_adjust_id" invisible="1" />
+                </field>
+            </field>
+    </record>
+</odoo>

@@ -10,7 +10,6 @@ class ProductionOperationTemplate(models.Model):
     
     name = fields.Char(compute='_compute_vehicle_log_name', store=True)
     date = fields.Date('Date', help='' )
-    # date = fields.Date('Date', help='', default=time.strftime("%Y-%m-%d")  )
     shift = fields.Selection([
         ( "1" , '1'),
         ( "2" , '2'),

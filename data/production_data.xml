@@ -29,6 +29,15 @@
             <field name="number_increment">1</field>
         </record>
 
+        <record id="sequence_production_cop_adjust" model="ir.sequence">
+            <field name="name">Cop Adjust</field>
+            <field name="code">cop_adjust</field>
+            <field name="prefix">COP/</field>
+            <field name="padding">4</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+
         <record id="dp_production" model="decimal.precision">
             <field name="name">Production</field>
             <field name="digits">3</field>

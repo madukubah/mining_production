@@ -22,7 +22,6 @@
         <field name="view_mode">tree,form</field>
     </record>
 
-
     <record model="ir.actions.act_window" id="action_production_block">
         <field name="name">Production Block</field>
         <field name="res_model">production.block</field>
@@ -51,17 +50,31 @@
         <field name="view_mode">tree,form</field>
     </record>
 
-    <!-- <record model="ir.actions.act_window" id="action_production_operation_template">
-        <field name="name">Operation Template</field>
-        <field name="res_model">production.operation.template</field>
+    <record model="ir.actions.act_window" id="action_production_cop_adjust">
+        <field name="name">COP Adjust</field>
+        <field name="res_model">production.cop.adjust</field>
         <field name="view_type">form</field>
         <field name="view_mode">tree,form</field>
-    </record> -->
+    </record>
+
+    <record model="ir.actions.act_window" id="production_fleet_vehicle_service_types_action">
+        <field name="name">Vehicle Service Types</field>
+        <field name="res_model">fleet.service.type</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
 
     <menuitem id="mining_production_top" name="Production" sequence="4" web_icon="mining_production,static/description/icon.png" />
         
         <menuitem id="production" name="Production" sequence="1" 
                 parent="mining_production_top"/>
+
+            <menuitem name="COP Adjust"
+                id="production_cop_adjust"
+                parent="production" 
+                action="action_production_cop_adjust"
+                sequence= "0"
+                />
 
             <menuitem name="Production Order"
                 id="production_order"
@@ -91,12 +104,26 @@
                 sequence= "4"
                 />
             
-            <menuitem name="Vehicles Fuel Logs"
+            <!-- <menuitem name="Vehicles Costs"
+                action="fleet.fleet_vehicle_costs_action" 
+                parent="production" 
+                id="production_fleet_vehicle_costs_menu" 
+                sequence= "5"
+                /> -->
+
+            <!-- <menuitem name="Vehicles Fuel Logs"
                 id="production_fleet_vehicle_log_fuel_action"
                 parent="production" 
                 action="fleet.fleet_vehicle_log_fuel_action"
                 sequence= "5"
+                /> -->
+            <menuitem name="Vehicles Services Logs"
+                action="fleet.fleet_vehicle_log_services_action" 
+                parent="production" 
+                id="production_fleet_vehicle_log_services_menu" 
+                sequence= "6"
                 />
+            
         
         <menuitem id="mining_production_config" name="Configuration" sequence="99" 
                 parent="mining_production_top"/>
@@ -119,10 +146,11 @@
                     action="action_production_pit"
                     sequence= "3"
                     />
-            <!-- <menuitem name="Production Operation Template"
-                    id="production_operation_template"
+            <menuitem name="Vehicle Service Types"
+                    action="production_fleet_vehicle_service_types_action" 
                     parent="mining_production_config" 
-                    action="action_production_operation_template"
-                    sequence= "2"
-                    /> -->
+                    id="production_fleet_vehicle_service_types_menu" 
+                    sequence= "4"
+                    />
+            
 </odoo>

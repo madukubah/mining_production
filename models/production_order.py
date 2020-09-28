@@ -17,7 +17,7 @@ class ProductionOrder(models.Model):
         return self.env['stock.picking.type'].search([
             ('code', '=', 'mining_production'),
             ('warehouse_id.company_id', 'in', [self.env.context.get('company_id', self.env.user.company_id.id), False])],
-            limit=1).id
+            limit=1).id 
 
     READONLY_STATES = {
         'draft': [('readonly', False)],
@@ -39,7 +39,7 @@ class ProductionOrder(models.Model):
             'stock.location', 'Location',
             readonly=True,
             store=True,copy=True,
-            compute="_onset_pi_id",
+            compute="_onset_pit_id",
             ondelete="restrict" )
     product_id = fields.Many2one(
         'product.product', 'Product',
@@ -92,7 +92,7 @@ class ProductionOrder(models.Model):
             return {'domain': {'product_uom_id': [('category_id', '=', self.product_id.uom_id.category_id.id)]}}
 
     @api.depends("pit_id" )
-    def _onset_pi_id(self):
+    def _onset_pit_id(self):
         for rec in self:
             if( rec.pit_id ):
                 rec.location_id = rec.pit_id.location_id

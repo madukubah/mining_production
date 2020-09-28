@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="production_cop_adjust_list" model="ir.ui.view">
+        <field name="name">production_cop_adjust_list</field>
+        <field name="model">production.cop.adjust</field>
+        <field name="type">tree</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="COP Adjustment List">
+                <field name="name" />
+                <field name="date" />
+                <field name="employee_id" />
+                <field name="state" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_production_cop_adjust_form" model="ir.ui.view">
+            <field name="name">production.cop.adjust.form</field>
+            <field name="model">production.cop.adjust</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <form string="COP Adjustment">
+                    <header>
+                        <button name="action_draft" states="cancel" string="Set to Draft" type="object" groups="mining_production.production_group_manager" />
+                        <button name="action_reload" string="Reload" type="object" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="action_settle" string="Settle" type="object" states="draft" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="button_done" string="Post" type="object" states="confirm" class="btn-primary"  groups="mining_production.production_group_manager" />
+                        <button name="action_cancel" states="draft,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done" readonly="1"  />
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only" string="Name" ></label>
+                            <h1>
+                                <field name="name" />
+                            </h1>
+                        </div>
+                        <group>
+                            <field name="date" />
+                            <field name="employee_id" />
+                        </group>
+                        <notebook>
+                            <page string="Vehicle Costs">
+                                <field name="cost_ids" >
+                                    <!-- <tree editable="bottom" delete="0" default_order="is_done desc,sequence" decoration-muted="is_done" decoration-warning="quantity_done&gt;product_uom_qty" decoration-success="quantity_done==product_uom_qty" create="0"> -->
+                                    <tree string="Vehicle Costs" >
+                                        <field name="vehicle_id" />
+                                        <field name="cost_subtype_id" />
+                                        <field name="amount" />
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+    </record>
+</odoo>

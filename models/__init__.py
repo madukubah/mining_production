@@ -12,3 +12,5 @@ from . import production_losstime
 from . import production_pit
 from . import production_order
 from . import procurement
+from . import production_cop_adjust
+from . import fleet

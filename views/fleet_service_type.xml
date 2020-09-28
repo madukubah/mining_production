@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="fleet_service_type_list" model="ir.ui.view">
+        <field name="name">fleet_service_type_list</field>
+        <field name="model">fleet.service.type</field>
+        <field name="type">tree</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="Service Types List">
+                <field name="name" />
+                <field name="category"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_fleet_service_type_form" model="ir.ui.view">
+            <field name="name">fleet.service.type.form</field>
+            <field name="model">fleet.service.type</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <form string="Service Types">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only" string="Name" ></label>
+                            <h1>
+                                <field name="name" />
+                            </h1>
+                        </div>
+                        <group>
+                            <field name="category"/>
+                            <field name="is_consumable"/>
+					        <field name="product_id" attrs="{'invisible': [ ('is_consumable', '=', False) ] }" />
+					        <field name="inventory_account_id" attrs="{'invisible': [ ('is_consumable', '=', False) ] }" />
+					        <field name="cop_account_id" attrs="{'invisible': [ ('is_consumable', '=', False) ] }" />
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+    </record>
+</odoo>
