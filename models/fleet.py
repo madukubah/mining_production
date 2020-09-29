@@ -32,6 +32,26 @@ class FleetServiceType(models.Model):
             if( rec.product_id.categ_id ):
                 category = rec.product_id.categ_id
                 rec.inventory_account_id = category.property_stock_valuation_account_id
+    
+    @api.multi
+    def _get_accounting_data_for_cop(self):
+        """ Return the accounts and journal to use to post Journal Entries for
+        the real-time valuation of the quant. """
+        self.ensure_one()
+        accounts_data = self.product_id.product_tmpl_id.get_product_accounts()
+        acc_src = accounts_data['stock_input'].id
+        acc_dest = accounts_data['stock_output'].id
+
+        if not accounts_data.get('stock_journal', False):
+            raise UserError(_('You don\'t have any stock journal defined on your product category, check if you have installed a chart of accounts'))
+        if not acc_src:
+            raise UserError(_('Cannot find a stock input account for the product %s. You must define one on the product category, or on the location, before processing this operation.') % (self.product_id.name))
+        if not acc_dest:
+            raise UserError(_('Cannot find a stock output account for the product %s. You must define one on the product category, or on the location, before processing this operation.') % (self.product_id.name))
+        if not self.cop_account_id:
+            raise UserError(_('You don\'t have any COP account defined on your Service typ. You must define one before processing this operation.'))
+        journal_id = accounts_data['stock_journal'].id
+        return journal_id, acc_src, acc_dest, self.cop_account_id.id
 
 class FleetVehicleLogServices(models.Model):
     _inherit = 'fleet.vehicle.log.services'
@@ -47,6 +67,10 @@ class FleetVehicleLogServices(models.Model):
                 product = rec.cost_subtype_id.product_id
                 _logger.warning( product )
                 rec.amount = product.standard_price * rec.product_uom_qty
+    @api.multi
+    def post(self):
+        for record in self:
+            record.write({'state' : 'posted' })
 
 class FleetVehicleCost(models.Model):
     _inherit = 'fleet.vehicle.cost'
@@ -54,3 +78,16 @@ class FleetVehicleCost(models.Model):
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
+    
+    @api.multi
+    def post(self):
+        for record in self:
+            record.write({'state' : 'posted' })
+    
+    @api.model
+    def create(self, values):
+        service_type = self.env['fleet.service.type'].search( [ ( 'id', '=', values['cost_subtype_id'] ) ] )
+        if not service_type.is_consumable :
+            values["state"] = 'posted'
+        res = super(FleetVehicleCost, self ).create(values)
+        return res

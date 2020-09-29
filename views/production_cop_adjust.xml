@@ -23,9 +23,8 @@
                 <form string="COP Adjustment">
                     <header>
                         <button name="action_draft" states="cancel" string="Set to Draft" type="object" groups="mining_production.production_group_manager" />
-                        <button name="action_reload" string="Reload" type="object" class="btn-primary" groups="mining_production.production_group_manager" />
-                        <button name="action_settle" string="Settle" type="object" states="draft" class="btn-primary" groups="mining_production.production_group_manager" />
-                        <button name="button_done" string="Post" type="object" states="confirm" class="btn-primary"  groups="mining_production.production_group_manager" />
+                        <button name="action_reload" string="Reload" type="object" class="btn-primary" groups="mining_production.production_group_manager" attrs="{'invisible': [('state', 'in', ('done'))]}" />
+                        <button name="action_settle" string="Settle" type="object" states="draft,confirm" class="btn-primary" groups="mining_production.production_group_manager" />
                         <button name="action_cancel" states="draft,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" />
                         <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done" readonly="1"  />
                     </header>
@@ -37,6 +36,7 @@
                             </h1>
                         </div>
                         <group>
+                            <field name="company_id" invisible="1" />
                             <field name="date" />
                             <field name="employee_id" />
                         </group>

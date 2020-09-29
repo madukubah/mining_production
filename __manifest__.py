@@ -10,6 +10,7 @@
         # 'mining_qaqc',
         'fleet',
         'stock',
+        'stock_account',
         'account',
     ],
     'data': [
