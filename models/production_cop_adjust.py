@@ -45,10 +45,8 @@ class ProductionCopAdjust(models.Model):
     @api.multi
     def action_settle(self):
         self.ensure_one()
-        # for record in self:
         self.action_reload()
-        self._settle()
-        # self.state = 'confirm'
+        self._settle_vehicle_cost()
 
     @api.multi
     def action_reload(self):
@@ -63,15 +61,13 @@ class ProductionCopAdjust(models.Model):
         VehicleCost = self.env['fleet.vehicle.cost'].sudo()
         vehicle_costs = VehicleCost.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
         vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs if vehicle_cost.cost_subtype_id.is_consumable ]
-        # if vehicle_costs :
         self.update({
             'cost_ids': [( 6, 0, vehicle_costs_ids )],
         })
         return True
 
     @api.multi
-    def _settle(self):
-        # for record in self:
+    def _settle_vehicle_cost(self):
         self.ensure_one()
 
         product_n_qty_list = {}
@@ -92,10 +88,7 @@ class ProductionCopAdjust(models.Model):
         for product_id, obj in product_n_qty_list.items():
             self._generate_moves( product_id, obj['qty'] )
             self._account_entry_move( obj['cost_subtype_id'], obj['qty'] )
-            # services_2 = LogServices.search( [ ("cost_id", "in", [cost.id for cost in record.cost_ids ] ), ("cost_id.cost_subtype_id", "=", obj['cost_subtype_id'].id )] )
-            # services_2.post()
-            # break
-        # for service in services:
+            
         self.cost_ids.post()
         self.write({ 'state' : 'done' })
         
