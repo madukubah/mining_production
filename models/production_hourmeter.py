@@ -77,9 +77,20 @@ class ProductionVehicleHourmeterLog(models.Model):
     start = fields.Float('Start Hour')
     end = fields.Float('End Hour')
     value = fields.Float('Hourmeter Value', group_operator="max", readonly=True, compute="_compute_value" )
+    cost_amount = fields.Float(string='Amount', compute="_compute_cost_amount" )
     
     @api.depends('start', 'end')
     def _compute_value(self):
         for record in self:
             record.value = record.end - record.start
+
+    @api.depends('value')	
+    def _compute_cost_amount(self):
+        for rec in self:
+            rec.cost_amount = rec.value *  20000
+
+    @api.multi
+    def post(self):
+        for record in self:
+            record.write({'state' : 'posted' })
         

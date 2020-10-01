@@ -7,6 +7,16 @@ from odoo.exceptions import UserError, ValidationError
 class MiningProductionConfig(models.Model):
     _name = 'mining.production.config'
 
+    @api.model
+    def _default_journal(self):
+        journal_type = self.env.context.get('journal_type', False)
+        company_id = self.env['res.company']._company_default_get('mining.production.config').id
+        if journal_type:
+            journals = self.env['account.journal'].search([('type', '=', journal_type), ('company_id', '=', company_id)])
+            if journals:
+                return journals[0]
+        return self.env['account.journal']
+
     name = fields.Char(string="Name", size=100 , required=True, default="NEW")
     company_id = fields.Many2one('res.company', string='Company', required=True,
         default=lambda self: self.env.user.company_id)
@@ -14,6 +24,8 @@ class MiningProductionConfig(models.Model):
         'stock.production.lot', 'Default Production Lot',
 		required=True, 
         )
+    cop_journal_id = fields.Many2one('account.journal', string='COP Journal', default=_default_journal )
+    journal_type = fields.Selection(related='cop_journal_id.type', help="Technical field used for usability purposes")
 
     active = fields.Boolean(
         'Active', default=True,

@@ -256,11 +256,22 @@ class DumpTruckActivity(models.Model):
         string='Logs',
         copy=True )
 	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0, compute='_compute_ritase_count' )
+	cost_amount = fields.Float(string='Amount', compute="_compute_cost_amount" )
 	
 	@api.depends('log_ids')	
 	def _compute_ritase_count(self):
 		for rec in self:
 			rec.ritase_count = len( rec.log_ids )
+	
+	@api.depends('ritase_count')	
+	def _compute_cost_amount(self):
+		for rec in self:
+			rec.cost_amount = rec.ritase_count *  5000 
+
+	@api.multi
+	def post(self):
+		for record in self:
+			record.write({'state' : 'posted' })
 
 class DumpTruckActivityLog(models.Model):
 	_name = "mining.dumptruck.activity.log"

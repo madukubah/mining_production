@@ -18,7 +18,11 @@ class ProductionOperationTemplate(models.Model):
     block_id = fields.Many2one('production.block', string='Block', ondelete="restrict", required=True )
     vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
     driver_id	= fields.Many2one('hr.employee', string='Driver', required=True )
-    
+
+    cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
+    state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
+      required=True, readonly=True, copy=False, default='draft' )
+
     @api.depends('vehicle_id', 'date')
     def _compute_vehicle_log_name(self):
         for record in self:
@@ -28,5 +32,10 @@ class ProductionOperationTemplate(models.Model):
             elif record.date:
                 name += ' / ' + record.date
             self.name = name
+
+    @api.multi
+    def post(self):
+        for record in self:
+            record.write({'state' : 'posted' })
 
 

@@ -23,9 +23,13 @@
             <field name="priority">1</field>
             <field name="arch" type="xml">
                 <form string="Operation Template">
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                    </header>
                     <sheet>
                         <group>
                             <field name="name" invisible="1" />
+                            <field name="cop_adjust_id" invisible="1" />
                             <field name="date" />
                             <field name="shift" />
                             <field name="cost_code_id" />

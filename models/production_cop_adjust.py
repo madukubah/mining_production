@@ -26,7 +26,10 @@ class ProductionCopAdjust(models.Model):
         required=True)
     date = fields.Date('Date', help='',default=time.strftime("%Y-%m-%d"), states=READONLY_STATES )
     employee_id	= fields.Many2one('hr.employee', string='Responsible', states=READONLY_STATES )
+    production_config_id	= fields.Many2one('mining.production.config', string='Production Config', states=READONLY_STATES )
     cost_ids = fields.One2many('fleet.vehicle.cost', 'cop_adjust_id', 'Vehicle Costs', states=READONLY_STATES )
+    rit_ids = fields.One2many('mining.dumptruck.activity', 'cop_adjust_id', 'Vehicle Costs', states=READONLY_STATES )
+    hourmeter_ids = fields.One2many('production.vehicle.hourmeter.log', 'cop_adjust_id', 'Vehicle Costs', states=READONLY_STATES )
 
     state = fields.Selection([
         ('draft', 'Draft'), 
@@ -39,6 +42,15 @@ class ProductionCopAdjust(models.Model):
     def create(self, values):
         seq = self.env['ir.sequence'].next_by_code('cop_adjust')
         values["name"] = seq
+        ProductionConfig = self.env['mining.production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Default Configuration file') )
+        if not production_config.lot_id :
+            raise UserError(_('Please Set Default Lot Product Configuration file') )
+        if not production_config.cop_journal_id :
+            raise UserError(_('Please Set Default COP Journal Configuration file') )
+        values["production_config_id"] = production_config.id
         res = super(ProductionCopAdjust, self ).create(values)
         return res
     
@@ -53,7 +65,6 @@ class ProductionCopAdjust(models.Model):
         for record in self:
             if record.state == 'done':
                 continue
-
             record._reload()
     
     @api.multi
@@ -64,7 +75,24 @@ class ProductionCopAdjust(models.Model):
         self.update({
             'cost_ids': [( 6, 0, vehicle_costs_ids )],
         })
+
+        DumptruckActivity = self.env['mining.dumptruck.activity'].sudo()
+        dumptruck_activity = DumptruckActivity.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
+        self.update({
+            'rit_ids': [( 6, 0, dumptruck_activity.ids )],
+        })
+
+        HourmeterLog = self.env['production.vehicle.hourmeter.log'].sudo()
+        hourmeter_log = HourmeterLog.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
+        self.update({
+            'hourmeter_ids': [( 6, 0, hourmeter_log.ids )],
+        })
         return True
+    
+    @api.multi
+    def _update_ore_valuation(self):
+        self.ensure_one()
+
 
     @api.multi
     def _settle_vehicle_cost(self):
@@ -84,12 +112,15 @@ class ProductionCopAdjust(models.Model):
                         'cost_subtype_id' : service.cost_subtype_id,
                         'qty' : service.product_uom_qty,
                     }
-        
+        move_lines = []
         for product_id, obj in product_n_qty_list.items():
             self._generate_moves( product_id, obj['qty'] )
-            self._account_entry_move( obj['cost_subtype_id'], obj['qty'] )
-            
+            move_lines += self._account_entry_move( obj['cost_subtype_id'], obj['qty'] )
+        
+        self._account_entry_move_ore( move_lines )
         self.cost_ids.post()
+        self.rit_ids.post()
+        self.hourmeter_ids.post()
         self.write({ 'state' : 'done' })
         
     
@@ -100,7 +131,7 @@ class ProductionCopAdjust(models.Model):
         stock_quants = self.env['stock.quant'].read_group( domain_quant, [ 'location_id', 'product_id', 'qty'], ["location_id", 'product_id'], orderby='id')
         location_id = None
         for stock_quant in stock_quants:
-            _logger.warning( stock_quant )
+            # _logger.warning( stock_quant )
             if stock_quant['qty'] >= qty :
                 location_id = stock_quant['location_id']
                 break
@@ -126,10 +157,68 @@ class ProductionCopAdjust(models.Model):
         move.action_done()
         return move
     
+    def _account_entry_move_ore(self, move_lines ):
+        production_config = self.production_config_id
+        if not production_config :
+            raise UserError(_('Please Set Default Configuration file') )
+        if not production_config.lot_id :
+            raise UserError(_('Please Set Default Lot Product Configuration file') )
+
+        journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation( production_config.lot_id.product_id )
+        AccountMove = self.env['account.move']
+        
+        move_lines = [ move_line for move_line in move_lines if move_line[2]["debit"] > 0 ]
+        debit_amount = 0
+        for move_line in move_lines:
+            move_line[2]["credit"] = move_line[2]["debit"]
+            debit_amount += move_line[2]["debit"]
+            move_line[2]["debit"] = 0
+        product = production_config.lot_id.product_id
+        debit_line_vals = {
+            'name': self.name,
+            'product_id': product.id,
+            'quantity': 5,
+            'product_uom_id': product.uom_id.id,
+            'ref': self.name,
+            'partner_id': False,
+            'debit': debit_amount,
+            'credit':  0,
+            'account_id': acc_valuation,
+        }
+        
+        if move_lines:
+            move_lines.append((0, 0, debit_line_vals))
+            _logger.warning( move_lines )
+            date = self._context.get('force_period_date', fields.Date.context_today(self))
+            new_account_move = AccountMove.create({
+                'journal_id': journal_id,
+                'line_ids': move_lines,
+                'date': date,
+                'ref': self.name})
+            new_account_move.post()
+
+            product_qty = product.qty_available
+            amount_unit = product.standard_price
+            amount_rit_hm = self.get_amount_rit_hm()
+            new_std_price = (( amount_unit * product_qty ) + amount_rit_hm + debit_amount ) / ( product_qty )
+            product.with_context(force_company=self.company_id.id).sudo().write({ 'standard_price': new_std_price })
+
+    def get_amount_rit_hm(self):
+        sum_rit = sum( [ rit.cost_amount for rit in self.rit_ids ] )
+        sum_hm = sum( [ hourmeter.cost_amount for hourmeter in self.hourmeter_ids ] )
+        return sum_hm + sum_rit
+
     def _account_entry_move(self, costs_subtype, qty):
         """ Accounting COP Entries """
         journal_id, acc_src, acc_dest, cop_account_id = costs_subtype._get_accounting_data_for_cop()
-        self.with_context(force_company=self.company_id.id)._create_account_move_line(costs_subtype, qty , acc_dest, cop_account_id, journal_id)
+        production_config = self.production_config_id
+        if not production_config :
+            raise UserError(_('Please Set Default Configuration file') )
+        
+        journal_id = production_config.cop_journal_id.id if production_config.cop_journal_id else journal_id
+
+        move_lines = self.with_context(force_company=self.company_id.id)._create_account_move_line(costs_subtype, qty , acc_dest, cop_account_id, journal_id)
+        return move_lines
 
         # if self.company_id.anglo_saxon_accounting:
         #     # Creates an account entry from stock_input to stock_output on a dropship move. https://github.com/odoo/odoo/issues/12687
@@ -151,6 +240,7 @@ class ProductionCopAdjust(models.Model):
                 'date': date,
                 'ref': self.name})
             new_account_move.post()
+        return move_lines
 
     def _prepare_account_move_line(self, product, qty, cost, credit_account_id, debit_account_id):
         """
@@ -158,7 +248,7 @@ class ProductionCopAdjust(models.Model):
         processing of the given quant.
         """
         self.ensure_one()
-
+        valuation_amount = cost
         if self._context.get('force_valuation_amount'):
             valuation_amount = self._context.get('force_valuation_amount')
         else:
@@ -231,3 +321,26 @@ class ProductionCopAdjust(models.Model):
             }
             res.append((0, 0, price_diff_line))
         return res
+    
+    @api.multi
+    def _get_accounting_data_for_valuation(self, product_id):
+        """ Return the accounts and journal to use to post Journal Entries for
+        the real-time valuation of the quant. """
+        self.ensure_one()
+        accounts_data = product_id.product_tmpl_id.get_product_accounts()
+        acc_src = accounts_data['stock_input'].id
+        acc_dest = accounts_data['stock_output'].id
+
+        acc_valuation = accounts_data.get('stock_valuation', False)
+        if acc_valuation:
+            acc_valuation = acc_valuation.id
+        if not accounts_data.get('stock_journal', False):
+            raise UserError(_('You don\'t have any stock journal defined on your product category, check if you have installed a chart of accounts'))
+        if not acc_src:
+            raise UserError(_('Cannot find a stock input account for the product %s. You must define one on the product category, or on the location, before processing this operation.') % (self.product_id.name))
+        if not acc_dest:
+            raise UserError(_('Cannot find a stock output account for the product %s. You must define one on the product category, or on the location, before processing this operation.') % (self.product_id.name))
+        if not acc_valuation:
+            raise UserError(_('You don\'t have any stock valuation account defined on your product category. You must define one before processing this operation.'))
+        journal_id = accounts_data['stock_journal'].id
+        return journal_id, acc_src, acc_dest, acc_valuation

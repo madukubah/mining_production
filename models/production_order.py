@@ -144,7 +144,7 @@ class ProductionOrder(models.Model):
         ProductionConfig = self.env['mining.production.config'].sudo()
         production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
         if not production_config :
-            raise UserError(_('Please Set Default Lot In Configuration file') )
+            raise UserError(_('Please Set Default Configuration file') )
 
         if not values.get('name', False) or values['name'] == _('New'):
             if values.get('picking_type_id'):
@@ -175,6 +175,7 @@ class ProductionOrder(models.Model):
             'name': self.name,
             'date': self.date,
             'product_id': self.product_id.id,
+            # 'price_unit': 10000,
             'product_uom': self.product_uom_id.id,
             'product_uom_qty': self.product_qty,
             'location_id': self.product_id.property_stock_production.id,
