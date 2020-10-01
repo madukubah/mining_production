@@ -177,7 +177,7 @@ class ProductionCopAdjust(models.Model):
         debit_line_vals = {
             'name': self.name,
             'product_id': product.id,
-            'quantity': 5,
+            'quantity': 0,
             'product_uom_id': product.uom_id.id,
             'ref': self.name,
             'partner_id': False,
