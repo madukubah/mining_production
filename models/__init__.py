@@ -14,3 +14,4 @@ from . import production_order
 from . import procurement
 from . import production_cop_adjust
 from . import fleet
+from . import production_cop_tag

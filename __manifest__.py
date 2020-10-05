@@ -10,8 +10,8 @@
         # 'mining_qaqc',
         'fleet',
         'stock',
-        'stock_account',
         'account',
+        'stock_account',
     ],
     'data': [
         "views/stock_warehouse_views.xml",
@@ -33,6 +33,8 @@
         "views/production_cop_adjust.xml",
         "views/fleet_service_type.xml",
         "views/fleet.xml",
+        "views/production_cop_tag_log.xml",
+        "views/production_cop_tag.xml",
 
         "data/production_data.xml",
 

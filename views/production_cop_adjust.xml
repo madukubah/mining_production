@@ -55,6 +55,19 @@
                             </page>
                         </notebook>
                         <notebook>
+                            <page string="COP Tagging">
+                                <field name="tag_log_ids" >
+                                    <tree string="COP Tagging" >
+                                        <field name="name" />
+                                        <field name="date" />
+                                        <field name="tag_id" />
+                                        <field name="amount" />
+                                        <field name="state" invisible="1" />
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                        <notebook>
                             <page string="DT Ritase">
                                 <field name="rit_ids" >
                                     <!-- <tree editable="bottom" delete="0" default_order="is_done desc,sequence" decoration-muted="is_done" decoration-warning="quantity_done&gt;product_uom_qty" decoration-success="quantity_done==product_uom_qty" create="0"> -->

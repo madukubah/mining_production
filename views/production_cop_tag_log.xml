@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="production_cop_tag_log_list" model="ir.ui.view">
+        <field name="name">production.cop.tag.log.list</field>
+        <field name="model">production.cop.tag.log</field>
+        <field name="type">tree</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="Operation Template List">
+                <field name="name" />
+                <field name="tag_id" />
+                <field name="amount" />
+                <field name="state" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_production_cop_tag_log_form" model="ir.ui.view">
+            <field name="name">production.cop.tag.log.form</field>
+            <field name="model">production.cop.tag.log</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <form string="Operation Template">
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="cop_adjust_id" invisible="1" />
+                            <field name="name" invisible="1" />
+                            <field name="date" />
+                            <field name="tag_id" />
+                            <field name="product_uom_qty" />
+                            <field name="amount" />
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+    </record>
+</odoo>

@@ -175,7 +175,7 @@ class ProductionOrder(models.Model):
             'name': self.name,
             'date': self.date,
             'product_id': self.product_id.id,
-            # 'price_unit': 10000,
+            # 'price_unit': 0,
             'product_uom': self.product_uom_id.id,
             'product_uom_qty': self.product_qty,
             'location_id': self.product_id.property_stock_production.id,

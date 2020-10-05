@@ -1,0 +1,99 @@
+# -*- coding: utf-8 -*-
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
+import time
+import logging
+_logger = logging.getLogger(__name__)
+
+
+class ProductionCopTag(models.Model):
+    _name = "production.cop.tag"
+    
+    name = fields.Char(string="Name", required=True )
+    is_consumable	=  fields.Boolean(string="Is Consumable",default=False )
+    product_id = fields.Many2one(
+        'product.product', 'Product',
+        domain=[('type', 'in', ['product', 'consu'])]
+        )
+    inventory_account_id = fields.Many2one('account.account', 
+        string='Inventory Account', 
+        compute='_onset_product_id', 
+        domain=[('deprecated', '=', False)], 
+        )
+    
+    @api.depends("product_id" )
+    def _onset_product_id(self):
+        for rec in self:
+            if( rec.product_id.categ_id ):
+                category = rec.product_id.categ_id
+                rec.inventory_account_id = category.property_stock_valuation_account_id
+    
+    @api.multi
+    def _get_accounting_data(self):
+        """ Return the accounts and journal to use to post Journal Entries for
+        the real-time valuation of the quant. """
+        self.ensure_one()
+        accounts_data = self.product_id.product_tmpl_id.get_product_accounts()
+        acc_src = accounts_data['stock_input'].id
+        acc_dest = accounts_data['stock_output'].id
+
+        if not accounts_data.get('stock_journal', False):
+            raise UserError(_('You don\'t have any stock journal defined on your product category, check if you have installed a chart of accounts'))
+        if not acc_src:
+            raise UserError(_('Cannot find a stock input account for the product %s. You must define one on the product category, or on the location, before processing this operation.') % (self.product_id.name))
+        if not acc_dest:
+            raise UserError(_('Cannot find a stock output account for the product %s. You must define one on the product category, or on the location, before processing this operation.') % (self.product_id.name))
+        if not self.cop_account_id:
+            raise UserError(_('You don\'t have any COP account defined on your Service typ. You must define one before processing this operation.'))
+        journal_id = accounts_data['stock_journal'].id
+        return journal_id, acc_src, acc_dest, self.cop_account_id.id
+
+class ProductionCopTagLog(models.Model):
+    _name = "production.cop.tag.log"
+    
+    READONLY_STATES = {
+        'draft': [('readonly', False)],
+        'posted': [('readonly', True)],
+    }
+
+    cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
+    name = fields.Char(compute='_compute_name', store=True ,required=True, states=READONLY_STATES)
+    date = fields.Date('Date', help='',default=time.strftime("%Y-%m-%d"),required=True, states=READONLY_STATES )
+    tag_id	= fields.Many2one('production.cop.tag', string='Tag',required=True, states=READONLY_STATES )
+    product_uom_qty = fields.Integer( string="Quantity", required=True, default=1)
+    amount = fields.Float( string='Amount', required=True,states=READONLY_STATES )
+    state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
+      required=True, readonly=True, copy=False, default='draft' )
+
+    @api.onchange("product_uom_qty", "tag_id" )
+    def _compute_amount(self):
+        for rec in self:
+            if( rec.tag_id.product_id ):
+                product = rec.tag_id.product_id
+                rec.amount = product.standard_price * rec.product_uom_qty
+
+    @api.depends('tag_id', 'date')
+    def _compute_name(self):
+        for record in self:
+            name = record.tag_id.name
+            if not name:
+                name = record.date
+            elif record.date:
+                name += ' / ' + record.date
+            self.name = name
+
+    @api.multi
+    def post(self):
+        for record in self:
+            record.write({'state' : 'posted' })
+
+    @api.model
+    def create(self, values):
+        service_type = self.env['fleet.service.type'].search( [ ( 'tag_id', '=', values['tag_id'] ) ] )
+        if service_type and not values.get( 'cop_adjust_id' , False) :
+            raise UserError(_('Cannot Create Log From This Form, Please Create It In Vehicle Service Log'))
+            
+        res = super(ProductionCopTagLog, self ).create(values)
+        return res

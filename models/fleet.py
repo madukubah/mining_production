@@ -21,10 +21,12 @@ class FleetServiceType(models.Model):
         domain=[('deprecated', '=', False)], 
         )
         
-    cop_account_id = fields.Many2one('account.account', 
-        string='COP Account', 
-        domain=[('deprecated', '=', False)], 
-        )
+    # cop_account_id = fields.Many2one('account.account', 
+    #     string='COP Account', 
+    #     domain=[('deprecated', '=', False)], 
+    #     )
+    tag_id	= fields.Many2one('production.cop.tag', string='Tag' )
+    
 
     @api.depends("product_id" )
     def _onset_product_id(self):
@@ -42,17 +44,20 @@ class FleetServiceType(models.Model):
         acc_src = accounts_data['stock_input'].id
         acc_dest = accounts_data['stock_output'].id
 
+        acc_valuation = accounts_data.get('stock_valuation', False)
+        if acc_valuation:
+            acc_valuation = acc_valuation.id
         if not accounts_data.get('stock_journal', False):
             raise UserError(_('You don\'t have any stock journal defined on your product category, check if you have installed a chart of accounts'))
         if not acc_src:
             raise UserError(_('Cannot find a stock input account for the product %s. You must define one on the product category, or on the location, before processing this operation.') % (self.product_id.name))
         if not acc_dest:
             raise UserError(_('Cannot find a stock output account for the product %s. You must define one on the product category, or on the location, before processing this operation.') % (self.product_id.name))
-        if not self.cop_account_id:
-            raise UserError(_('You don\'t have any COP account defined on your Service typ. You must define one before processing this operation.'))
+        if not acc_valuation:
+            raise UserError(_('You don\'t have any stock valuation account defined on your product category. You must define one before processing this operation.'))
         journal_id = accounts_data['stock_journal'].id
-        return journal_id, acc_src, acc_dest, self.cop_account_id.id
-
+        return journal_id, acc_src, acc_dest, acc_valuation
+        
 class FleetVehicleLogServices(models.Model):
     _inherit = 'fleet.vehicle.log.services'
     
@@ -67,10 +72,10 @@ class FleetVehicleLogServices(models.Model):
                 product = rec.cost_subtype_id.product_id
                 _logger.warning( product )
                 rec.amount = product.standard_price * rec.product_uom_qty
+                
     @api.multi
     def post(self):
-        for record in self:
-            record.write({'state' : 'posted' })
+        super(FleetVehicleLogServices, self ).post()
 
 class FleetVehicleCost(models.Model):
     _inherit = 'fleet.vehicle.cost'
@@ -82,6 +87,17 @@ class FleetVehicleCost(models.Model):
     @api.multi
     def post(self):
         for record in self:
+            if record.cost_subtype_id.tag_id :
+                # _logger.warning( record.amount )
+                self.env['production.cop.tag.log'].sudo().create({
+                    'cop_adjust_id' : record.cop_adjust_id.id,
+                    'name' : record.vehicle_id.name + ' / ' + record.cost_subtype_id.tag_id.name + ' / ' + record.date,
+                    'date' : record.date,
+                    'tag_id' : record.cost_subtype_id.tag_id.id,
+                    'amount' : record.amount,
+                    'state' : 'posted',
+                })
+
             record.write({'state' : 'posted' })
     
     @api.model

@@ -57,6 +57,20 @@
         <field name="view_mode">tree,form</field>
     </record>
 
+    <record model="ir.actions.act_window" id="action_production_cop_tag_log">
+        <field name="name">COP Tagging</field>
+        <field name="res_model">production.cop.tag.log</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_production_cop_tag">
+        <field name="name">COP Tag</field>
+        <field name="res_model">production.cop.tag</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
     <record model="ir.actions.act_window" id="production_fleet_vehicle_service_types_action">
         <field name="name">Vehicle Service Types</field>
         <field name="res_model">fleet.service.type</field>
@@ -104,24 +118,19 @@
                 sequence= "4"
                 />
             
-            <!-- <menuitem name="Vehicles Costs"
-                action="fleet.fleet_vehicle_costs_action" 
-                parent="production" 
-                id="production_fleet_vehicle_costs_menu" 
-                sequence= "5"
-                /> -->
-
-            <!-- <menuitem name="Vehicles Fuel Logs"
-                id="production_fleet_vehicle_log_fuel_action"
-                parent="production" 
-                action="fleet.fleet_vehicle_log_fuel_action"
-                sequence= "5"
-                /> -->
             <menuitem name="Vehicles Services Logs"
                 action="fleet.fleet_vehicle_log_services_action" 
                 parent="production" 
                 id="production_fleet_vehicle_log_services_menu" 
                 sequence= "6"
+                />
+
+            
+            <menuitem name="COP Tagging"
+                action="action_production_cop_tag_log" 
+                parent="production" 
+                id="production_cop_tag_log_menu" 
+                sequence= "7"
                 />
             
         
@@ -152,5 +161,11 @@
                     id="production_fleet_vehicle_service_types_menu" 
                     sequence= "4"
                     />
+            <menuitem name="COP Tag"
+                action="action_production_cop_tag" 
+                parent="mining_production_config" 
+                id="production_cop_tag_menu" 
+                sequence= "7"
+                />
             
 </odoo>

@@ -352,3 +352,40 @@ class StockMove(models.Model):
                 'split_from': self.id,  # Needed in order to keep sale connection, but will be removed by unlink
             })
         return self.env['stock.move']
+
+class StockQuant(models.Model):
+    _inherit = "stock.quant"
+
+    @api.multi
+    def _price_update(self, newprice):
+        ProductionConfig = self.env['mining.production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Default Configuration file') )
+        if not production_config.lot_id :
+            raise UserError(_('Please Set Default Lot Product Configuration file') )
+        if not production_config.cop_journal_id :
+            raise UserError(_('Please Set Default COP Journal Configuration file') )
+        
+        product = production_config.lot_id.product_id
+        # for quant in self:
+        if product.product_tmpl_id == self.product_id.product_tmpl_id :
+            return
+        super(StockQuant, self)._price_update(newprice)
+
+    def _account_entry_move(self, move):
+        ProductionConfig = self.env['mining.production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Default Configuration file') )
+        if not production_config.lot_id :
+            raise UserError(_('Please Set Default Lot Product Configuration file') )
+        if not production_config.cop_journal_id :
+            raise UserError(_('Please Set Default COP Journal Configuration file') )
+        
+        product = production_config.lot_id.product_id
+        # for quant in self:
+        if product.product_tmpl_id == self.product_id.product_tmpl_id :
+            return
+        super(StockQuant, self)._account_entry_move(move)
+    
