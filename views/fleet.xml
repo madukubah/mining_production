@@ -54,6 +54,7 @@
                 </xpath>
                 <field name="vehicle_id" position="after">
                     <field name="cop_adjust_id" invisible="1" />
+                    <field name="product_uom_qty"  />
                 </field>
             </field>
     </record>

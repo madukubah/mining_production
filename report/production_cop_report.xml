@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <report
+                id="action_production_cop_report_wise"
+                string="COP report"
+                model="production.cop.report"
+                report_type="qweb-pdf"
+                file="mining_production.production_cop_temp"
+                name="mining_production.production_cop_temp"
+        />
+    </data>
+</odoo>

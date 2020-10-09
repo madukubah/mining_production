@@ -63,16 +63,21 @@ class ProductionCopTagLog(models.Model):
     date = fields.Date('Date', help='',default=time.strftime("%Y-%m-%d"),required=True, states=READONLY_STATES )
     tag_id	= fields.Many2one('production.cop.tag', string='Tag',required=True, states=READONLY_STATES )
     product_uom_qty = fields.Integer( string="Quantity", required=True, default=1)
-    amount = fields.Float( string='Amount', required=True,states=READONLY_STATES )
+    price_unit = fields.Float( string="Price Unit", required=True, default=1)
+    amount = fields.Float( string='Amount', compute="_compute_amount", required=True,states=READONLY_STATES )
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
 
-    @api.onchange("product_uom_qty", "tag_id" )
+    @api.onchange("tag_id" )
+    def _onchange_tag_id(self):
+        for rec in self:
+            product = rec.tag_id.product_id
+            rec.price_unit = product.standard_price
+            
+    @api.depends("product_uom_qty", "price_unit" )
     def _compute_amount(self):
         for rec in self:
-            if( rec.tag_id.product_id ):
-                product = rec.tag_id.product_id
-                rec.amount = product.standard_price * rec.product_uom_qty
+            rec.amount = rec.price_unit * rec.product_uom_qty
 
     @api.depends('tag_id', 'date')
     def _compute_name(self):

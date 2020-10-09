@@ -134,6 +134,10 @@
                 />
             
         
+        
+        <menuitem id="mining_production_report" name="Report" sequence="2" 
+                parent="mining_production_top"/>
+
         <menuitem id="mining_production_config" name="Configuration" sequence="99" 
                 parent="mining_production_top"/>
         

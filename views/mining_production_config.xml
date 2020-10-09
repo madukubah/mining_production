@@ -22,6 +22,8 @@
                         <field name="journal_type" invisible="1" />
                         <field name="lot_id" />
                         <field name="cop_journal_id" />
+                        <field name="rit_tag_id" />
+                        <field name="hm_tag_id" />
                     </group>
                 </sheet>
             </form>

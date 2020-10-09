@@ -36,6 +36,11 @@
         "views/production_cop_tag_log.xml",
         "views/production_cop_tag.xml",
 
+        "wizard/production_cop_report.xml",
+
+        "report/production_cop_report.xml",
+        "report/production_cop_temp.xml",
+
         "data/production_data.xml",
 
         "security/security.xml",

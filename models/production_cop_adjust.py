@@ -108,7 +108,7 @@ class ProductionCopAdjust(models.Model):
         product_n_qty_list = {}
         LogServices = self.env['fleet.vehicle.log.services'].sudo()
         services = LogServices.search( [ ("cost_id", "in", [cost.id for cost in self.cost_ids ] )] )
-        #VEHICLE COST
+        #VEHICLE COST that have comsumable products, 
         for service in services:
             if( service.cost_subtype_id.is_consumable and service.cost_subtype_id.product_id ) :
                 product = service.cost_subtype_id.product_id
@@ -135,7 +135,6 @@ class ProductionCopAdjust(models.Model):
         move_lines_dict = {}
         for product_id, obj in product_n_qty_list.items():
             self._generate_moves( product_id, obj['qty'] )
-            # move_lines += self._account_entry_move( obj['cost_subtype_id'], obj['qty'] )
             product= obj['product_id']
             journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation( product )
             if move_lines_dict.get( acc_src , False):
@@ -154,10 +153,10 @@ class ProductionCopAdjust(models.Model):
             move_lines += [obj]
         
         self._account_entry_move_ore( move_lines )
+        self.tag_log_ids.post()
         self.cost_ids.post()
         self.rit_ids.post()
         self.hourmeter_ids.post()
-        self.tag_log_ids.post()
         self.write({ 'state' : 'done' })
         
     
@@ -231,9 +230,8 @@ class ProductionCopAdjust(models.Model):
 
             product_qty = product.qty_available
             amount_unit = product.standard_price
-            amount_rit_hm = self.get_amount_rit_hm()
-            amount_cop_tagging = self.get_amount_cop_tagging()
-            new_std_price = (( amount_unit * product_qty ) + amount_rit_hm + amount_cop_tagging + debit_amount ) / ( product_qty )
+            not_consumable_cost = self._compute_not_consumable_cost()
+            new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty )
             product.with_context(force_company=self.company_id.id).sudo().write({ 'standard_price': new_std_price })
 
     def _prepare_credit_product_cost(self, product, qty, cost):
@@ -250,14 +248,15 @@ class ProductionCopAdjust(models.Model):
                 valuation_amount = cost if product.cost_method == 'real' else product.standard_price
         credit_value = self.company_id.currency_id.round(valuation_amount * qty)
         return credit_value
-        
-    def get_amount_rit_hm(self):
+
+    def _compute_not_consumable_cost(self):
         sum_rit = sum( [ rit.cost_amount for rit in self.rit_ids ] )
         sum_hm = sum( [ hourmeter.cost_amount for hourmeter in self.hourmeter_ids ] )
-        return sum_hm + sum_rit
-
-    def get_amount_cop_tagging(self):
-        return sum( [ tag_log.amount for tag_log in self.tag_log_ids if not ( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) ] )
+        # except VEHICLE COST and COP TAG COST that have comsumable products
+        # because it already compute in stock move ( stock interim cost )
+        sum_cop_tag = sum( [ tag_log.amount for tag_log in self.tag_log_ids if not ( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) ] )
+        sum_vehicle_cost = sum( [ cost.amount for cost in self.cost_ids if not ( cost.cost_subtype_id.is_consumable and cost.cost_subtype_id.product_id ) ] )
+        return sum_hm + sum_rit + sum_cop_tag + sum_vehicle_cost
 
     @api.multi
     def _get_accounting_data_for_valuation(self, product_id):

@@ -369,7 +369,7 @@ class StockQuant(models.Model):
         
         product = production_config.lot_id.product_id
         # for quant in self:
-        if product.product_tmpl_id == self.product_id.product_tmpl_id :
+        if product.product_tmpl_id == self.product_id.product_tmpl_id and self.location_id.usage != "customer" :
             return
         super(StockQuant, self)._price_update(newprice)
 
@@ -385,7 +385,7 @@ class StockQuant(models.Model):
         
         product = production_config.lot_id.product_id
         # for quant in self:
-        if product.product_tmpl_id == self.product_id.product_tmpl_id :
+        if product.product_tmpl_id == self.product_id.product_tmpl_id and self.location_id.usage != "customer" :
             return
         super(StockQuant, self)._account_entry_move(move)
     

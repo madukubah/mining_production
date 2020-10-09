@@ -27,6 +27,9 @@ class MiningProductionConfig(models.Model):
     cop_journal_id = fields.Many2one('account.journal', string='COP Journal', default=_default_journal )
     journal_type = fields.Selection(related='cop_journal_id.type', help="Technical field used for usability purposes")
 
+    rit_tag_id	= fields.Many2one('production.cop.tag', string='Ritase COP Tag' )
+    hm_tag_id	= fields.Many2one('production.cop.tag', string='Hourmeter COP Tag' )
+    
     active = fields.Boolean(
         'Active', default=True,
         help="If unchecked, it will allow you to hide the rule without removing it.")

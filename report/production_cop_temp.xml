@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="production_cop_temp">
+        <t t-call="report.external_layout">
+            <div class="page">
+                <div class="oe_structure"/>
+                    <div class="row">
+                    <center>
+                        <b>
+                            <h4>Cost Of Production Report</h4>
+                        </b>
+                    </center>
+                    <center>
+                        <b>
+                            <span t-esc="start_date"/>
+                            To
+                            <span t-esc="end_date"/>
+                        </b>
+                    </center>
+                </div>
+                <br/>
+                <t t-set="total_sum" t-value="0"/>
+                <t t-foreach="data.keys()" t-as="item">
+                    
+                    <table class="table table-condensed table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th class="text-center">Date</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-center">Price</th>
+                                <th class="text-center">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="data[item]" t-as="line">
+                                <td>
+                                    <span t-esc="line['tag_name']"/>
+                                </td>
+                                <td class="text-center">
+                                    <span t-esc="line['date']"/>
+                                </td>
+                                <td class="text-center">
+                                    <span t-esc="line['product_uom_qty']"/>
+                                </td>
+                                <td class="text-center">
+                                    <span t-esc="'{:,}'.format(line['price_unit'])"/>
+                                </td>
+                                <td class="text-right">
+                                    <span t-esc="'{:,}'.format(line['amount'])"/>
+                                    <t t-set="total_sum" t-value="total_sum + line['amount']"/>
+                                </td>
+                            </tr>            
+                        </tbody>
+                    </table>
+
+                    <div class="row">
+                        <div class="col-xs-4 pull-right">
+                            <table class="table table-condensed">
+                                <tr>
+                                    <td><strong>Total</strong></td>
+                                    <td class="text-right">
+                                        <span t-esc="'{:,}'.format(total_sum)"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                </t>
+            </div>
+        </t>
+    </template>
+</odoo>

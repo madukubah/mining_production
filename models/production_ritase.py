@@ -271,6 +271,20 @@ class DumpTruckActivity(models.Model):
 	@api.multi
 	def post(self):
 		for record in self:
+			ProductionConfig = self.env['mining.production.config'].sudo()
+			production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+			if not production_config.rit_tag_id :
+				raise UserError(_('Please Set Ritase COP Tag in Configuration file') )
+			self.env['production.cop.tag.log'].sudo().create({
+                    'cop_adjust_id' : record.cop_adjust_id.id,
+                    'name' :   'RITASE / ' + record.date,
+                    'date' : record.date,
+                    'tag_id' : production_config.rit_tag_id.id,
+                    'product_uom_qty' : record.ritase_count,
+                    'price_unit' : record.cost_amount /record.ritase_count,
+                    'amount' : record.cost_amount,
+                    'state' : 'posted',
+                })
 			record.write({'state' : 'posted' })
 
 class DumpTruckActivityLog(models.Model):

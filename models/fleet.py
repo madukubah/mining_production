@@ -20,11 +20,6 @@ class FleetServiceType(models.Model):
         compute='_onset_product_id', 
         domain=[('deprecated', '=', False)], 
         )
-        
-    # cop_account_id = fields.Many2one('account.account', 
-    #     string='COP Account', 
-    #     domain=[('deprecated', '=', False)], 
-    #     )
     tag_id	= fields.Many2one('production.cop.tag', string='Tag' )
     
 
@@ -34,35 +29,12 @@ class FleetServiceType(models.Model):
             if( rec.product_id.categ_id ):
                 category = rec.product_id.categ_id
                 rec.inventory_account_id = category.property_stock_valuation_account_id
-    
-    @api.multi
-    def _get_accounting_data_for_cop(self):
-        """ Return the accounts and journal to use to post Journal Entries for
-        the real-time valuation of the quant. """
-        self.ensure_one()
-        accounts_data = self.product_id.product_tmpl_id.get_product_accounts()
-        acc_src = accounts_data['stock_input'].id
-        acc_dest = accounts_data['stock_output'].id
-
-        acc_valuation = accounts_data.get('stock_valuation', False)
-        if acc_valuation:
-            acc_valuation = acc_valuation.id
-        if not accounts_data.get('stock_journal', False):
-            raise UserError(_('You don\'t have any stock journal defined on your product category, check if you have installed a chart of accounts'))
-        if not acc_src:
-            raise UserError(_('Cannot find a stock input account for the product %s. You must define one on the product category, or on the location, before processing this operation.') % (self.product_id.name))
-        if not acc_dest:
-            raise UserError(_('Cannot find a stock output account for the product %s. You must define one on the product category, or on the location, before processing this operation.') % (self.product_id.name))
-        if not acc_valuation:
-            raise UserError(_('You don\'t have any stock valuation account defined on your product category. You must define one before processing this operation.'))
-        journal_id = accounts_data['stock_journal'].id
-        return journal_id, acc_src, acc_dest, acc_valuation
         
 class FleetVehicleLogServices(models.Model):
     _inherit = 'fleet.vehicle.log.services'
     
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
-    product_uom_qty = fields.Integer( string="Quantity", default=1)
+    product_uom_qty = fields.Integer( related='cost_id.product_uom_qty', string="Quantity", default=1)
     cost_amount = fields.Float(related='cost_id.amount', string='Amount' )
 
     @api.onchange("product_uom_qty", "cost_subtype_id" )
@@ -81,6 +53,7 @@ class FleetVehicleCost(models.Model):
     _inherit = 'fleet.vehicle.cost'
 
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
+    product_uom_qty = fields.Integer( string="Quantity", default=1)
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
     
@@ -88,12 +61,13 @@ class FleetVehicleCost(models.Model):
     def post(self):
         for record in self:
             if record.cost_subtype_id.tag_id :
-                # _logger.warning( record.amount )
                 self.env['production.cop.tag.log'].sudo().create({
                     'cop_adjust_id' : record.cop_adjust_id.id,
                     'name' : record.vehicle_id.name + ' / ' + record.cost_subtype_id.tag_id.name + ' / ' + record.date,
                     'date' : record.date,
                     'tag_id' : record.cost_subtype_id.tag_id.id,
+                    'product_uom_qty' : record.product_uom_qty,
+                    'price_unit' : record.amount / record.product_uom_qty,
                     'amount' : record.amount,
                     'state' : 'posted',
                 })
