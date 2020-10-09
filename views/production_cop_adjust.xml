@@ -45,7 +45,6 @@
                         <notebook>
                             <page string="Vehicle Costs">
                                 <field name="cost_ids" >
-                                    <!-- <tree editable="bottom" delete="0" default_order="is_done desc,sequence" decoration-muted="is_done" decoration-warning="quantity_done&gt;product_uom_qty" decoration-success="quantity_done==product_uom_qty" create="0"> -->
                                     <tree string="Vehicle Costs" >
                                         <field name="date" />
                                         <field name="vehicle_id" />
@@ -56,7 +55,6 @@
                             </page>
                             <page string="DT Ritase">
                                 <field name="rit_ids" >
-                                    <!-- <tree editable="bottom" delete="0" default_order="is_done desc,sequence" decoration-muted="is_done" decoration-warning="quantity_done&gt;product_uom_qty" decoration-success="quantity_done==product_uom_qty" create="0"> -->
                                     <tree string="DT Ritase" >
                                         <field name="date" />
                                         <field name="vehicle_id" />
@@ -68,7 +66,6 @@
                             </page>
                             <page string="HE Hourmeter">
                                 <field name="hourmeter_ids" >
-                                    <!-- <tree editable="bottom" delete="0" default_order="is_done desc,sequence" decoration-muted="is_done" decoration-warning="quantity_done&gt;product_uom_qty" decoration-success="quantity_done==product_uom_qty" create="0"> -->
                                     <tree string="HE Hourmeter" >
                                         <field name="date" />
                                         <field name="vehicle_id" />
@@ -86,14 +83,9 @@
                                 <field name="date" />
                                 <field name="tag_id" />
                                 <field name="amount" />
-                                <field name="state" invisible="1" />
+                                <field name="state" />
                             </tree>
                         </field>
-                        <!-- <notebook>
-                            <page string="COP Tagging">
-                                
-                            </page>
-                        </notebook> -->
                     </sheet>
                 </form>
             </field>

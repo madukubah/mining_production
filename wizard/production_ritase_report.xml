@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <record id="production_cop_report_form_view" model="ir.ui.view">
-            <field name="name">sr.production.cop.report.form.view</field>
-            <field name="model">production.cop.report</field>
+        <record id="production_ritase_report_form_view" model="ir.ui.view">
+            <field name="name">sr.production.ritase.report.form.view</field>
+            <field name="model">production.ritase.report</field>
             <field name="arch" type="xml">
-                <form string="COP Report">
+                <form string="Ritase Report">
                     <group>
                         <group>
                             <field name="start_date"/>
+                            <field name="mode"/>
                         </group>
                         <group>
                             <field name="end_date"/>
@@ -22,23 +23,21 @@
                         <button string="Cancel" class="btn-default" special="cancel"/>
                     </footer>
                 </form>
-
-
             </field>
         </record>
 
-        <record id="action_production_cop_report_wizard" model="ir.actions.act_window">
-            <field name="name">COP Report</field>
-            <field name="res_model">production.cop.report</field>
+        <record id="action_production_ritase_report_wizard" model="ir.actions.act_window">
+            <field name="name">Ritase Report</field>
+            <field name="res_model">production.ritase.report</field>
             <field name="view_type">form</field>
             <field name="view_mode">form</field>
             <field name="target">new</field>
         </record>
 
-        <menuitem id="menu_production_cop_report_wizard"
-                  name="COP Report"
-                  action="action_production_cop_report_wizard"
+        <menuitem id="menu_production_ritase_report_wizard"
+                  name="Ritase Report"
+                  action="action_production_ritase_report_wizard"
                   parent="mining_production_report"
-                  sequence="1"/>
+                  sequence="2"/>
     </data>
 </odoo>

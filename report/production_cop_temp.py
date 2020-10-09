@@ -38,5 +38,5 @@ class ReportProduction_cop_reportTemp(models.AbstractModel):
             'end_date': data['end_date'],
         }
         # print "===================docargs",docargs
-        _logger.warning( docargs )
+        # _logger.warning( docargs )
         return self.env['report'].render('mining_production.production_cop_temp', docargs)

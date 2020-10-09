@@ -37,9 +37,15 @@
         "views/production_cop_tag.xml",
 
         "wizard/production_cop_report.xml",
+        "wizard/production_ritase_report.xml",
+        "wizard/production_hourmeter_report.xml",
 
         "report/production_cop_report.xml",
         "report/production_cop_temp.xml",
+        "report/production_ritase_report.xml",
+        "report/production_ritase_temp.xml",
+        "report/production_hourmeter_report.xml",
+        "report/production_hourmeter_temp.xml",
 
         "data/production_data.xml",
 

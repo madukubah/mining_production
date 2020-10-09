@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <report
+                id="action_production_ritase_report_wise"
+                string="Ritase Report"
+                model="production.ritase.report"
+                report_type="qweb-pdf"
+                file="mining_production.production_ritase_temp"
+                name="mining_production.production_ritase_temp"
+        />
+    </data>
+</odoo>
