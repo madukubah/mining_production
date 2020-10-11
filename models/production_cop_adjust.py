@@ -266,7 +266,7 @@ class ProductionCopAdjust(models.Model):
         accounts_data = product_id.product_tmpl_id.get_product_accounts()
         acc_src = accounts_data['stock_input'].id
         acc_dest = accounts_data['stock_output'].id
-
+ 
         acc_valuation = accounts_data.get('stock_valuation', False)
         if acc_valuation:
             acc_valuation = acc_valuation.id

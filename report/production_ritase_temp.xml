@@ -20,6 +20,11 @@
                 </div>
                 <br/>
                 <t t-set="total_sum" t-value="0"/>
+                <t t-set="total_rit" t-value="0"/>
+                <!-- <t t-if="total_sum == total_rit" >
+                    tes
+                </t > -->
+
                 <t t-foreach="data.keys()" t-as="item">
                     
                     <table class="table table-condensed table-striped">
@@ -49,6 +54,7 @@
                                 </td>
                                 <td class="text-center">
                                     <span t-esc="'{:,}'.format(line['ritase_count'])"/>
+                                    <t t-set="total_rit" t-value="total_rit + line['ritase_count']"/>
                                 </td>
                                 <td class="text-right">
                                     <span t-esc="'{:,}'.format(line['amount'])"/>
@@ -63,6 +69,9 @@
                             <table class="table table-condensed">
                                 <tr>
                                     <td><strong>Total</strong></td>
+                                    <td class="text-right">
+                                        <span t-esc="'{:,}'.format(total_rit)"/>
+                                    </td>
                                     <td class="text-right">
                                         <span t-esc="'{:,}'.format(total_sum)"/>
                                     </td>
