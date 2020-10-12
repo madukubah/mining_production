@@ -78,7 +78,7 @@
         <field name="view_mode">tree,form</field>
     </record>
 
-    <menuitem id="mining_production_top" name="Production" sequence="4" web_icon="mining_production,static/description/icon.png" />
+    <menuitem id="mining_production_top" name="Production" sequence="2" web_icon="mining_production,static/description/icon.png" />
         
         <menuitem id="production" name="Production" sequence="1" 
                 parent="mining_production_top"/>
