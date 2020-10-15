@@ -10,6 +10,7 @@ _logger = logging.getLogger(__name__)
 
 class ProductionOrder(models.Model):
     _name = "production.order"
+    _inherit = ['mail.thread', 'ir.needaction_mixin']
     _order = "id desc"
     
     @api.model
@@ -17,7 +18,7 @@ class ProductionOrder(models.Model):
         return self.env['stock.picking.type'].search([
             ('code', '=', 'mining_production'),
             ('warehouse_id.company_id', 'in', [self.env.context.get('company_id', self.env.user.company_id.id), False])],
-            limit=1).id 
+            limit=1).id
 
     READONLY_STATES = {
         'draft': [('readonly', False)],
@@ -31,14 +32,14 @@ class ProductionOrder(models.Model):
         default=lambda self: self.env['res.company']._company_default_get('production.order'),
         required=True)
     name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
-    employee_id	= fields.Many2one('hr.employee', string='Responsible', states=READONLY_STATES )
+    employee_id	= fields.Many2one('hr.employee', string='Grade Control', states=READONLY_STATES )
     user_id = fields.Many2one('res.users', string='User', index=True, track_visibility='onchange', default=lambda self: self.env.user)
     pit_id = fields.Many2one('production.pit', string='Pit', states=READONLY_STATES, domain=[ ('active','=',True)], required=True, change_default=True, index=True, track_visibility='always' )
     
     location_id = fields.Many2one(
             'stock.location', 'Location',
-            readonly=True,
-            store=True,copy=True,
+            readonly=True ,
+            store=True,copy=True ,
             compute="_onset_pit_id",
             ondelete="restrict" )
     product_id = fields.Many2one(
@@ -49,6 +50,7 @@ class ProductionOrder(models.Model):
     product_tmpl_id = fields.Many2one('product.template', 'Product Template', related='product_id.product_tmpl_id', readonly=True)
     product_qty = fields.Float(
         'Quantity To Produce',
+        compute='_compute_ritase',
         default=1.0, digits=dp.get_precision('Product Unit of Measure'),
         readonly=True, required=True,
         states={'confirmed': [('readonly', False)]})
@@ -74,6 +76,7 @@ class ProductionOrder(models.Model):
         'procurement.group', 'Procurement Group',
         copy=False)
     procurement_ids = fields.One2many('procurement.order', 'production_order_id', 'Related Procurements')
+    rit_ids = fields.One2many('production.ritase.order', 'production_order_id', 'Ritase Orders', states=READONLY_STATES )
     state = fields.Selection([
         ('draft', 'Draft'), 
 		('cancel', 'Cancelled'),
@@ -101,28 +104,48 @@ class ProductionOrder(models.Model):
     @api.depends('move_ids')
     def _has_moves(self):
         for mo in self:
-            mo.has_moves = any(mo.move_ids)
+            mo.has_moves = any( mo.move_ids )
 
     @api.multi
-    def button_confirm(self):
+    @api.depends('move_ids')
+    def _compute_ritase(self):
+        for order in self:
+            order.product_qty = sum( [ rit_id.product_uom._compute_quantity( rit_id.ritase_count, order.product_id.uom_id ) for rit_id in order.rit_ids ] )
+
+    @api.multi
+    def action_confirm(self):
         for order in self:
             order._generate_moves()
+            order.action_reload()
         self.state = 'confirm'
 
     @api.multi
-    def button_done(self):
+    def action_reload( self ):
+        RitaseOrder = self.env['production.ritase.order'].sudo()
+        ritase_order = RitaseOrder.search( [ ( "date", "=", self.date ), ( "state", "=", "confirm" ), ( "product_id", "=", self.product_id.id ), ( "location_id", "=", self.location_id.id ) ] )
+        self.update({
+            'rit_ids': [( 6, 0, ritase_order.ids )],
+        })
+
+    @api.multi
+    def action_done(self):
         for order in self:
             order.post_inventory()
+            order.action_reload()
+            order.rit_ids.action_done()
         self.state = 'done'
 
     @api.multi
-    def button_draft(self):
+    def action_draft(self):
+        # TODO : script to cancel move
+        self.action_cancel()
         self.state = 'draft'
 
     @api.multi
-    def button_cancel(self):
+    def action_cancel(self):
         for order in self:
             for move in order.move_ids:
+                move.move_lot_ids.unlink()
                 if move.state == 'done':
                     raise UserError(_('Unable to cancel order %s as some Stock have already Done.') % (order.name))
             moves = order.move_ids | order.move_ids.mapped('returned_move_ids')
@@ -141,7 +164,7 @@ class ProductionOrder(models.Model):
         
     @api.model
     def create(self, values):
-        ProductionConfig = self.env['mining.production.config'].sudo()
+        ProductionConfig = self.env['production.config'].sudo()
         production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
         if not production_config :
             raise UserError(_('Please Set Default Configuration file') )
@@ -159,12 +182,12 @@ class ProductionOrder(models.Model):
     
     @api.multi
     def _generate_moves(self):
-        for production in self:
-            production._generate_finished_moves()
+        # for production in self:
+        self._generate_finished_moves()
         return True
 
     def _generate_finished_moves(self):
-        ProductionConfig = self.env['mining.production.config'].sudo()
+        ProductionConfig = self.env['production.config'].sudo()
         lots = self.env['mining.stock.move.lots']
 
         production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
@@ -196,13 +219,14 @@ class ProductionOrder(models.Model):
                 'lot_id': production_config[0].lot_id.id,
             }
         lots.create(vals)
-        move.action_confirm()
+        # move.action_confirm()
         return move
 
     @api.multi
     def post_inventory(self):
         for order in self:
             moves_to_finish = order.move_ids.filtered(lambda x: x.state not in ('done','cancel'))
+            moves_to_finish.action_confirm()
             moves_to_finish.action_done()
             
             for move in moves_to_finish:

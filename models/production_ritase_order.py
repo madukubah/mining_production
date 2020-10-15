@@ -3,8 +3,12 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 import time
 
-class ProductionRitase(models.Model):
+import logging
+_logger = logging.getLogger(__name__)
+
+class ProductionRitaseOrder(models.Model):
 	_name = "production.ritase.order"
+	_inherit = ['mail.thread', 'ir.needaction_mixin']
 	_order = 'id desc'
 	
 	@api.model
@@ -15,20 +19,28 @@ class ProductionRitase(models.Model):
 		if not types:
 			types = type_obj.search([('code', '=', 'internal'), ('warehouse_id', '=', False)])
 		return types[:1]
+	
+	@api.multi
+	def _check_ritase_count(self):
+		for rec in self:
+			rit_by_dt = sum( [ counter_id.ritase_count for counter_id in rec.counter_ids ] )
+			rit_by_lot = sum( [ lot_move_id.ritase_count for lot_move_id in rec.lot_move_ids ] )
+			if( rit_by_dt != rit_by_lot ):
+				return False	
+		return True
 
 	READONLY_STATES = {
         'confirm': [('readonly', True)] ,
     }
 
 	name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
+	production_order_id = fields.Many2one("production.order", 
+        'Production Order', ondelete='restrict', copy=False)
 	employee_id	= fields.Many2one('hr.employee', string='Checker', states=READONLY_STATES )
-
-
 	date = fields.Date('Date', help='',  default=time.strftime("%Y-%m-%d"), states=READONLY_STATES )
 	picking_type_id = fields.Many2one('stock.picking.type', 'Deliver To', required=True, default=_default_picking_type,\
 		help="This will determine picking type of internal shipment", states=READONLY_STATES)
 	company_id = fields.Many2one('res.company', 'Company', required=True, index=True, default=lambda self: self.env.user.company_id.id, states=READONLY_STATES)
-
 	warehouse_id = fields.Many2one(
             'stock.warehouse', 'Origin Warehouse',
             ondelete="restrict", required=True, states=READONLY_STATES)
@@ -36,15 +48,13 @@ class ProductionRitase(models.Model):
             'stock.location', 'Origin Location',
 			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict", required=True, states=READONLY_STATES)
-	
-	dest_warehouse_id = fields.Many2one(
+	warehouse_dest_id = fields.Many2one(
 			'stock.warehouse', 'Destination Warehouse',
 			ondelete="restrict", required=True, states=READONLY_STATES)
-	dest_location_id = fields.Many2one(
+	location_dest_id = fields.Many2one(
             'stock.location', 'Destination Location',
 			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict", required=True, states=READONLY_STATES)
-	
 	shift = fields.Selection([
         ( "1" , '1'),
         ( "2" , '2'),
@@ -58,52 +68,89 @@ class ProductionRitase(models.Model):
             default=lambda self: self._context.get('product_uom', False),
 			states=READONLY_STATES
 			)
-
 	load_vehicle_id = fields.Many2one('fleet.vehicle', 'Load Unit', required=True, states=READONLY_STATES )
 	pile_vehicle_id = fields.Many2one('fleet.vehicle', 'Pile Unit', required=True, states=READONLY_STATES )
-
 	ritase_count = fields.Integer( string="Ritase Total", required=True, default=0, digits=0, compute='_compute_ritase_count', readonly=True)
-	dumptruck_activity_ids = fields.One2many(
-        'mining.dumptruck.activity',
+	counter_ids = fields.One2many(
+        'production.ritase.counter',
         'ritase_order_id',
         string='Dump Truck Activity',
+        copy=True, states=READONLY_STATES )
+	lot_move_ids = fields.One2many(
+        'production.ritase.lot.move',
+        'ritase_order_id',
+        string='Lot Movements',
         copy=True, states=READONLY_STATES )
 	picking_count = fields.Integer(compute='_compute_picking', string='Pickings', default=0)
 	picking_ids = fields.One2many('stock.picking', "ritase_order_id", string='Pickings', copy=False)	
 	move_ids = fields.One2many('stock.move', 'ritase_order_id', string='Reservation', readonly=True, ondelete='set null', copy=False)
 	
-	state = fields.Selection([
-        ('open', 'Open'), 
-		('confirm', 'Confirmed'),
-		('cancel', 'Cancelled'),
-        ], string='Status', readonly=True, copy=False, index=True, track_visibility='onchange', default='open')
+	state = fields.Selection( [
+        ('draft', 'Draft'), 
+        ('cancel', 'Cancelled'),
+        ('confirm', 'Confirmed'),
+        ('done', 'Done'),
+        ], string='Status', readonly=True, copy=False, index=True, track_visibility='onchange', default='draft')
 
+	_constraints = [ 
+        (_check_ritase_count, 'Ritase by Lot and Ritase by DT Must Be Same!', ['counter_ids','lot_move_ids'] ) 
+        ]
 	@api.multi
 	def unlink(self):
 		for order in self:
-			if order.state in ['confirm']:
+			if order.state in ['confirm', "done"] :
 				raise UserError(_('Cannot delete  order which is in state \'%s\'.') %(order.state,))
-		return super(ProductionRitase, self).unlink()
+		return super(ProductionRitaseOrder, self).unlink()
 		
 	@api.model
 	def create(self, values):
 		seq = self.env['ir.sequence'].next_by_code('ritase')
 		values["name"] = seq
-		res = super(ProductionRitase, self ).create(values)
+		res = super(ProductionRitaseOrder, self ).create(values)
 		return res
 		
-	@api.depends('dumptruck_activity_ids')	
+	@api.depends('counter_ids')	
 	def _compute_ritase_count(self):
 		for rec in self:
-			rec.ritase_count = sum( [ x.ritase_count for x in rec.dumptruck_activity_ids ] )
+			rec.ritase_count = sum( [ x.ritase_count for x in rec.counter_ids ] )
 
 	@api.multi
-	def button_confirm(self):
-		self._create_picking()
-		self.state = 'confirm'
+	def action_confirm( self ):
+		PackOperationLot = self.env['stock.pack.operation.lot'].sudo()
+		for order in self:
+			order._create_picking()
+			picking_ids = order.picking_ids.filtered(lambda r: r.state != 'cancel')
+			if len( picking_ids ) != 1 :
+				raise UserError(_('1 file Rit only have 1 file Picking. Please cancel another picking file') )
+			picking_id = picking_ids[0]
+			if picking_id.pack_operation_product_ids:
+				pack_operation_product_id = picking_id.pack_operation_product_ids[0]
+				for lot_move_id in order.lot_move_ids:
+					PackOperationLot.create({
+						'operation_id' : pack_operation_product_id.id,
+						'lot_id' : lot_move_id.lot_id.id,
+						'qty' : order.product_uom._compute_quantity( lot_move_id.ritase_count, pack_operation_product_id.product_id.uom_id )
+					})
+				pack_operation_product_id.save()
+				# _logger.warning( picking_id.pack_operation_product_ids )
+			
+			order.state = 'confirm'
+
+	@api.multi
+	def action_done( self ):
+		for order in self:
+			ProductionPit = self.env['production.pit'].sudo()
+			production_pits = ProductionPit.search([ ( "location_id", "=", order.location_id.id ) ])
+			if production_pits and ( not order.production_order_id ):
+					raise UserError(_('Unable to Done order %s with PIT origin. Please do this action in Production Order') % (order.name))
+
+			picking_ids = order.picking_ids.filtered(lambda x: x.state not in ('done','cancel'))
+			picking_ids.do_new_transfer()
+			order.state = 'done'
+			
 	
 	@api.multi
-	def button_cancel(self):
+	def action_cancel(self):
 		for order in self:
 			for pick in order.picking_ids:
 				if pick.state == 'done':
@@ -118,8 +165,8 @@ class ProductionRitase(models.Model):
 		self.write({'state': 'cancel'})
 
 	@api.multi
-	def button_draft(self):
-		self.write({'state': 'open'})
+	def action_draft(self):
+		self.write({'state': 'draft'})
 		return {}
 
 	@api.depends('move_ids')	
@@ -147,7 +194,7 @@ class ProductionRitase(models.Model):
 			'picking_type_id': self.picking_type_id.id,
 			'date': self.date,
 			'origin': self.name,
-			'location_dest_id': self.dest_location_id.id,
+			'location_dest_id': self.location_dest_id.id,
 			'location_id': self.location_id.id,
 			'company_id': self.company_id.id,
 		}
@@ -171,7 +218,7 @@ class ProductionRitase(models.Model):
 			'product_uom': self.product_uom.id,
 			'date': self.date,
 			'location_id': self.location_id.id,
-			'location_dest_id': self.dest_location_id.id,
+			'location_dest_id': self.location_dest_id.id,
 			'picking_id': picking.id,
 			'move_dest_id': False,
 			'state': 'draft',
@@ -239,20 +286,25 @@ class ProductionRitase(models.Model):
 			result['res_id'] = pick_ids and pick_ids[0] or False
 		return result
 
-class DumpTruckActivity(models.Model):
-	_name = "mining.dumptruck.activity"
+class RitaseCounter(models.Model):
+	_name = "production.ritase.counter"
 	_inherits = {'production.operation.template': 'operation_template_id'}
 
 	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="restrict" )
+	location_id = fields.Many2one(
+            'stock.location', 'Location',
+			related="ritase_order_id.location_id",
+			domain=[ ('usage','=',"internal")  ],
+            ondelete="restrict" )
 	date = fields.Date('Date', help='', related="ritase_order_id.date", readonly=True, default=time.strftime("%Y-%m-%d") )
-	shift = fields.Selection([
+	shift = fields.Selection( [
         ( "1" , '1'),
         ( "2" , '2'),
-        ], string='Shift', readonly=True, index=True, related="ritase_order_id.shift", )
+        ] , string='Shift', index=True, related="ritase_order_id.shift" )
 
 	log_ids = fields.One2many(
-        'mining.dumptruck.activity.log',
-        'dumptruck_activity_id',
+        'production.ritase.log',
+        'counter_id',
         string='Logs',
         copy=True )
 	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0, compute='_compute_ritase_count' )
@@ -271,7 +323,7 @@ class DumpTruckActivity(models.Model):
 	@api.multi
 	def post(self):
 		for record in self:
-			ProductionConfig = self.env['mining.production.config'].sudo()
+			ProductionConfig = self.env['production.config'].sudo()
 			production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
 			if not production_config.rit_tag_id :
 				raise UserError(_('Please Set Ritase COP Tag in Configuration file') )
@@ -287,9 +339,20 @@ class DumpTruckActivity(models.Model):
                 })
 			record.write({'state' : 'posted' })
 
-class DumpTruckActivityLog(models.Model):
-	_name = "mining.dumptruck.activity.log"
+class RitaseLog(models.Model):
+	_name = "production.ritase.log"
 
-	dumptruck_activity_id = fields.Many2one("mining.dumptruck.activity", string="Dump Truck Activity", ondelete="restrict" )
+	counter_id = fields.Many2one("production.ritase.counter", string="Dump Truck Activity", ondelete="cascade" )
 	datetime = fields.Datetime('Date Time', help='',  default=time.strftime("%Y-%m-%d %H:%M:%S") )
+
+class RitaseLotMove(models.Model):
+	_name = "production.ritase.lot.move"
+
+	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="restrict" )
+	lot_id = fields.Many2one(
+        'stock.production.lot', 'Lot',
+		required=True,
+        )
+	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0 )
+	
 

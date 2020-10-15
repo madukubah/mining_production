@@ -17,18 +17,18 @@ class ProductionRitaseReport(models.TransientModel):
 
     @api.multi
     def action_print(self):
-        dumptruck_activites = self.env['mining.dumptruck.activity'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "posted" ) ])
+        ritase_counters = self.env['production.ritase.counter'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "posted" ) ])
         rows = []
         if self.mode == 'detail' :
-            for dumptruck_activity in dumptruck_activites:
+            for ritase_counter in ritase_counters:
                 temp = {}
-                temp["doc_name"] = dumptruck_activity.ritase_order_id.name
-                temp["name"] = dumptruck_activity.name
-                temp["date"] = dumptruck_activity.date
-                temp["vehicle_name"] = dumptruck_activity.vehicle_id.name
-                temp["driver_name"] = dumptruck_activity.driver_id.name
-                temp["ritase_count"] = dumptruck_activity.ritase_count
-                temp["amount"] = dumptruck_activity.cost_amount
+                temp["doc_name"] = ritase_counter.ritase_order_id.name
+                temp["name"] = ritase_counter.name
+                temp["date"] = ritase_counter.date
+                temp["vehicle_name"] = ritase_counter.vehicle_id.name
+                temp["driver_name"] = ritase_counter.driver_id.name
+                temp["ritase_count"] = ritase_counter.ritase_count
+                temp["amount"] = ritase_counter.cost_amount
                 rows.append(temp)
 
         final_dict = {}

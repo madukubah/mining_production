@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- order -->
     <record id="production_hourmeter_order_list" model="ir.ui.view">
         <field name="name">production_hourmeter_order_list</field>
         <field name="model">production.hourmeter.order</field>
@@ -60,9 +61,34 @@
                                 </field >
                             </page>
                         </notebook>
-
                     </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
                 </form>
             </field>
     </record>
+
+    <!-- logs -->
+    <record id="view_production_vehicle_hourmeter_log_form" model="ir.ui.view">
+            <field name="name">production.vehicle.hourmeter.log.form</field>
+            <field name="model">production.vehicle.hourmeter.log</field>
+            <field name="mode">primary</field>
+            <field eval="7" name="priority"/>
+            <field name="inherit_id" ref="view_production_operation_template_form"/>
+            <field name="arch" type="xml">
+                <form position="attributes">
+                    <attribute name="string">HE Hourmeter</attribute>
+                </form>
+                <field name="date" position="after">
+                    <field name="hourmeter_order_id" invisible="1"/>
+                    <field name="hourmeter_id" invisible="1"/>
+                    <field name="start" />
+                    <field name="end" />
+                    <field name="value" />
+                </field>
+            </field>
+    </record>
+
 </odoo>

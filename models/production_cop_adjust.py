@@ -10,6 +10,7 @@ _logger = logging.getLogger(__name__)
 
 class ProductionCopAdjust(models.Model):
     _name = "production.cop.adjust"
+    _inherit = ['mail.thread', 'ir.needaction_mixin']
     _order = "id desc"
     
     READONLY_STATES = {
@@ -26,13 +27,13 @@ class ProductionCopAdjust(models.Model):
         required=True)
     date = fields.Date('Date', help='',default=time.strftime("%Y-%m-%d"), states=READONLY_STATES )
     employee_id	= fields.Many2one('hr.employee', string='Responsible', states=READONLY_STATES )
-    production_config_id	= fields.Many2one('mining.production.config', string='Production Config', states=READONLY_STATES )
+    production_config_id	= fields.Many2one('production.config', string='Production Config', states=READONLY_STATES )
     cost_ids = fields.One2many('fleet.vehicle.cost', 'cop_adjust_id', 'Vehicle Costs', states=READONLY_STATES )
     tag_log_ids = fields.One2many('production.cop.tag.log', 'cop_adjust_id', 'COP Tagging', states=READONLY_STATES )
-    rit_ids = fields.One2many('mining.dumptruck.activity', 'cop_adjust_id', 'Ritase Costs', states=READONLY_STATES )
+    rit_ids = fields.One2many('production.ritase.counter', 'cop_adjust_id', 'Ritase Costs', states=READONLY_STATES )
     hourmeter_ids = fields.One2many('production.vehicle.hourmeter.log', 'cop_adjust_id', 'Hourmeter Costs', states=READONLY_STATES )
 
-    state = fields.Selection([
+    state = fields.Selection( [
         ('draft', 'Draft'), 
         ('cancel', 'Cancelled'),
         ('confirm', 'Confirmed'),
@@ -43,7 +44,7 @@ class ProductionCopAdjust(models.Model):
     def create(self, values):
         seq = self.env['ir.sequence'].next_by_code('cop_adjust')
         values["name"] = seq
-        ProductionConfig = self.env['mining.production.config'].sudo()
+        ProductionConfig = self.env['production.config'].sudo()
         production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
         if not production_config :
             raise UserError(_('Please Set Default Configuration file') )
@@ -77,10 +78,10 @@ class ProductionCopAdjust(models.Model):
             'cost_ids': [( 6, 0, vehicle_costs_ids )],
         })
 
-        DumptruckActivity = self.env['mining.dumptruck.activity'].sudo()
-        dumptruck_activity = DumptruckActivity.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
+        RitaseCounter = self.env['production.ritase.counter'].sudo()
+        ritase_counter = RitaseCounter.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "ritase_order_id.state", "=", "done" ) ] )
         self.update({
-            'rit_ids': [( 6, 0, dumptruck_activity.ids )],
+            'rit_ids': [( 6, 0, ritase_counter.ids )],
         })
 
         HourmeterLog = self.env['production.vehicle.hourmeter.log'].sudo()

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ritase order -->
+    <record id="production_ritase_order_list" model="ir.ui.view">
+        <field name="name">production_ritase_order_list</field>
+        <field name="model">production.ritase.order</field>
+        <field name="type">tree</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="Ritase List" decoration-muted="state=='cancel'" >
+                <field name="name" />
+                <field name="date" />
+                <field name="employee_id" />
+                <field name="location_id" />
+                <field name="location_dest_id" />
+                <field name="ritase_count" />
+                <field name="state" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_production_ritase_order_form" model="ir.ui.view">
+            <field name="name">production.ritase.order.form</field>
+            <field name="model">production.ritase.order</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <form string="Ritase">
+                    <header>
+                        <button name="action_draft" states="cancel" string="Set to Draft" type="object" groups="mining_production.production_group_manager" />
+                        <button name="action_confirm" string="Confirm" type="object" states="draft" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="action_done" string="Done" type="object" states="confirm" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="action_cancel" states="draft,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done" readonly="1"  />
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button type="object"
+                                name="action_view_picking"
+                                class="oe_stat_button"
+                                icon="fa-truck" attrs="{'invisible':[('state', 'in', ('draft')),('picking_ids','=',[])]}">
+                                <field name="picking_count" widget="statinfo" string="Shipment" help="Incoming Shipments"/>
+                                <field name="picking_ids" invisible="1"/>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only" string="Ritase Name" ></label>
+                            <h1>
+                                <field name="name" />
+                                <field name="production_order_id" invisible="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <field name="date" />
+                            <field name="employee_id" />
+                        </group>
+                        <group>
+                            <group>
+                                <field name="warehouse_id" widget="selection" />
+                                <field name="location_id" />
+                            </group>
+                            <group>
+                                <field name="warehouse_dest_id" widget="selection" />
+                                <field name="location_dest_id" />
+                            </group>
+                        </group>
+                        <group>
+                            <field name="product_id" />
+                            <field name="product_uom" />
+                            <field name="shift" />
+                            <field name="buckets" />
+                            <field name="load_vehicle_id" />
+                            <field name="pile_vehicle_id" />
+                            <field name="ritase_count" />
+                            <field name="picking_type_id" invisible="1"/>
+                        </group>
+                        
+                        <notebook>
+                            <page string="Dump Truck Activity">
+                                <field name="counter_ids" >
+                                    <tree string="Dump Truck Activity" >
+                                        <field name="vehicle_id" />
+                                        <field name="driver_id" />
+                                        <field name="ritase_count" />
+									</tree>
+                                </field >
+                            </page>
+                        </notebook>
+
+                        <notebook>
+                            <page string="Lot Movements">
+                                <field name="lot_move_ids" editable="bottom" >
+                                    <tree string="Lot Movements" editable="bottom" >
+                                        <field name="lot_id" />
+                                        <field name="ritase_count"/>
+									</tree>
+                                </field >
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+    </record>
+
+    <!-- counter -->
+    <record id="view_production_ritase_counter_form" model="ir.ui.view">
+            <field name="name">production.ritase.counter.form</field>
+            <field name="model">production.ritase.counter</field>
+            <field name="mode">primary</field>
+            <field eval="7" name="priority"/>
+            <field name="inherit_id" ref="view_production_operation_template_form"/>
+            <field name="arch" type="xml">
+                <form position="attributes">
+                    <attribute name="string">Dump Truck Activity</attribute>
+                </form>
+                <field name="name" position="after">
+                    <field name="ritase_order_id" invisible="1"/>
+                    <!-- <field name="operation_template_id" class="oe_inline" readonly="1" invisible="1" /> -->
+                </field>
+                <sheet position="inside">
+                    <notebook>
+                        <page string="Logs"  >
+                            <field name="log_ids" >
+                                <tree string="Logs" >
+                                    <field name="datetime" />
+                                </tree>
+                            </field >
+                        </page>
+                    </notebook>
+                </sheet>
+            </field>
+    </record>
+    <record id="view_production_ritase_log_form" model="ir.ui.view">
+            <field name="name">production.ritase.log.form</field>
+            <field name="model">production.ritase.log</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <form string="Log">
+                    <sheet>
+                        <group>
+                            <field name="counter_id" invisible="1"/>
+                            <field name="datetime" />
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+    </record>
+</odoo>

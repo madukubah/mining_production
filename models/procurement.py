@@ -54,7 +54,6 @@ class ProcurementOrder(models.Model):
             'product_uom_id': self.product_uom.id,
             'location_src_id': self.rule_id.location_src_id.id or self.location_id.id,
             'location_dest_id': self.location_id.id,
-            # 'bom_id': bom.id,
             'date_planned_start': fields.Datetime.to_string(self._get_date_planned()),
             'date_planned_finished': self.date_planned,
             'procurement_group_id': self.group_id.id,

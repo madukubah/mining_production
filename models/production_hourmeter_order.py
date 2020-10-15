@@ -5,8 +5,10 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 import time
 
-class ProductionHourmeter(models.Model):
+class ProductionHourmeterOrder(models.Model):
     _name = "production.hourmeter.order"
+    _inherit = ['mail.thread', 'ir.needaction_mixin']
+
     
     READONLY_STATES = {
         'confirm': [('readonly', True)],
@@ -34,7 +36,7 @@ class ProductionHourmeter(models.Model):
     def create(self, values):
         seq = self.env['ir.sequence'].next_by_code('hourmeter')
         values["name"] = seq
-        res = super(ProductionHourmeter, self ).create(values)
+        res = super(ProductionHourmeterOrder, self ).create(values)
         return res
 
     @api.multi
@@ -68,11 +70,12 @@ class ProductionVehicleHourmeterLog(models.Model):
 
     hourmeter_order_id = fields.Many2one("production.hourmeter.order", string="Hourmeter Order", ondelete="set null" )
     hourmeter_id = fields.Many2one('fleet.vehicle.hourmeter', 'Hourmeter', help='Odometer measure of the vehicle at the moment of this log')
+    driver_id	= fields.Many2one('hr.employee', string='Operator', required=True )
     date = fields.Date('Date', help='', related="hourmeter_order_id.date", readonly=True, default=time.strftime("%Y-%m-%d") )
-    shift = fields.Selection([
+    shift = fields.Selection( [
         ( "1" , '1'),
         ( "2" , '2'),
-        ], string='Shift', readonly=True, index=True, related="hourmeter_order_id.shift", )
+        ], string='Shift', index=True, related="hourmeter_order_id.shift" )
 
     start = fields.Float('Start Hour')
     end = fields.Float('End Hour')
@@ -92,7 +95,7 @@ class ProductionVehicleHourmeterLog(models.Model):
     @api.multi
     def post(self):
         for record in self:
-            ProductionConfig = self.env['mining.production.config'].sudo()
+            ProductionConfig = self.env['production.config'].sudo()
             production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
             if not production_config.hm_tag_id :
                 raise UserError(_('Please Set Ritase COP Tag in Configuration file') )

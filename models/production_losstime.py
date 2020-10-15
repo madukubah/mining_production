@@ -8,6 +8,7 @@ import time
 
 class ProductionLosstime(models.Model):
     _name = "production.losstime"
+    _inherit = ['mail.thread', 'ir.needaction_mixin']
     
     name = fields.Char(compute='_compute_vehicle_log_name', store=True)
     date = fields.Date('Date', help='',  default=time.strftime("%Y-%m-%d") )

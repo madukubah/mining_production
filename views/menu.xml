@@ -51,7 +51,7 @@
     </record>
 
     <record model="ir.actions.act_window" id="action_production_cop_adjust">
-        <field name="name">COP Adjust</field>
+        <field name="name">COP Adjustment</field>
         <field name="res_model">production.cop.adjust</field>
         <field name="view_type">form</field>
         <field name="view_mode">tree,form</field>
@@ -83,32 +83,11 @@
         <menuitem id="production" name="Production" sequence="1" 
                 parent="mining_production_top"/>
 
-            <menuitem name="COP Adjust"
-                id="production_cop_adjust"
-                parent="production" 
-                action="action_production_cop_adjust"
-                sequence= "0"
-                />
-
             <menuitem name="Production Order"
                 id="production_order"
                 parent="production" 
                 action="action_production_order"
                 sequence= "1"
-                />
-
-            <menuitem name="Ritase"
-                id="mining_ritase"
-                parent="production" 
-                action="action_ritase_order"
-                sequence= "2"
-                />
-
-            <menuitem name="Hourmeter"
-                id="mining_hourmeter"
-                parent="production" 
-                action="action_hourmeter_order"
-                sequence= "3"
                 />
             
             <menuitem name="Losstime"
@@ -118,7 +97,7 @@
                 sequence= "4"
                 />
             
-            <menuitem name="Vehicles Services Logs"
+            <menuitem name="Vehicles Logs"
                 action="fleet.fleet_vehicle_log_services_action" 
                 parent="production" 
                 id="production_fleet_vehicle_log_services_menu" 
@@ -133,41 +112,59 @@
                 sequence= "7"
                 />
             
+            <menuitem name="COP Adjustment"
+                id="production_cop_adjust"
+                parent="production" 
+                action="action_production_cop_adjust"
+                sequence= "99"
+                />
+        <menuitem name="Ritase"
+                id="mining_ritase"
+                parent="mining_production_top" 
+                action="action_ritase_order"
+                sequence= "2"
+                />
+
+        <menuitem name="Hourmeter"
+            id="mining_hourmeter"
+            parent="mining_production_top" 
+            action="action_hourmeter_order"
+            sequence= "3"
+            />
         
-        
-        <menuitem id="mining_production_report" name="Report" sequence="2" 
+        <menuitem id="mining_production_report" name="Report" sequence="98" 
                 parent="mining_production_top"/>
 
-        <menuitem id="mining_production_config" name="Configuration" sequence="99" 
+        <menuitem id="production_config" name="Configuration" sequence="99" 
                 parent="mining_production_top"/>
         
             <menuitem name="Cost Code"
                     id="production_cost_code"
-                    parent="mining_production_config" 
+                    parent="production_config" 
                     action="action_production_cost_code"
                     sequence= "1"
                     />
             <menuitem name="Production Block"
                     id="production_block"
-                    parent="mining_production_config" 
+                    parent="production_config" 
                     action="action_production_block"
                     sequence= "2"
                     />
             <menuitem name="Production Pit"
                     id="production_pit"
-                    parent="mining_production_config" 
+                    parent="production_config" 
                     action="action_production_pit"
                     sequence= "3"
                     />
             <menuitem name="Vehicle Service Types"
                     action="production_fleet_vehicle_service_types_action" 
-                    parent="mining_production_config" 
+                    parent="production_config" 
                     id="production_fleet_vehicle_service_types_menu" 
                     sequence= "4"
                     />
             <menuitem name="COP Tag"
                 action="action_production_cop_tag" 
-                parent="mining_production_config" 
+                parent="production_config" 
                 id="production_cop_tag_menu" 
                 sequence= "7"
                 />

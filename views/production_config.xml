@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_mining_production_config_form" model="ir.ui.view">
-        <field name="name">mining.production.config.form.view</field>
-        <field name="model">mining.production.config</field>
+    <record id="view_production_config_form" model="ir.ui.view">
+        <field name="name">production.config.form.view</field>
+        <field name="model">production.config</field>
         <field name="arch" type="xml">
             <form string=" Configuration">
                 <sheet>
@@ -30,9 +30,9 @@
         </field>
     </record>
 
-    <record id="view_mining_production_config_tree" model="ir.ui.view">
-        <field name="name">mining.production.config.tree.view</field>
-        <field name="model">mining.production.config</field>
+    <record id="view_production_config_tree" model="ir.ui.view">
+        <field name="name">production.config.tree.view</field>
+        <field name="model">production.config</field>
         <field name="arch" type="xml">
             <tree string=" Configuration">
                 <field name="name" />
@@ -41,9 +41,9 @@
         </field>
     </record>
 
-    <record id="view_mining_production_config_search" model="ir.ui.view">
-        <field name="name">mining.production.config.search.view</field>
-        <field name="model">mining.production.config</field>
+    <record id="view_production_config_search" model="ir.ui.view">
+        <field name="name">production.config.search.view</field>
+        <field name="model">production.config</field>
         <field name="arch" type="xml">
             <search string=" Config">
                 <filter string="Inactive" domain="[('active', '=', False)]" />
@@ -51,30 +51,30 @@
         </field>
     </record>
 
-    <record id="action_mining_production_config" model="ir.actions.act_window">
+    <record id="action_production_config" model="ir.actions.act_window">
         <field name="name">Configuration</field>
         <field name="type">ir.actions.act_window</field>
-        <field name="res_model">mining.production.config</field>
+        <field name="res_model">production.config</field>
         <field name="view_type">form</field>
         <field name="view_mode">tree,form</field>
-        <field name="search_view_id" ref="view_mining_production_config_search" />
+        <field name="search_view_id" ref="view_production_config_search" />
     </record>
 
     <menuitem name="Configuration"
-        id="menu_mining_production_config"
-        parent="mining_production_config"
-        action="action_mining_production_config"
+        id="menu_production_config"
+        parent="production_config"
+        action="action_production_config"
         sequence= "0"
         />
 
-    <record id="action_mining_production_config_kanban" model="ir.actions.act_window">
+    <record id="action_production_config_kanban" model="ir.actions.act_window">
         <field name="name">Configuration</field>
         <field name="type">ir.actions.act_window</field>
-        <field name="res_model">mining.production.config</field>
+        <field name="res_model">production.config</field>
         <field name="view_type">form</field>
         <field name="view_mode">kanban,tree,form</field>
         <field name="domain"></field>
-        <field name="search_view_id" ref="view_mining_production_config_search" />
+        <field name="search_view_id" ref="view_production_config_search" />
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">
                 Click to create a new config.

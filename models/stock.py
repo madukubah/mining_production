@@ -6,6 +6,8 @@ from odoo.exceptions import UserError
 from odoo.tools import float_compare, float_round
 from odoo.addons import decimal_precision as dp
 
+import logging
+_logger = logging.getLogger(__name__)
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
@@ -146,6 +148,8 @@ class StockMove(models.Model):
 
     @api.multi
     def action_cancel(self):
+        # for move in self:
+        #     _logger.warning( move.quantity_done )
         if any(move.quantity_done for move in self):
             raise exceptions.UserError(_('You cannot cancel a move move having already consumed material'))
         return super(StockMove, self).action_cancel()
@@ -358,7 +362,7 @@ class StockQuant(models.Model):
 
     @api.multi
     def _price_update(self, newprice):
-        ProductionConfig = self.env['mining.production.config'].sudo()
+        ProductionConfig = self.env['production.config'].sudo()
         production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
         if not production_config :
             raise UserError(_('Please Set Default Configuration file') )
@@ -374,7 +378,7 @@ class StockQuant(models.Model):
         super(StockQuant, self)._price_update(newprice)
 
     def _account_entry_move(self, move):
-        ProductionConfig = self.env['mining.production.config'].sudo()
+        ProductionConfig = self.env['production.config'].sudo()
         production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
         if not production_config :
             raise UserError(_('Please Set Default Configuration file') )
