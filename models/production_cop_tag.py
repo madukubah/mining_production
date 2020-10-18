@@ -61,7 +61,11 @@ class ProductionCopTagLog(models.Model):
 
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
     name = fields.Char(compute='_compute_name', store=True ,required=True, states=READONLY_STATES)
-    date = fields.Date('Date', help='',default=time.strftime("%Y-%m-%d"),required=True, states=READONLY_STATES )
+    location_id = fields.Many2one(
+            'stock.location', 'Location',
+            domain=[ ('usage','=',"internal") ],
+            ondelete="restrict", states=READONLY_STATES )
+    date = fields.Date('Date', help='',default=fields.Datetime.now,required=True, states=READONLY_STATES )
     tag_id	= fields.Many2one('production.cop.tag', string='Tag',required=True, states=READONLY_STATES )
     product_uom_qty = fields.Integer( string="Quantity", required=True, default=1)
     price_unit = fields.Float( string="Price Unit", required=True, default=1)
@@ -94,6 +98,13 @@ class ProductionCopTagLog(models.Model):
     def post(self):
         for record in self:
             record.write({'state' : 'posted' })
+    
+    @api.multi
+    def unlink(self):
+        for order in self:
+            if order.state in [ "posted"] :
+                raise UserError(_('Cannot delete file which is in state \'%s\'.') %(order.state,))
+        return super(ProductionCopTagLog, self).unlink()
 
     @api.model
     def create(self, values):

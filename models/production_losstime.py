@@ -11,7 +11,7 @@ class ProductionLosstime(models.Model):
     _inherit = ['mail.thread', 'ir.needaction_mixin']
     
     name = fields.Char(compute='_compute_vehicle_log_name', store=True)
-    date = fields.Date('Date', help='',  default=time.strftime("%Y-%m-%d") )
+    date = fields.Date('Date', help='',  default=fields.Datetime.now )
     vehicle_id  = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
     cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict", required=True )
     block_id = fields.Many2one('production.block', string='Block', ondelete="restrict", required=True )

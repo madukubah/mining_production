@@ -13,7 +13,9 @@
                 <field name="employee_id" />
                 <field name="location_id" />
                 <field name="location_dest_id" />
+                <field name="product_id" />
                 <field name="ritase_count" />
+                <field name="product_uom" />
                 <field name="state" />
             </tree>
         </field>
@@ -81,12 +83,13 @@
                                         <field name="vehicle_id" />
                                         <field name="driver_id" />
                                         <field name="ritase_count" />
+                                        <field name="amount" invisible="1" />
 									</tree>
                                 </field >
                             </page>
                         </notebook>
 
-                        <notebook>
+                        <notebook  >
                             <page string="Lot Movements">
                                 <field name="lot_move_ids" editable="bottom" >
                                     <tree string="Lot Movements" editable="bottom" >
@@ -118,6 +121,7 @@
                 </form>
                 <field name="name" position="after">
                     <field name="ritase_order_id" invisible="1"/>
+                    <field name="product_id" invisible="1"/>
                     <!-- <field name="operation_template_id" class="oe_inline" readonly="1" invisible="1" /> -->
                 </field>
                 <sheet position="inside">

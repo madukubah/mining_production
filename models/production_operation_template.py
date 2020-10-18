@@ -5,6 +5,9 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 import time
 
+import logging
+_logger = logging.getLogger(__name__)
+
 class ProductionOperationTemplate(models.Model):
     _name = "production.operation.template"
     
@@ -21,7 +24,7 @@ class ProductionOperationTemplate(models.Model):
     cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict", required=True )
     block_id = fields.Many2one('production.block', string='Block', ondelete="restrict", required=True )
     vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
-    driver_id	= fields.Many2one('hr.employee', string='Driver', required=True )
+    driver_id	= fields.Many2one('res.partner', string='Driver', required=True )
 
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
@@ -35,11 +38,16 @@ class ProductionOperationTemplate(models.Model):
                 name = record.date
             elif record.date:
                 name += ' / ' + record.date
-            self.name = name
+            record.name = name
 
     @api.multi
     def post(self):
         for record in self:
             record.write({'state' : 'posted' })
+
+    @api.onchange('vehicle_id')	
+    def _change_vehicle_id(self):
+        for record in self:
+            record.driver_id = record.vehicle_id.driver_id
 
 

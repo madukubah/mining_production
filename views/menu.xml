@@ -90,13 +90,6 @@
                 sequence= "1"
                 />
             
-            <menuitem name="Losstime"
-                id="production_losstime"
-                parent="production" 
-                action="action_production_losstime"
-                sequence= "4"
-                />
-            
             <menuitem name="Vehicles Logs"
                 action="fleet.fleet_vehicle_log_services_action" 
                 parent="production" 
@@ -131,6 +124,13 @@
             action="action_hourmeter_order"
             sequence= "3"
             />
+        
+        <menuitem name="Losstime"
+                id="production_losstime"
+                parent="mining_production_top" 
+                action="action_production_losstime"
+                sequence= "4"
+                />
         
         <menuitem id="mining_production_report" name="Report" sequence="98" 
                 parent="mining_production_top"/>

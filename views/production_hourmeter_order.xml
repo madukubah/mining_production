@@ -23,10 +23,11 @@
             <field name="arch" type="xml">
                 <form string="Hourmeter">
                     <header>
-                        <button name="button_draft" states="cancel" string="Set to Open" type="object" groups="mining_production.production_group_manager" />
-                        <button name="button_confirm" string="Confirm" type="object" states="open" class="btn-primary" groups="mining_production.production_group_manager" />
-                        <button name="button_cancel" states="open,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" />
-                        <field name="state" widget="statusbar" statusbar_visible="open,confirm" readonly="1"  />
+                        <button name="action_draft" states="cancel" string="Set to Draft" type="object" groups="mining_production.production_group_manager" />
+                        <button name="action_confirm" string="Confirm" type="object" states="draft" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="action_done" string="Done" type="object" states="confirm" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="action_cancel" states="draft,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done" readonly="1"  />
                     </header>
                     <sheet>
                         <div class="oe_title">
@@ -49,11 +50,12 @@
                                         <field name="hourmeter_order_id" invisible="1" />
                                         <field name="name" invisible="1" />
                                         <field name="date" invisible="1" />
-                                        <field name="cost_amount" invisible="1" />
+                                        <field name="amount" invisible="1" />
                                         <field name="cost_code_id" />
                                         <field name="block_id" />
+                                        <field name="location_id" />
                                         <field name="vehicle_id" />
-                                        <field name="driver_id" />
+                                        <field name="driver_id" string="Operator" />
                                         <field name="start" />
                                         <field name="end" />
                                         <field name="value" />
@@ -81,6 +83,9 @@
                 <form position="attributes">
                     <attribute name="string">HE Hourmeter</attribute>
                 </form>
+                <field name="driver_id" position="attributes">
+                    <attribute name="string">Operator</attribute>
+                </field>
                 <field name="date" position="after">
                     <field name="hourmeter_order_id" invisible="1"/>
                     <field name="hourmeter_id" invisible="1"/>

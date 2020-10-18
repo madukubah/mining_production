@@ -46,22 +46,22 @@ class ProductionOrder(models.Model):
         'product.product', 'Product',
         domain=[('type', 'in', ['product', 'consu'])],
         readonly=True, required=True,
-        states={'confirmed': [('readonly', False)]})
+        states= READONLY_STATES )
     product_tmpl_id = fields.Many2one('product.template', 'Product Template', related='product_id.product_tmpl_id', readonly=True)
     product_qty = fields.Float(
         'Quantity To Produce',
         compute='_compute_ritase',
         default=1.0, digits=dp.get_precision('Product Unit of Measure'),
-        readonly=True, required=True,
-        states={'confirmed': [('readonly', False)]})
+        readonly=True, required=True )
     product_uom_id = fields.Many2one(
         'product.uom', 'Product Unit of Measure',
+		domain=[ ('category_id.name','=',"Mining")  ],
         oldname='product_uom', readonly=True, required=True,
-        states={'confirmed': [('readonly', False)]})
+        states=READONLY_STATES )
     picking_type_id = fields.Many2one(
         'stock.picking.type', 'Picking Type',
-        default=_get_default_picking_type, required=True)
-    date = fields.Date('Date', help='',  default=time.strftime("%Y-%m-%d"), states=READONLY_STATES  )
+        default=_get_default_picking_type, required=True )
+    date = fields.Date('Date', help='',  default=fields.Datetime.now , states=READONLY_STATES  )
     shift = fields.Selection([
         ( "1" , '1'),
         ( "2" , '2'),
@@ -103,14 +103,19 @@ class ProductionOrder(models.Model):
     @api.multi
     @api.depends('move_ids')
     def _has_moves(self):
-        for mo in self:
-            mo.has_moves = any( mo.move_ids )
+        for order in self:
+            order.has_moves = any( order.move_ids )
 
     @api.multi
-    @api.depends('move_ids')
+    @api.depends('rit_ids')
     def _compute_ritase(self):
         for order in self:
-            order.product_qty = sum( [ rit_id.product_uom._compute_quantity( rit_id.ritase_count, order.product_id.uom_id ) for rit_id in order.rit_ids ] )
+            order.product_qty = sum( [ rit_id.product_uom._compute_quantity( rit_id.ritase_count, order.product_uom_id ) for rit_id in order.rit_ids ] )
+
+    @api.onchange('product_uom_id' )
+    def onchange_product_uom_id(self):
+        for order in self:
+            order.product_qty = sum( [ rit_id.product_uom._compute_quantity( rit_id.ritase_count, order.product_uom_id ) for rit_id in order.rit_ids ] )
 
     @api.multi
     def action_confirm(self):
@@ -131,7 +136,7 @@ class ProductionOrder(models.Model):
     def action_done(self):
         for order in self:
             order.post_inventory()
-            order.action_reload()
+            # order.action_reload()
             order.rit_ids.action_done()
         self.state = 'done'
 
@@ -177,6 +182,8 @@ class ProductionOrder(models.Model):
         if not values.get('procurement_group_id'):
             values['procurement_group_id'] = self.env["procurement.group"].create({'name': values['name']}).id
 
+        # seq = self.env['ir.sequence'].next_by_code('ritase')
+        # values["name"] = seq
         res = super(ProductionOrder, self ).create(values)
         return res
     
@@ -210,16 +217,20 @@ class ProductionOrder(models.Model):
             'origin': self.name,
             'group_id': self.procurement_group_id.id,
         })
-        vals = {
-                'move_id': move.id,
-                'product_id': move.product_id.id,
-                'production_order_id': move.production_order_id.id,
-                'quantity': self.product_qty,
-                'quantity_done': self.product_qty,
-                'lot_id': production_config[0].lot_id.id,
-            }
-        lots.create(vals)
-        # move.action_confirm()
+
+
+        if self.product_id.tracking != 'none' :
+            vals = {
+                    'move_id': move.id,
+                    'product_id': move.product_id.id,
+                    'production_order_id': move.production_order_id.id,
+                    'quantity': self.product_qty,
+                    'quantity_done': self.product_qty,
+                    'lot_id': production_config[0].lot_id.id,
+                }
+            lots.create(vals)
+        else :
+            move.quantity_done = self.product_qty
         return move
 
     @api.multi

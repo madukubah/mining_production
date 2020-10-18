@@ -8,15 +8,19 @@ import time
 class ProductionHourmeterOrder(models.Model):
     _name = "production.hourmeter.order"
     _inherit = ['mail.thread', 'ir.needaction_mixin']
+    _order = "id desc"
 
     
     READONLY_STATES = {
-        'confirm': [('readonly', True)],
+        'draft': [('readonly', False)] ,
+        'confirm': [('readonly', True)] ,
+        'done': [('readonly', True)] ,
+        'cancel': [('readonly', True)] ,
     }
 
     name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
     employee_id	= fields.Many2one('hr.employee', string='Checker', states=READONLY_STATES )
-    date = fields.Date('Date', help='',  default=time.strftime("%Y-%m-%d"), states=READONLY_STATES )
+    date = fields.Date('Date', help='',  default=fields.Datetime.now, states=READONLY_STATES )
     shift = fields.Selection([
         ( "1" , '1'),
         ( "2" , '2'),
@@ -26,11 +30,12 @@ class ProductionHourmeterOrder(models.Model):
         'hourmeter_order_id',
         string='HE Hourmeter',
         copy=True, states=READONLY_STATES )
-    state = fields.Selection([
-        ('open', 'Open'), 
-		('confirm', 'Confirmed'),
-		('cancel', 'Cancelled'),
-        ], string='Status', readonly=True, copy=False, index=True, track_visibility='onchange', default='open')
+    state = fields.Selection( [
+        ('draft', 'Draft'), 
+        ('cancel', 'Cancelled'),
+        ('confirm', 'Confirmed'),
+        ('done', 'Done'),
+        ], string='Status', readonly=True, copy=False, index=True, track_visibility='onchange', default='draft')
 
     @api.model
     def create(self, values):
@@ -40,7 +45,12 @@ class ProductionHourmeterOrder(models.Model):
         return res
 
     @api.multi
-    def button_confirm(self):
+    def action_draft(self):
+        for order in self:
+            order.write({'state': 'draft'})
+
+    @api.multi
+    def action_done(self):
         for order in self:
             for hourmeter_log in order.vehicle_hourmeter_log_ids:
                 Hourmeter = self.env['fleet.vehicle.hourmeter'].sudo()
@@ -50,28 +60,32 @@ class ProductionHourmeterOrder(models.Model):
                     'start' : hourmeter_log.start,
                     'end' : hourmeter_log.end,
                 })
-
                 hourmeter_log.write({ 'hourmeter_id' : hourmeter.id })
-        self.write({ 'state' : 'confirm' })
+                # hourmeter_log.post()
+            order.write({'state': 'done'})
+        
+    @api.multi
+    def action_confirm(self):
+        for order in self:
+            order.write({ 'state' : 'confirm' })
     
     @api.multi
-    def button_cancel(self):
+    def action_cancel(self):
         for order in self:
             for hourmeter_log in order.vehicle_hourmeter_log_ids:
                 if hourmeter_log.hourmeter_id:
                     raise UserError(_('Unable to cancel order %s as some receptions have already been done.') % (order.name))
 
-        self.write({'state': 'cancel'})
+            order.write({'state': 'cancel'})
                 
 	
 class ProductionVehicleHourmeterLog(models.Model):
     _name = "production.vehicle.hourmeter.log"
     _inherits = {'production.operation.template': 'operation_template_id'}
 
-    hourmeter_order_id = fields.Many2one("production.hourmeter.order", string="Hourmeter Order", ondelete="set null" )
+    hourmeter_order_id = fields.Many2one("production.hourmeter.order", string="Hourmeter Order", ondelete="restrict" )
     hourmeter_id = fields.Many2one('fleet.vehicle.hourmeter', 'Hourmeter', help='Odometer measure of the vehicle at the moment of this log')
-    driver_id	= fields.Many2one('hr.employee', string='Operator', required=True )
-    date = fields.Date('Date', help='', related="hourmeter_order_id.date", readonly=True, default=time.strftime("%Y-%m-%d") )
+    date = fields.Date('Date', help='', related="hourmeter_order_id.date", readonly=True, default=fields.Datetime.now )
     shift = fields.Selection( [
         ( "1" , '1'),
         ( "2" , '2'),
@@ -80,20 +94,28 @@ class ProductionVehicleHourmeterLog(models.Model):
     start = fields.Float('Start Hour')
     end = fields.Float('End Hour')
     value = fields.Float('Hourmeter Value', group_operator="max", readonly=True, compute="_compute_value" )
-    cost_amount = fields.Float(string='Amount', compute="_compute_cost_amount" )
+    amount = fields.Float(string='Amount', compute="_compute_amount" )
     
+    @api.onchange('vehicle_id')	
+    def _change_vehicle_id(self):
+        for record in self:
+            record.driver_id = record.vehicle_id.driver_id
+
     @api.depends('start', 'end')
     def _compute_value(self):
         for record in self:
             record.value = record.end - record.start
 
     @api.depends('value')	
-    def _compute_cost_amount(self):
-        for rec in self:
-            rec.cost_amount = rec.value *  20000
+    def _compute_amount(self):
+        for record in self:
+            record.amount = record.value *  20000
 
     @api.multi
     def post(self):
+        '''
+        for compute ore cost of production
+        '''
         for record in self:
             ProductionConfig = self.env['production.config'].sudo()
             production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
@@ -103,10 +125,12 @@ class ProductionVehicleHourmeterLog(models.Model):
                     'cop_adjust_id' : record.cop_adjust_id.id,
                     'name' :   'HM / ' + record.date,
                     'date' : record.date,
+                    'location_id' : record.location_id.id,
                     'tag_id' : production_config.hm_tag_id.id,
                     'product_uom_qty' : record.value,
-                    'price_unit' : record.cost_amount /record.value,
-                    'amount' : record.cost_amount,
+                    # 'price_unit' : record.amount /record.value,
+                    'price_unit' : 20000, # TODO : change it programable
+                    'amount' : record.amount,
                     'state' : 'posted',
                 })
             record.write({'state' : 'posted' })

@@ -10,6 +10,7 @@
                 <field name="name" />
                 <field name="date" />
                 <field name="employee_id" />
+                <field name="amount" />
                 <field name="state" />
             </tree>
         </field>
@@ -40,6 +41,7 @@
                             <field name="date" />
                             <field name="employee_id" />
                             <field name="production_config_id" />
+                            <field name="amount" />
                         </group>
                         <separator string="Summary "/>
                         <notebook>
@@ -50,6 +52,7 @@
                                         <field name="vehicle_id" />
                                         <field name="cost_subtype_id" />
                                         <field name="amount" />
+                                        <field name="state" />
                                     </tree>
                                 </field>
                             </page>
@@ -57,10 +60,13 @@
                                 <field name="rit_ids" >
                                     <tree string="DT Ritase" >
                                         <field name="date" />
+                                        <field name="location_id" />
                                         <field name="vehicle_id" />
                                         <field name="driver_id" />
+                                        <field name="product_id" />
                                         <field name="ritase_count" />
-                                        <field name="cost_amount" />
+                                        <field name="amount" />
+                                        <field name="state" />
                                     </tree>
                                 </field>
                             </page>
@@ -68,10 +74,12 @@
                                 <field name="hourmeter_ids" >
                                     <tree string="HE Hourmeter" >
                                         <field name="date" />
+                                        <field name="location_id" />
                                         <field name="vehicle_id" />
                                         <field name="driver_id" />
                                         <field name="value" />
-                                        <field name="cost_amount" />
+                                        <field name="amount" />
+                                        <field name="state" />
                                     </tree>
                                 </field>
                             </page>
@@ -81,6 +89,7 @@
                             <tree string="COP Tagging" >
                                 <field name="name" />
                                 <field name="date" />
+                                <field name="location_id" />
                                 <field name="tag_id" />
                                 <field name="amount" />
                                 <field name="state" />

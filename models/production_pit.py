@@ -15,7 +15,7 @@ class Pit(models.Model):
             ondelete="restrict")
     location_id = fields.Many2one(
             'stock.location', 'Location',
-			readonly=True,
+			# readonly=True,
 			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict")
     active = fields.Boolean(
@@ -32,12 +32,13 @@ class Pit(models.Model):
         picking_type = StockPickingType.search([ ("code", '=', "outgoing" ), ("warehouse_id", '=', values["warehouse_id"] ) ])
         if not picking_type:
             raise UserError(_("Cannot Find Picking Type For Procurement Rule ") )
-
-        values["location_id"] = StockLocation.create({
-                            "name" : values["name"],
-                            "usage" : "internal",
-                            "location_id" : warehouse.view_location_id.id ,
-                        }).id
+        
+        if not values["location_id"] : 
+            values["location_id"] = StockLocation.create({
+                                "name" : values["name"],
+                                "usage" : "internal",
+                                "location_id" : warehouse.view_location_id.id ,
+                            }).id
 
         res = super(Pit, self ).create(values)
         return res

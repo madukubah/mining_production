@@ -3,8 +3,8 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 import time
 
-import logging
-_logger = logging.getLogger(__name__)
+# import logging
+# _logger = logging.getLogger(__name__)
 
 class ProductionRitaseOrder(models.Model):
 	_name = "production.ritase.order"
@@ -23,6 +23,8 @@ class ProductionRitaseOrder(models.Model):
 	@api.multi
 	def _check_ritase_count(self):
 		for rec in self:
+			if rec.product_id.tracking == 'none' :
+				return True
 			rit_by_dt = sum( [ counter_id.ritase_count for counter_id in rec.counter_ids ] )
 			rit_by_lot = sum( [ lot_move_id.ritase_count for lot_move_id in rec.lot_move_ids ] )
 			if( rit_by_dt != rit_by_lot ):
@@ -30,14 +32,17 @@ class ProductionRitaseOrder(models.Model):
 		return True
 
 	READONLY_STATES = {
+        'draft': [('readonly', False)] ,
         'confirm': [('readonly', True)] ,
+        'done': [('readonly', True)] ,
+        'cancel': [('readonly', True)] ,
     }
 
 	name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
 	production_order_id = fields.Many2one("production.order", 
         'Production Order', ondelete='restrict', copy=False)
 	employee_id	= fields.Many2one('hr.employee', string='Checker', states=READONLY_STATES )
-	date = fields.Date('Date', help='',  default=time.strftime("%Y-%m-%d"), states=READONLY_STATES )
+	date = fields.Date('Date', help='',  default=fields.Datetime.now, states=READONLY_STATES )
 	picking_type_id = fields.Many2one('stock.picking.type', 'Deliver To', required=True, default=_default_picking_type,\
 		help="This will determine picking type of internal shipment", states=READONLY_STATES)
 	company_id = fields.Many2one('res.company', 'Company', required=True, index=True, default=lambda self: self.env.user.company_id.id, states=READONLY_STATES)
@@ -46,7 +51,7 @@ class ProductionRitaseOrder(models.Model):
             ondelete="restrict", required=True, states=READONLY_STATES)
 	location_id = fields.Many2one(
             'stock.location', 'Origin Location',
-			domain=[ ('usage','=',"internal")  ],
+			domain=[ ('usage','=',"internal") ],
             ondelete="restrict", required=True, states=READONLY_STATES)
 	warehouse_dest_id = fields.Many2one(
 			'stock.warehouse', 'Destination Warehouse',
@@ -95,12 +100,30 @@ class ProductionRitaseOrder(models.Model):
 	_constraints = [ 
         (_check_ritase_count, 'Ritase by Lot and Ritase by DT Must Be Same!', ['counter_ids','lot_move_ids'] ) 
         ]
+	
+	# @api.multi
+	# def write(self, values):
+	# 	for order in self:
+	# 		if order._check_ritase_count() :
+	# 			raise UserError(_('Ritase by Lot and Ritase by DT Must Be Same!.'))
+	# 	return super(ProductionRitaseOrder, self).write(values)
+
 	@api.multi
 	def unlink(self):
 		for order in self:
 			if order.state in ['confirm', "done"] :
 				raise UserError(_('Cannot delete  order which is in state \'%s\'.') %(order.state,))
 		return super(ProductionRitaseOrder, self).unlink()
+
+	@api.onchange('warehouse_id', "warehouse_dest_id")	
+	def _change_wh(self):
+		for order in self:
+			return {
+				'domain':{
+					'location_id':[('location_id','=',order.warehouse_id.view_location_id.id )] ,
+					'location_dest_id':[('location_id','=',order.warehouse_dest_id.view_location_id.id )]
+					} 
+				}
 		
 	@api.model
 	def create(self, values):
@@ -125,15 +148,16 @@ class ProductionRitaseOrder(models.Model):
 			picking_id = picking_ids[0]
 			if picking_id.pack_operation_product_ids:
 				pack_operation_product_id = picking_id.pack_operation_product_ids[0]
-				for lot_move_id in order.lot_move_ids:
-					PackOperationLot.create({
-						'operation_id' : pack_operation_product_id.id,
-						'lot_id' : lot_move_id.lot_id.id,
-						'qty' : order.product_uom._compute_quantity( lot_move_id.ritase_count, pack_operation_product_id.product_id.uom_id )
-					})
+				if order.product_id.tracking == 'none' :
+					pack_operation_product_id.qty_done = order.product_uom._compute_quantity( order.ritase_count , pack_operation_product_id.product_id.uom_id ) 
+				else :
+					for lot_move_id in order.lot_move_ids:
+						PackOperationLot.create({
+							'operation_id' : pack_operation_product_id.id,
+							'lot_id' : lot_move_id.lot_id.id,
+							'qty' : order.product_uom._compute_quantity( lot_move_id.ritase_count, pack_operation_product_id.product_id.uom_id )
+						})
 				pack_operation_product_id.save()
-				# _logger.warning( picking_id.pack_operation_product_ids )
-			
 			order.state = 'confirm'
 
 	@api.multi
@@ -291,12 +315,13 @@ class RitaseCounter(models.Model):
 	_inherits = {'production.operation.template': 'operation_template_id'}
 
 	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="restrict" )
+	product_id = fields.Many2one("product.product", string="Material", related="ritase_order_id.product_id", ondelete="restrict" )
 	location_id = fields.Many2one(
             'stock.location', 'Location',
 			related="ritase_order_id.location_id",
 			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict" )
-	date = fields.Date('Date', help='', related="ritase_order_id.date", readonly=True, default=time.strftime("%Y-%m-%d") )
+	date = fields.Date('Date', help='', related="ritase_order_id.date", readonly=True, default=fields.Datetime.now )
 	shift = fields.Selection( [
         ( "1" , '1'),
         ( "2" , '2'),
@@ -308,20 +333,28 @@ class RitaseCounter(models.Model):
         string='Logs',
         copy=True )
 	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0, compute='_compute_ritase_count' )
-	cost_amount = fields.Float(string='Amount', compute="_compute_cost_amount" )
+	amount = fields.Float(string='Amount', compute="_compute_amount" )
 	
+	@api.onchange('vehicle_id')	
+	def _change_vehicle_id(self):
+		for order in self:
+			order.driver_id = order.vehicle_id.driver_id
+			
 	@api.depends('log_ids')	
 	def _compute_ritase_count(self):
 		for rec in self:
 			rec.ritase_count = len( rec.log_ids )
 	
 	@api.depends('ritase_count')	
-	def _compute_cost_amount(self):
+	def _compute_amount(self):
 		for rec in self:
-			rec.cost_amount = rec.ritase_count *  5000 
+			rec.amount = rec.ritase_count *  5000 
 
 	@api.multi
 	def post(self):
+		'''
+		for compute ore cost of production
+		'''
 		for record in self:
 			ProductionConfig = self.env['production.config'].sudo()
 			production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
@@ -331,10 +364,12 @@ class RitaseCounter(models.Model):
                     'cop_adjust_id' : record.cop_adjust_id.id,
                     'name' :   'RITASE / ' + record.date,
                     'date' : record.date,
+                    'location_id' : record.location_id.id,
                     'tag_id' : production_config.rit_tag_id.id,
                     'product_uom_qty' : record.ritase_count,
-                    'price_unit' : record.cost_amount /record.ritase_count,
-                    'amount' : record.cost_amount,
+                    # 'price_unit' : record.amount /record.ritase_count,
+                    'price_unit' : 5000, # TODO : change it programable
+                    'amount' : record.amount,
                     'state' : 'posted',
                 })
 			record.write({'state' : 'posted' })

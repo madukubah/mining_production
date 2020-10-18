@@ -25,13 +25,14 @@ class ProductionCopAdjust(models.Model):
         'res.company', 'Company',
         default=lambda self: self.env['res.company']._company_default_get('production.order'),
         required=True)
-    date = fields.Date('Date', help='',default=time.strftime("%Y-%m-%d"), states=READONLY_STATES )
+    date = fields.Date('Date', help='', default=fields.Datetime.now, states=READONLY_STATES )
     employee_id	= fields.Many2one('hr.employee', string='Responsible', states=READONLY_STATES )
     production_config_id	= fields.Many2one('production.config', string='Production Config', states=READONLY_STATES )
     cost_ids = fields.One2many('fleet.vehicle.cost', 'cop_adjust_id', 'Vehicle Costs', states=READONLY_STATES )
-    tag_log_ids = fields.One2many('production.cop.tag.log', 'cop_adjust_id', 'COP Tagging', states=READONLY_STATES )
     rit_ids = fields.One2many('production.ritase.counter', 'cop_adjust_id', 'Ritase Costs', states=READONLY_STATES )
     hourmeter_ids = fields.One2many('production.vehicle.hourmeter.log', 'cop_adjust_id', 'Hourmeter Costs', states=READONLY_STATES )
+    tag_log_ids = fields.One2many('production.cop.tag.log', 'cop_adjust_id', 'COP Tagging', states=READONLY_STATES )
+    amount = fields.Float(string='Amount', compute="_compute_amount" )
 
     state = fields.Selection( [
         ('draft', 'Draft'), 
@@ -71,6 +72,7 @@ class ProductionCopAdjust(models.Model):
     
     @api.multi
     def _reload(self):
+        self.ensure_one()
         VehicleCost = self.env['fleet.vehicle.cost'].sudo()
         vehicle_costs = VehicleCost.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
         vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs if vehicle_cost.cost_subtype_id.is_consumable ]
@@ -85,7 +87,7 @@ class ProductionCopAdjust(models.Model):
         })
 
         HourmeterLog = self.env['production.vehicle.hourmeter.log'].sudo()
-        hourmeter_log = HourmeterLog.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
+        hourmeter_log = HourmeterLog.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "hourmeter_order_id.state", "=", "done" ) ] )
         self.update({
             'hourmeter_ids': [( 6, 0, hourmeter_log.ids )],
         })
@@ -97,10 +99,18 @@ class ProductionCopAdjust(models.Model):
         })
         return True
     
-    @api.multi
-    def _update_ore_valuation(self):
-        self.ensure_one()
-
+    @api.depends("rit_ids", "hourmeter_ids", "cost_ids", "tag_log_ids" )
+    def _compute_amount(self):
+        for record in self:
+            if record.state != 'done' :
+                sum_rit = sum( [ rit.amount for rit in record.rit_ids.filtered(lambda r: r.state != 'posted') ] )
+                sum_hm = sum( [ hourmeter.amount for hourmeter in record.hourmeter_ids.filtered(lambda r: r.state != 'posted') ] )
+                sum_vehicle_cost = sum( [ cost.amount for cost in record.cost_ids.filtered(lambda r: r.state != 'posted') ] )
+                sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids.filtered(lambda r: r.state != 'posted') ] )
+                record.amount = sum_hm + sum_rit + sum_cop_tag + sum_vehicle_cost
+            else:
+                sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids.filtered(lambda r: r.state == 'posted') ] )
+                record.amount = sum_cop_tag
 
     @api.multi
     def _settle_cost(self):
@@ -162,6 +172,7 @@ class ProductionCopAdjust(models.Model):
         
     
     def _generate_moves(self, product_id, qty):
+        self.ensure_one()
         product = self.env['product.product'].search( [ ("id", "=", product_id ) ] )
         
         domain_quant = [ ("product_id", "=", product_id ), ("location_id.usage", "=", "internal" ) ]
@@ -194,6 +205,7 @@ class ProductionCopAdjust(models.Model):
         return move
 
     def _account_entry_move_ore(self, move_lines ):
+        self.ensure_one()
         production_config = self.production_config_id
         if not production_config :
             raise UserError(_('Please Set Default Configuration file') )
@@ -229,9 +241,13 @@ class ProductionCopAdjust(models.Model):
                 'ref': self.name})
             new_account_move.post()
 
-            product_qty = product.qty_available
+        product_qty = product.qty_available
+        product_qty += self.get_qty_by_rit_product( except_prduct_id=product.id )
+        # avoid division by zero
+        if product_qty > 0 :
             amount_unit = product.standard_price
             not_consumable_cost = self._compute_not_consumable_cost()
+            # not_consumable_cost = self._compute_not_consumable_cost()
             new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty )
             product.with_context(force_company=self.company_id.id).sudo().write({ 'standard_price': new_std_price })
 
@@ -250,9 +266,31 @@ class ProductionCopAdjust(models.Model):
         credit_value = self.company_id.currency_id.round(valuation_amount * qty)
         return credit_value
 
+    def get_qty_by_rit_product( self, except_prduct_id ):
+        self.ensure_one()
+        product_dict = {}
+        qty = 0
+        for rit in self.rit_ids:
+            product = rit.ritase_order_id.product_id
+            _logger.warning( product )
+            _logger.warning( product.qty_available )
+            if except_prduct_id == product.id :
+                continue
+            if product_dict.get( product.id , False):
+                continue
+                    # product_dict[ product.id ]['qty'] = product.qty_available
+            else : 
+                product_dict[ product.id ] = product.qty_available
+                #  {
+                #     'qty' : product.qty_available,
+                # }
+                _logger.warning( product.qty_available )
+                qty += product.qty_available
+        return qty
+            
     def _compute_not_consumable_cost(self):
-        sum_rit = sum( [ rit.cost_amount for rit in self.rit_ids ] )
-        sum_hm = sum( [ hourmeter.cost_amount for hourmeter in self.hourmeter_ids ] )
+        sum_rit = sum( [ rit.amount for rit in self.rit_ids ] )
+        sum_hm = sum( [ hourmeter.amount for hourmeter in self.hourmeter_ids ] )
         # except VEHICLE COST and COP TAG COST that have comsumable products
         # because it already compute in stock move ( stock interim cost )
         sum_cop_tag = sum( [ tag_log.amount for tag_log in self.tag_log_ids if not ( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) ] )
