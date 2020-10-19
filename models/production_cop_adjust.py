@@ -242,13 +242,13 @@ class ProductionCopAdjust(models.Model):
             new_account_move.post()
 
         product_qty = product.qty_available
-        product_qty += self.get_qty_by_rit_product( except_prduct_id=product.id )
+        # product_qty += self.get_qty_by_rit_product( except_prduct_id=product.id )
         # avoid division by zero
         if product_qty > 0 :
             amount_unit = product.standard_price
             not_consumable_cost = self._compute_not_consumable_cost()
             # not_consumable_cost = self._compute_not_consumable_cost()
-            new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty )
+            new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty + self.get_qty_by_rit_product( except_prduct_id=product.id ) )
             product.with_context(force_company=self.company_id.id).sudo().write({ 'standard_price': new_std_price })
 
     def _prepare_credit_product_cost(self, product, qty, cost):

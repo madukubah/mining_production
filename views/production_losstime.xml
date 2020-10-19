@@ -8,11 +8,11 @@
         <field name="priority" eval="8"/>
         <field name="arch" type="xml">
             <tree string="Cost Code List">
-                <field name="shift" />
-                <field name="cost_code_id" />
-                <field name="block_id" />
-                <field name="vehicle_id" />
                 <field name="date" />
+                <field name="shift" />
+                <!-- <field name="cost_code_id" /> -->
+                <!-- <field name="block_id" /> -->
+                <!-- <field name="vehicle_id" /> -->
                 <field name="state" />
                 <field name="hour" />
             </tree>
@@ -28,11 +28,11 @@
                     <sheet>
                         <group>
                             <field name="name" invisible="1" />
-                            <field name="shift" />
-                            <field name="cost_code_id" />
-                            <field name="block_id" />
-                            <field name="vehicle_id" />
                             <field name="date" />
+                            <field name="shift" />
+                            <!-- <field name="cost_code_id" /> -->
+                            <!-- <field name="block_id" /> -->
+                            <!-- <field name="vehicle_id" /> -->
                             <field name="state" />
                             <field name="hour" />
                             <field name="remarks" />

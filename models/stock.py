@@ -372,9 +372,9 @@ class StockQuant(models.Model):
             raise UserError(_('Please Set Default COP Journal Configuration file') )
         
         product = production_config.lot_id.product_id
-        # for quant in self:
-        if product.product_tmpl_id == self.product_id.product_tmpl_id and self.location_id.usage != "customer" :
-            return
+        for quant in self:
+            if product.product_tmpl_id == quant.product_id.product_tmpl_id and quant.location_id.usage != "customer" :
+                return
         super(StockQuant, self)._price_update(newprice)
 
     def _account_entry_move(self, move):
@@ -388,8 +388,8 @@ class StockQuant(models.Model):
             raise UserError(_('Please Set Default COP Journal Configuration file') )
         
         product = production_config.lot_id.product_id
-        # for quant in self:
-        if product.product_tmpl_id == self.product_id.product_tmpl_id and self.location_id.usage != "customer" :
-            return
+        for quant in self:
+            if product.product_tmpl_id == quant.product_id.product_tmpl_id and quant.location_id.usage != "customer" :
+                return
         super(StockQuant, self)._account_entry_move(move)
     
