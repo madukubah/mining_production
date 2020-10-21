@@ -7,14 +7,12 @@
         <field name="type">tree</field>
         <field name="priority" eval="8"/>
         <field name="arch" type="xml">
-            <tree string="Cost Code List">
+            <tree string="Production Losstime List">
                 <field name="date" />
                 <field name="shift" />
-                <!-- <field name="cost_code_id" /> -->
-                <!-- <field name="block_id" /> -->
-                <!-- <field name="vehicle_id" /> -->
-                <field name="state" />
+                <field name="losstime_type" />
                 <field name="hour" />
+                <field name="state" />
             </tree>
         </field>
     </record>
@@ -24,19 +22,39 @@
             <field name="model">production.losstime</field>
             <field name="priority">1</field>
             <field name="arch" type="xml">
-                <form string="Cost Code">
+                <form string="Production Losstime">
+                    <header>
+                        <button name="action_draft" states="cancel" string="Set to Draft" type="object" groups="mining_production.production_group_manager" />
+                        <button name="action_reload" string="Reload" type="object" class="btn-primary" groups="mining_production.production_group_manager" attrs="{'invisible': [('state', 'in', ('done'))]}" />
+                        <button name="action_confirm" string="Confirm" type="object" states="draft" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="action_done" string="Done" type="object" states="confirm" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="action_cancel" states="draft,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done" readonly="1"  />
+                    </header>
                     <sheet>
                         <group>
                             <field name="name" invisible="1" />
                             <field name="date" />
                             <field name="shift" />
-                            <!-- <field name="cost_code_id" /> -->
-                            <!-- <field name="block_id" /> -->
-                            <!-- <field name="vehicle_id" /> -->
-                            <field name="state" />
+                            <field name="losstime_type" />
+                            <!-- <label for="tag_ids" class="oe_edit_only"/> -->
+                            <field name="tag_ids" widget="many2many_tags" options="{'no_create_edit': True}"/>
+                            <field name="vehicle_state_id" />
+                            <field name="start_datetime" />
+                            <field name="end_datetime" />
                             <field name="hour" />
                             <field name="remarks" />
                         </group>
+                        <notebook>
+                            <page string="Vehicles" >
+                                <field name="vehicle_ids" >
+                                    <tree string="Vehicles" >
+                                        <field name="name" />
+                                        <field name="driver_id" />
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
                     </sheet>
                     <div class="oe_chatter">
                         <field name="message_follower_ids" widget="mail_followers"/>

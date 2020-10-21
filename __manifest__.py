@@ -6,9 +6,8 @@
     'author': 'Technoindo.com',
     'category': 'Mining',
     'depends': [
-        # 'shipping',
-        # 'mining_qaqc',
         'fleet',
+        'fleet_losstime',
         'stock',
         'account',
         'stock_account',
