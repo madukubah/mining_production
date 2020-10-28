@@ -10,16 +10,16 @@ class ProductionRitaseReport(models.TransientModel):
 
     start_date = fields.Date('Start Date', required=True)
     end_date = fields.Date(string="End Date", required=True)
-    mode = fields.Selection([
+    type = fields.Selection([
         ( "detail" , 'Detail'),
-        ( "recap" , 'Recap'),
-        ], default="detail", string='Mode', index=True, required=True )
+        ( "summary" , 'Summary'),
+        ], default="detail", string='Type', index=True, required=True )
 
     @api.multi
     def action_print(self):
         ritase_counters = self.env['production.ritase.counter'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "posted" ) ])
         rows = []
-        if self.mode == 'detail' :
+        if self.type == 'detail' :
             for ritase_counter in ritase_counters:
                 temp = {}
                 temp["doc_name"] = ritase_counter.ritase_order_id.name
@@ -28,7 +28,7 @@ class ProductionRitaseReport(models.TransientModel):
                 temp["vehicle_name"] = ritase_counter.vehicle_id.name
                 temp["driver_name"] = ritase_counter.driver_id.name
                 temp["ritase_count"] = ritase_counter.ritase_count
-                temp["amount"] = ritase_counter.cost_amount
+                temp["amount"] = ritase_counter.amount
                 rows.append(temp)
 
         final_dict = {}

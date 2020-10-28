@@ -22,8 +22,20 @@
                         <field name="journal_type" invisible="1" />
                         <field name="lot_id" />
                         <field name="cop_journal_id" />
+                    </group>
+                    <group string="Ritase" >
                         <field name="rit_tag_id" />
+                        <field name="rit_losstime_tag_id" />
+                        <field name="rit_price_unit" />
+                        <field name="rit_minimal_cash" />
+                        <field name="rit_vehicle_tag_id" />
+                    </group>
+                    <group string="Hourmeter" >
                         <field name="hm_tag_id" />
+                        <field name="hm_losstime_tag_id" />
+                        <field name="hm_price_unit" />
+                        <field name="hm_minimal_cash" />
+                        <field name="hm_vehicle_tag_id" />
                     </group>
                 </sheet>
             </form>

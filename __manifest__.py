@@ -34,6 +34,7 @@
         "views/fleet.xml",
         "views/production_cop_tag_log.xml",
         "views/production_cop_tag.xml",
+        "views/production_losstime_accumulation.xml",
 
         "wizard/production_cop_report.xml",
         "wizard/production_ritase_report.xml",

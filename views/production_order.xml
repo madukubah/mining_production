@@ -27,7 +27,7 @@
                 <form string="Production Order">
                     <header>
                         <button name="action_draft" string="Set to Draft" type="object" states="confirm" class="btn-primary"  />
-                        <button name="action_reload" string="Reload" type="object" class="btn-primary" attrs="{'invisible': [('state', 'in', ('done', 'cancel'))]}" />
+                        <button name="action_reload" string="Reload" type="object" class="btn-primary" attrs="{'invisible': [('state', 'in', ('done', 'confirm', 'cancel'))]}" />
                         <button name="action_confirm" string="Confirm" type="object" states="draft" class="btn-primary"  />
                         <button name="action_done" string="Produce" type="object" states="confirm" class="btn-primary"   />
                         <button name="action_cancel" string="Cancel" type="object" attrs="{'invisible': [('state', 'in', ('done'))]}" />
@@ -61,6 +61,7 @@
                                 <field name="cost_code_id" />
                                 <field name="picking_type_id" domain="[('code', '=', 'mining_production')]" attrs="{'readonly': [('has_moves', '=', True)]}"/>
                                 <field name="user_id" invisible="1" />
+                                <field name="production_config_id" invisible="1" />
                             </group>
                             <group>
                                 <field name="date" />

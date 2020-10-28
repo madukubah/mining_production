@@ -11,7 +11,16 @@ _logger = logging.getLogger(__name__)
 class ProductionOperationTemplate(models.Model):
     _name = "production.operation.template"
     
+    @api.model
+    def _default_config(self):
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+        return production_config[0]
+
     name = fields.Char(compute='_compute_name', store=True)
+    production_config_id = fields.Many2one('production.config', string='Config', default=_default_config)
     date = fields.Date('Date', help='' )
     shift = fields.Selection([
         ( "1" , '1'),

@@ -10,16 +10,16 @@ class ProductionHourmeterReport(models.TransientModel):
 
     start_date = fields.Date('Start Date', required=True)
     end_date = fields.Date(string="End Date", required=True)
-    mode = fields.Selection([
+    type = fields.Selection([
         ( "detail" , 'Detail'),
-        ( "recap" , 'Recap'),
-        ], default="detail", string='Mode', index=True, required=True )
+        ( "summary" , 'Summary'),
+        ], default="detail", string='Type', index=True, required=True )
 
     @api.multi
     def action_print(self):
         hourmeter_logs = self.env['production.vehicle.hourmeter.log'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "posted" ) ])
         rows = []
-        if self.mode == 'detail' :
+        if self.type == 'detail' :
             for hourmeter_log in hourmeter_logs:
                 temp = {}
                 temp["doc_name"] = hourmeter_log.hourmeter_order_id.name
@@ -28,7 +28,7 @@ class ProductionHourmeterReport(models.TransientModel):
                 temp["vehicle_name"] = hourmeter_log.vehicle_id.name
                 temp["driver_name"] = hourmeter_log.driver_id.name
                 temp["hourmeter_value"] = hourmeter_log.value
-                temp["amount"] = hourmeter_log.cost_amount
+                temp["amount"] = hourmeter_log.amount
                 rows.append(temp)
 
         final_dict = {}

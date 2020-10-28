@@ -22,11 +22,11 @@ class ProductionRitaseOrder(models.Model):
 	
 	@api.multi
 	def _check_ritase_count(self):
-		for rec in self:
-			if rec.product_id.tracking == 'none' :
+		for order in self:
+			if order.product_id.tracking == 'none' :
 				return True
-			rit_by_dt = sum( [ counter_id.ritase_count for counter_id in rec.counter_ids ] )
-			rit_by_lot = sum( [ lot_move_id.ritase_count for lot_move_id in rec.lot_move_ids ] )
+			rit_by_dt = sum( [ counter_id.ritase_count for counter_id in order.counter_ids ] )
+			rit_by_lot = sum( [ lot_move_id.ritase_count for lot_move_id in order.lot_move_ids ] )
 			if( rit_by_dt != rit_by_lot ):
 				return False	
 		return True
@@ -40,7 +40,7 @@ class ProductionRitaseOrder(models.Model):
 
 	name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
 	production_order_id = fields.Many2one("production.order", 
-        'Production Order', ondelete='restrict', copy=False)
+        'Production Order', ondelete='set null', copy=False)
 	employee_id	= fields.Many2one('hr.employee', string='Checker', states=READONLY_STATES )
 	date = fields.Date('Date', help='',  default=fields.Datetime.now, states=READONLY_STATES )
 	picking_type_id = fields.Many2one('stock.picking.type', 'Deliver To', required=True, default=_default_picking_type,\
@@ -134,8 +134,8 @@ class ProductionRitaseOrder(models.Model):
 		
 	@api.depends('counter_ids')	
 	def _compute_ritase_count(self):
-		for rec in self:
-			rec.ritase_count = sum( [ x.ritase_count for x in rec.counter_ids ] )
+		for order in self:
+			order.ritase_count = sum( [ x.ritase_count for x in order.counter_ids ] )
 
 	@api.multi
 	def action_confirm( self ):
@@ -333,22 +333,22 @@ class RitaseCounter(models.Model):
         string='Logs',
         copy=True )
 	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0, compute='_compute_ritase_count' )
-	amount = fields.Float(string='Amount', compute="_compute_amount" )
+	amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 	
-	@api.onchange('vehicle_id')	
+	@api.onchange('vehicle_id')
 	def _change_vehicle_id(self):
-		for order in self:
-			order.driver_id = order.vehicle_id.driver_id
+		for record in self:
+			record.driver_id = record.vehicle_id.driver_id
 			
 	@api.depends('log_ids')	
 	def _compute_ritase_count(self):
-		for rec in self:
-			rec.ritase_count = len( rec.log_ids )
+		for record in self:
+			record.ritase_count = len( record.log_ids )
 	
 	@api.depends('ritase_count')	
 	def _compute_amount(self):
-		for rec in self:
-			rec.amount = rec.ritase_count *  5000 
+		for record in self:
+			record.amount = record.ritase_count *  record.production_config_id.rit_price_unit 
 
 	@api.multi
 	def post(self):
@@ -356,19 +356,15 @@ class RitaseCounter(models.Model):
 		for compute ore cost of production
 		'''
 		for record in self:
-			ProductionConfig = self.env['production.config'].sudo()
-			production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
-			if not production_config.rit_tag_id :
-				raise UserError(_('Please Set Ritase COP Tag in Configuration file') )
 			self.env['production.cop.tag.log'].sudo().create({
                     'cop_adjust_id' : record.cop_adjust_id.id,
                     'name' :   'RITASE / ' + record.date,
                     'date' : record.date,
                     'location_id' : record.location_id.id,
-                    'tag_id' : production_config.rit_tag_id.id,
+                    'tag_id' : record.production_config_id.rit_tag_id.id,
                     'product_uom_qty' : record.ritase_count,
                     # 'price_unit' : record.amount /record.ritase_count,
-                    'price_unit' : 5000, # TODO : change it programable
+                    'price_unit' : record.production_config_id.rit_price_unit, # TODO : change it programable
                     'amount' : record.amount,
                     'state' : 'posted',
                 })

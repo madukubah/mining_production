@@ -34,6 +34,7 @@ class ReportProduction_cop_reportTemp(models.AbstractModel):
             'doc_ids': data.get('ids'),
             'doc_model': data.get('model'),
             'data': data['form'],
+            'group_by_loc': data['group_by_loc'],
             'start_date': data['start_date'],
             'end_date': data['end_date'],
         }

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import logging
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 from datetime import datetime
 from calendar import monthrange
+import logging
 _logger = logging.getLogger(__name__)
 
 class ProductionCopReport(models.TransientModel):
@@ -11,7 +12,9 @@ class ProductionCopReport(models.TransientModel):
 
     start_date = fields.Date('Start Date', required=True)
     end_date = fields.Date(string="End Date", required=True)
-
+    group_by_loc = fields.Boolean(
+        'Group By Location', default=False )
+    
     @api.multi
     def action_print(self):
         tag_logs = self.env['production.cop.tag.log'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "posted" ) ])
@@ -21,6 +24,10 @@ class ProductionCopReport(models.TransientModel):
             temp["name"] = tag_log.name
             temp["date"] = tag_log.date
             temp["tag_name"] = tag_log.tag_id.name
+            if tag_log.location_id :
+                temp["location_name"] = tag_log.location_id.name
+            else:
+                temp["location_name"] = "-"
             temp["product_uom_qty"] = tag_log.product_uom_qty
             temp["price_unit"] = tag_log.price_unit
             temp["amount"] = tag_log.amount
@@ -33,6 +40,7 @@ class ProductionCopReport(models.TransientModel):
             temp["name"] = "Employee Salary"
             temp["date"] = self.start_date
             temp["tag_name"] = "Employee Salary"
+            temp["location_name"] = "-"
             temp["product_uom_qty"] = len( hr_contracts )
             sum_wage = sum( [hr_contract.wage  for hr_contract in hr_contracts if hr_contract.department_id.id not in (3,7,6,4,8) ] )
             start_date = datetime.strptime(self.start_date, '%Y-%m-%d')
@@ -43,12 +51,22 @@ class ProductionCopReport(models.TransientModel):
             temp["amount"] = round( temp["price_unit"] * abs( day_length.days + 1 ) , 2) 
             rows.append(temp)
 
-        production_orders = self.env['production.order'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "done" ) ])
+        # ore production
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ], limit=1) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+
+        production_orders = self.env['production.order'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "done" ), ( 'product_id', '=', production_config.lot_id.product_id.id ) ])
         production_rows = []
         for production_order in production_orders:
             temp = {}
             temp["name"] = production_order.name
             temp["date"] = production_order.date
+            if production_order.location_id :
+                temp["location_name"] = production_order.location_id.name
+            else:
+                temp["location_name"] = "-"
             product = production_order.product_id
             product_uom_qty = production_order.product_uom_id._compute_quantity( production_order.product_qty, product.uom_id )
             temp["product_name"] = production_order.product_id.name
@@ -59,16 +77,35 @@ class ProductionCopReport(models.TransientModel):
             production_rows.append(temp)
 
         final_dict = {}
-        final_dict["cop"] = rows
-        final_dict["production"] = production_rows
+        if self.group_by_loc :
+            cop_loc_dict = {}
+            for row in rows:
+                if cop_loc_dict.get( row["location_name"] , False):
+                    cop_loc_dict[ row["location_name"] ] += [ row ]
+                else :
+                    cop_loc_dict[ row["location_name"] ] = [ row ]
+                    
+            production_loc_dict = {}
+            for row in production_rows:
+                if production_loc_dict.get( row["location_name"] , False):
+                    production_loc_dict[ row["location_name"] ] += [ row ]
+                else :
+                    production_loc_dict[ row["location_name"] ] = [ row ]
+
+            final_dict["cop"] = cop_loc_dict
+            final_dict["production"] = production_loc_dict
+        else :
+            final_dict["cop"] = rows
+            final_dict["production"] = production_rows
         
         datas = {
             'ids': self.ids,
             'model': 'production.cop.report',
             'form': final_dict,
+            'group_by_loc': self.group_by_loc,
             'start_date': self.start_date,
             'end_date': self.end_date,
 
         }
-        # _logger.warning( datas )
+        _logger.warning( datas )
         return self.env['report'].get_action(self,'mining_production.production_cop_temp', data=datas)

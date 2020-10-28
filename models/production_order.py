@@ -19,6 +19,13 @@ class ProductionOrder(models.Model):
             ('code', '=', 'mining_production'),
             ('warehouse_id.company_id', 'in', [self.env.context.get('company_id', self.env.user.company_id.id), False])],
             limit=1).id
+    @api.model
+    def _default_config(self):
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+        return production_config[0]
 
     READONLY_STATES = {
         'draft': [('readonly', False)],
@@ -31,6 +38,7 @@ class ProductionOrder(models.Model):
         'res.company', 'Company',
         default=lambda self: self.env['res.company']._company_default_get('production.order'),
         required=True)
+    production_config_id = fields.Many2one('production.config', string='Production Config', default=_default_config, states=READONLY_STATES )
     name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
     employee_id	= fields.Many2one('hr.employee', string='Grade Control', states=READONLY_STATES )
     user_id = fields.Many2one('res.users', string='User', index=True, track_visibility='onchange', default=lambda self: self.env.user)
@@ -121,7 +129,6 @@ class ProductionOrder(models.Model):
     def action_confirm(self):
         for order in self:
             order._generate_moves()
-            order.action_reload()
         self.state = 'confirm'
 
     @api.multi
@@ -169,11 +176,6 @@ class ProductionOrder(models.Model):
         
     @api.model
     def create(self, values):
-        ProductionConfig = self.env['production.config'].sudo()
-        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
-        if not production_config :
-            raise UserError(_('Please Set Default Configuration file') )
-
         if not values.get('name', False) or values['name'] == _('New'):
             if values.get('picking_type_id'):
                 values['name'] = self.env['stock.picking.type'].browse(values['picking_type_id']).sequence_id.next_by_id()
@@ -194,10 +196,8 @@ class ProductionOrder(models.Model):
         return True
 
     def _generate_finished_moves(self):
-        ProductionConfig = self.env['production.config'].sudo()
         lots = self.env['mining.stock.move.lots']
-
-        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        production_config = self.production_config_id
         if not production_config :
             raise UserError(_('Please Set Default Lot In Configuration file') )
 
@@ -226,7 +226,7 @@ class ProductionOrder(models.Model):
                     'production_order_id': move.production_order_id.id,
                     'quantity': self.product_qty,
                     'quantity_done': self.product_qty,
-                    'lot_id': production_config[0].lot_id.id,
+                    'lot_id': production_config.lot_id.id,
                 }
             lots.create(vals)
         else :

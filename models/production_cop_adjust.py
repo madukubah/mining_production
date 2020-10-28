@@ -12,6 +12,14 @@ class ProductionCopAdjust(models.Model):
     _name = "production.cop.adjust"
     _inherit = ['mail.thread', 'ir.needaction_mixin']
     _order = "id desc"
+
+    @api.model
+    def _default_config(self):
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+        return production_config[0]
     
     READONLY_STATES = {
         'draft': [('readonly', False)],
@@ -27,11 +35,13 @@ class ProductionCopAdjust(models.Model):
         required=True)
     date = fields.Date('Date', help='', default=fields.Datetime.now, states=READONLY_STATES )
     employee_id	= fields.Many2one('hr.employee', string='Responsible', states=READONLY_STATES )
-    production_config_id	= fields.Many2one('production.config', string='Production Config', states=READONLY_STATES )
+    production_config_id	= fields.Many2one('production.config', string='Production Config', default=_default_config, states=READONLY_STATES )
     cost_ids = fields.One2many('fleet.vehicle.cost', 'cop_adjust_id', 'Vehicle Costs', states=READONLY_STATES )
     rit_ids = fields.One2many('production.ritase.counter', 'cop_adjust_id', 'Ritase Costs', states=READONLY_STATES )
     hourmeter_ids = fields.One2many('production.vehicle.hourmeter.log', 'cop_adjust_id', 'Hourmeter Costs', states=READONLY_STATES )
     tag_log_ids = fields.One2many('production.cop.tag.log', 'cop_adjust_id', 'COP Tagging', states=READONLY_STATES )
+    vehicle_losstime_ids = fields.One2many('fleet.vehicle.losstime', 'cop_adjust_id', 'Vehicle Losstime', states=READONLY_STATES )
+    losstime_accumulation_ids = fields.One2many('production.losstime.accumulation', 'cop_adjust_id', 'Losstime Accumulation', states=READONLY_STATES )
     amount = fields.Float(string='Amount', compute="_compute_amount" )
 
     state = fields.Selection( [
@@ -45,23 +55,18 @@ class ProductionCopAdjust(models.Model):
     def create(self, values):
         seq = self.env['ir.sequence'].next_by_code('cop_adjust')
         values["name"] = seq
-        ProductionConfig = self.env['production.config'].sudo()
-        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
-        if not production_config :
-            raise UserError(_('Please Set Default Configuration file') )
-        if not production_config.lot_id :
-            raise UserError(_('Please Set Default Lot Product Configuration file') )
-        if not production_config.cop_journal_id :
-            raise UserError(_('Please Set Default COP Journal Configuration file') )
-        values["production_config_id"] = production_config.id
         res = super(ProductionCopAdjust, self ).create(values)
         return res
     
     @api.multi
     def action_settle(self):
         self.ensure_one()
-        self.action_reload()
         self._settle_cost()
+
+    @api.multi
+    def action_confirm(self):
+        self.ensure_one()
+        self.write({ 'state' : 'confirm' })
 
     @api.multi
     def action_reload(self):
@@ -69,6 +74,20 @@ class ProductionCopAdjust(models.Model):
             if record.state == 'done':
                 continue
             record._reload()
+    
+    @api.multi
+    def action_cancel(self):
+        self.ensure_one()
+        if any( self.tag_log_ids.filtered(lambda r: r.state == 'posted') ) :
+            raise UserError(_('Unable to cancel order %s as some receptions have already been done.') % (self.name))
+        self.write({ 'state' : 'cancel' })
+
+    @api.multi
+    def action_draft(self):
+        self.ensure_one()
+        if any( self.tag_log_ids.filtered(lambda r: r.state == 'posted') ) :
+            raise UserError(_('Unable to cancel order %s as some receptions have already been done.') % (self.name))
+        self.write({ 'state' : 'draft' })
     
     @api.multi
     def _reload(self):
@@ -97,17 +116,101 @@ class ProductionCopAdjust(models.Model):
         self.update({
             'tag_log_ids': [( 6, 0, tag_log.ids )],
         })
+
+        VehicleLosstime = self.env['fleet.vehicle.losstime'].sudo()
+        vehicle_losstime = VehicleLosstime.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
+        self.update({
+            'vehicle_losstime_ids': [( 6, 0, vehicle_losstime.ids )],
+        })
+
+        self.adjust_losstime()
         return True
     
+    def adjust_losstime(self):
+        self.ensure_one()
+        self.losstime_accumulation_ids.unlink()
+        vehicle_driver_dict = {}
+        for vehicle_losstime_id in self.vehicle_losstime_ids:
+            if vehicle_losstime_id.losstime_type not in ("slippery", "rainy"):
+                continue
+            vehicle_id = vehicle_losstime_id.vehicle_id.id
+            driver_id = vehicle_losstime_id.driver_id.id
+            minimal_cash = 0
+            tag_id = False
+            if self.production_config_id.rit_vehicle_tag_id.id in vehicle_losstime_id.tag_ids.ids :
+                minimal_cash = self.production_config_id.rit_minimal_cash
+                tag_id = self.production_config_id.rit_losstime_tag_id.id
+            if self.production_config_id.hm_vehicle_tag_id.id in vehicle_losstime_id.tag_ids.ids :
+                minimal_cash = self.production_config_id.hm_minimal_cash
+                tag_id = self.production_config_id.hm_losstime_tag_id.id
+
+            if vehicle_driver_dict.get( vehicle_id , False):
+                vehicle_driver_dict[ vehicle_id ][ driver_id ] = {
+                        'date' : self.date,
+                        'losstime_type' : vehicle_losstime_id.losstime_type,
+                        'tag_id' : tag_id,
+                        'reference' : '',
+                        'amount' : minimal_cash
+                    }
+            else :
+                vehicle_driver_dict[ vehicle_id ] = {
+                    driver_id : {
+                        'date' : self.date,
+                        'losstime_type' : vehicle_losstime_id.losstime_type,
+                        'tag_id' : tag_id,
+                        'reference' : '',
+                        'amount' : minimal_cash
+                    }
+                }
+        
+        for rit_id in self.rit_ids:
+            vehicle_id = rit_id.vehicle_id.id
+            driver_id = rit_id.driver_id.id
+            if vehicle_driver_dict.get( vehicle_id , False):
+                if vehicle_driver_dict[ vehicle_id ].get( driver_id , False):
+                    if vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] - rit_id.amount >= 0 :
+                        vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] -= rit_id.amount
+                    else :
+                        vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] = 0
+                    vehicle_driver_dict[ vehicle_id ][ driver_id ]['reference'] = rit_id.ritase_order_id.name
+        
+        for hourmeter_id in self.hourmeter_ids:
+            vehicle_id = hourmeter_id.vehicle_id.id
+            driver_id = hourmeter_id.driver_id.id
+            if vehicle_driver_dict.get( vehicle_id , False):
+                if vehicle_driver_dict[ vehicle_id ].get( driver_id , False):
+                    if vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] - hourmeter_id.amount >= 0 :
+                        vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] -= hourmeter_id.amount
+                    else :
+                        vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] = 0
+                    vehicle_driver_dict[ vehicle_id ][ driver_id ]['reference'] = hourmeter_id.hourmeter_order_id.name
+
+        LosstimeAccumulation = self.env['production.losstime.accumulation'].sudo()
+        for vehicle_id, driver in vehicle_driver_dict.items():
+            for driver_id, obj in driver.items():
+                LosstimeAccumulation.create({
+                    'cop_adjust_id' : self.id,
+                    'date' : obj['date'],
+                    'tag_id' : obj['tag_id'],
+                    'vehicle_id' : vehicle_id,
+                    'driver_id' : driver_id,
+                    'losstime_type' : obj['losstime_type'],
+                    'reference' : obj['reference'],
+                    'amount' : obj['amount'],
+                })
+        return
+
+
     @api.depends("rit_ids", "hourmeter_ids", "cost_ids", "tag_log_ids" )
     def _compute_amount(self):
         for record in self:
             if record.state != 'done' :
                 sum_rit = sum( [ rit.amount for rit in record.rit_ids.filtered(lambda r: r.state != 'posted') ] )
                 sum_hm = sum( [ hourmeter.amount for hourmeter in record.hourmeter_ids.filtered(lambda r: r.state != 'posted') ] )
+                sum_losstime_accumulation = sum( [ losstime_accumulation_id.amount for losstime_accumulation_id in record.losstime_accumulation_ids.filtered(lambda r: r.state != 'posted') ] )
                 sum_vehicle_cost = sum( [ cost.amount for cost in record.cost_ids.filtered(lambda r: r.state != 'posted') ] )
                 sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids.filtered(lambda r: r.state != 'posted') ] )
-                record.amount = sum_hm + sum_rit + sum_cop_tag + sum_vehicle_cost
+                record.amount = sum_hm + sum_rit + sum_cop_tag + sum_vehicle_cost + sum_losstime_accumulation
             else:
                 sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids.filtered(lambda r: r.state == 'posted') ] )
                 record.amount = sum_cop_tag
@@ -115,7 +218,6 @@ class ProductionCopAdjust(models.Model):
     @api.multi
     def _settle_cost(self):
         self.ensure_one()
-
         product_n_qty_list = {}
         LogServices = self.env['fleet.vehicle.log.services'].sudo()
         services = LogServices.search( [ ("cost_id", "in", [cost.id for cost in self.cost_ids ] )] )
@@ -168,6 +270,8 @@ class ProductionCopAdjust(models.Model):
         self.cost_ids.post()
         self.rit_ids.post()
         self.hourmeter_ids.post()
+        self.vehicle_losstime_ids.post()
+        self.losstime_accumulation_ids.post()
         self.write({ 'state' : 'done' })
         
     
@@ -272,8 +376,8 @@ class ProductionCopAdjust(models.Model):
         qty = 0
         for rit in self.rit_ids:
             product = rit.ritase_order_id.product_id
-            _logger.warning( product )
-            _logger.warning( product.qty_available )
+            # _logger.warning( product )
+            # _logger.warning( product.qty_available )
             if except_prduct_id == product.id :
                 continue
             if product_dict.get( product.id , False):
@@ -284,18 +388,20 @@ class ProductionCopAdjust(models.Model):
                 #  {
                 #     'qty' : product.qty_available,
                 # }
-                _logger.warning( product.qty_available )
+                # _logger.warning( product.qty_available )
                 qty += product.qty_available
         return qty
             
     def _compute_not_consumable_cost(self):
         sum_rit = sum( [ rit.amount for rit in self.rit_ids ] )
         sum_hm = sum( [ hourmeter.amount for hourmeter in self.hourmeter_ids ] )
+        sum_losstime_accumulation = sum( [ losstime_accumulation_id.amount for losstime_accumulation_id in self.losstime_accumulation_ids ] )
         # except VEHICLE COST and COP TAG COST that have comsumable products
         # because it already compute in stock move ( stock interim cost )
         sum_cop_tag = sum( [ tag_log.amount for tag_log in self.tag_log_ids if not ( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) ] )
         sum_vehicle_cost = sum( [ cost.amount for cost in self.cost_ids if not ( cost.cost_subtype_id.is_consumable and cost.cost_subtype_id.product_id ) ] )
-        return sum_hm + sum_rit + sum_cop_tag + sum_vehicle_cost
+
+        return sum_hm + sum_rit + sum_cop_tag + sum_vehicle_cost + sum_losstime_accumulation
 
     @api.multi
     def _get_accounting_data_for_valuation(self, product_id):
@@ -319,154 +425,3 @@ class ProductionCopAdjust(models.Model):
             raise UserError(_('You don\'t have any stock valuation account defined on your product category. You must define one before processing this operation.'))
         journal_id = accounts_data['stock_journal'].id
         return journal_id, acc_src, acc_dest, acc_valuation
-
-    # def _account_entry_move_ore(self, move_lines ):
-    #     production_config = self.production_config_id
-    #     if not production_config :
-    #         raise UserError(_('Please Set Default Configuration file') )
-    #     if not production_config.lot_id :
-    #         raise UserError(_('Please Set Default Lot Product Configuration file') )
-
-    #     journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation( production_config.lot_id.product_id )
-    #     AccountMove = self.env['account.move']
-    #     move_lines = [ move_line for move_line in move_lines if move_line[2]["debit"] > 0 ]
-    #     debit_amount = 0
-    #     for move_line in move_lines:
-    #         move_line[2]["account_id"] = acc_dest
-    #         move_line[2]["credit"] = move_line[2]["debit"]
-    #         debit_amount += move_line[2]["debit"]
-    #         move_line[2]["debit"] = 0
-    #     product = production_config.lot_id.product_id
-    #     debit_line_vals = {
-    #         'name': self.name,
-    #         'product_id': product.id,
-    #         'quantity': 0,
-    #         'product_uom_id': product.uom_id.id,
-    #         'ref': self.name,
-    #         'partner_id': False,
-    #         'debit': debit_amount,
-    #         'credit':  0,
-    #         'account_id': acc_valuation,
-    #     }
-        
-    #     if move_lines:
-    #         move_lines.append((0, 0, debit_line_vals))
-    #         _logger.warning( move_lines )
-    #         date = self._context.get('force_period_date', fields.Date.context_today(self))
-    #         new_account_move = AccountMove.create({
-    #             'journal_id': journal_id,
-    #             'line_ids': move_lines,
-    #             'date': date,
-    #             'ref': self.name})
-    #         new_account_move.post()
-
-    #         product_qty = product.qty_available
-    #         amount_unit = product.standard_price
-    #         amount_rit_hm = self.get_amount_rit_hm()
-    #         new_std_price = (( amount_unit * product_qty ) + amount_rit_hm + debit_amount ) / ( product_qty )
-    #         product.with_context(force_company=self.company_id.id).sudo().write({ 'standard_price': new_std_price })
-
-
-    # create COP journal entry
-    # def _account_entry_move(self, costs_subtype, qty):
-    #     """ Accounting COP Entries """
-    #     journal_id, acc_src, acc_dest, cop_account_id = costs_subtype._get_accounting_data_for_cop()
-    #     production_config = self.production_config_id
-    #     if not production_config :
-    #         raise UserError(_('Please Set Default Configuration file') )
-        
-    #     journal_id = production_config.cop_journal_id.id if production_config.cop_journal_id else journal_id
-
-    #     move_lines = self.with_context(force_company=self.company_id.id)._create_account_move_line(costs_subtype, qty , cop_account_id, acc_dest, journal_id)
-    #     return move_lines
-
-    #     # if self.company_id.anglo_saxon_accounting:
-    #     #     # Creates an account entry from stock_input to stock_output on a dropship move. https://github.com/odoo/odoo/issues/12687
-    #     #     journal_id, acc_src, acc_dest, acc_valuation = move._get_accounting_data_for_valuation()
-    #     #     if move.location_id.usage == 'supplier' and move.location_dest_id.usage == 'customer':
-    #     #         self.with_context(force_company=move.company_id.id)._create_account_move_line(move, acc_src, acc_dest, journal_id)
-    #     #     if move.location_id.usage == 'customer' and move.location_dest_id.usage == 'supplier':
-    #     #         self.with_context(force_company=move.company_id.id)._create_account_move_line(move, acc_dest, acc_src, journal_id)
-
-    # def _create_account_move_line(self, costs_subtype, qty , credit_account_id, debit_account_id, journal_id):
-       
-    #     AccountMove = self.env['account.move']
-    #     move_lines = self._prepare_account_move_line( costs_subtype.product_id, qty, costs_subtype.product_id.standard_price , credit_account_id, debit_account_id)
-    #     if move_lines:
-    #         date = self._context.get('force_period_date', fields.Date.context_today(self))
-    #         new_account_move = AccountMove.create({
-    #             'journal_id': journal_id,
-    #             'line_ids': move_lines,
-    #             'date': date,
-    #             'ref': self.name})
-    #         new_account_move.post()
-    #     return move_lines
-
-        
-    # def _prepare_account_move_line(self, product, qty, cost, credit_account_id, debit_account_id):
-    #     """
-    #     Generate the account.move.line values to post to track the stock valuation difference due to the
-    #     processing of the given quant.
-    #     """
-    #     self.ensure_one()
-    #     valuation_amount = cost
-    #     if self._context.get('force_valuation_amount'):
-    #         valuation_amount = self._context.get('force_valuation_amount')
-    #     else:
-    #         if product.cost_method == 'average':
-    #             valuation_amount = cost if product.cost_method == 'real' else product.standard_price
-    #     # the standard_price of the product may be in another decimal precision, or not compatible with the coinage of
-    #     # the company currency... so we need to use round() before creating the accounting entries.
-    #     debit_value = self.company_id.currency_id.round(valuation_amount * qty)
-
-    #     # check that all data is correct
-    #     if self.company_id.currency_id.is_zero(debit_value):
-    #         if product.cost_method == 'standard':
-    #             raise UserError(_("The found valuation amount for product %s is zero. Which means there is probably a configuration error. Check the costing method and the standard price") % (product.name,))
-    #         return []
-    #     credit_value = debit_value
-    #     partner_id = False #(self.picking_id.partner_id and self.env['res.partner']._find_accounting_partner(self.picking_id.partner_id).id) or False
-    #     debit_line_vals = {
-    #         'name': self.name,
-    #         'product_id': product.id,
-    #         'quantity': qty,
-    #         'product_uom_id': product.uom_id.id,
-    #         'ref': self.name,
-    #         'partner_id': partner_id,
-    #         'debit': debit_value if debit_value > 0 else 0,
-    #         'credit': -debit_value if debit_value < 0 else 0,
-    #         'account_id': debit_account_id,
-    #     }
-    #     credit_line_vals = {
-    #         'name': self.name,
-    #         'product_id': product.id,
-    #         'quantity': qty,
-    #         'product_uom_id': product.uom_id.id,
-    #         'ref': self.name,
-    #         'partner_id': partner_id,
-    #         'credit': credit_value if credit_value > 0 else 0,
-    #         'debit': -credit_value if credit_value < 0 else 0,
-    #         'account_id': credit_account_id,
-    #     }
-    #     res = [(0, 0, debit_line_vals), (0, 0, credit_line_vals)]
-    #     if credit_value != debit_value:
-    #         # for supplier returns of product in average costing method, in anglo saxon mode
-    #         diff_amount = debit_value - credit_value
-    #         price_diff_account = product.property_account_creditor_price_difference
-    #         if not price_diff_account:
-    #             price_diff_account = product.categ_id.property_account_creditor_price_difference_categ
-    #         if not price_diff_account:
-    #             raise UserError(_('Configuration error. Please configure the price difference account on the product or its category to process this operation.'))
-    #         price_diff_line = {
-    #             'name': self.name,
-    #             'product_id': product.id,
-    #             'quantity': qty,
-    #             'product_uom_id': product.uom_id.id,
-    #             'ref': self.name,
-    #             'partner_id': partner_id,
-    #             'credit': diff_amount > 0 and diff_amount or 0,
-    #             'debit': diff_amount < 0 and -diff_amount or 0,
-    #             'account_id': price_diff_account.id,
-    #         }
-    #         res.append((0, 0, price_diff_line))
-    #     return res

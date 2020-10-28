@@ -71,7 +71,6 @@ class FleetVehicleCost(models.Model):
                     'amount' : record.amount,
                     'state' : 'posted',
                 })
-
             record.write({'state' : 'posted' })
     
     @api.model
@@ -81,3 +80,25 @@ class FleetVehicleCost(models.Model):
             values["state"] = 'posted'
         res = super(FleetVehicleCost, self ).create(values)
         return res
+
+class FleetVehicleLosstime(models.Model):
+    _inherit = "fleet.vehicle.losstime"
+    
+    @api.model
+    def _default_config(self):
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+        return production_config[0]
+
+    production_config_id	= fields.Many2one('production.config', string='Production Config', default=_default_config )
+    cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
+    state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
+      required=True, readonly=True, copy=False, default='draft' )
+
+
+    @api.multi
+    def post(self):
+        for record in self:
+            record.write({'state' : 'posted' })

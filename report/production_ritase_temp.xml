@@ -3,84 +3,88 @@
     <template id="production_ritase_temp">
         <t t-call="report.external_layout">
             <div class="page">
-                <div class="oe_structure"/>
-                    <div class="row">
-                    <center>
-                        <b>
-                            <h4>Ritase Report</h4>
-                        </b>
-                    </center>
-                    <center>
-                        <b>
-                            <span t-esc="start_date"/>
-                            To
-                            <span t-esc="end_date"/>
-                        </b>
-                    </center>
-                </div>
-                <br/>
-                <t t-set="total_sum" t-value="0"/>
-                <t t-set="total_rit" t-value="0"/>
-                <!-- <t t-if="total_sum == total_rit" >
-                    tes
-                </t > -->
-
-                <t t-foreach="data.keys()" t-as="item">
-                    
-                    <table class="table table-condensed table-striped">
-                        <thead>
-                            <tr>
-                                <th class="text-center">Document</th>
-                                <th class="text-center">Date</th>
-                                <th class="text-center">Driver</th>
-                                <th class="text-center">Dump Truck</th>
-                                <th class="text-center">Count</th>
-                                <th class="text-center">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr t-foreach="data[item]" t-as="line">
-                                <td class="text-center">
-                                    <span t-esc="line['doc_name']"/>
-                                </td>
-                                <td class="text-center">
-                                    <span t-esc="line['date']"/>
-                                </td>
-                                <td class="text-center">
-                                    <span t-esc="line['driver_name']"/>
-                                </td>
-                                <td class="text-center">
-                                    <span t-esc="line['vehicle_name']"/>
-                                </td>
-                                <td class="text-center">
-                                    <span t-esc="'{:,}'.format(line['ritase_count'])"/>
-                                    <t t-set="total_rit" t-value="total_rit + line['ritase_count']"/>
-                                </td>
-                                <td class="text-right">
-                                    <span t-esc="'{:,}'.format(line['amount'])"/>
-                                    <t t-set="total_sum" t-value="total_sum + line['amount']"/>
-                                </td>
-                            </tr>            
-                        </tbody>
-                    </table>
-
-                    <div class="row">
-                        <div class="col-xs-4 pull-right">
-                            <table class="table table-condensed">
-                                <tr>
-                                    <td><strong>Total</strong></td>
-                                    <td class="text-right">
-                                        <span t-esc="'{:,}'.format(total_rit)"/>
-                                    </td>
-                                    <td class="text-right">
-                                        <span t-esc="'{:,}'.format(total_sum)"/>
-                                    </td>
-                                </tr>
-                            </table>
+                <div class="oe_structure">
+                    <t t-if="group_by_loc == False" >
+                        <div class="row">
+                            <center>
+                                <b>
+                                    <h4>Ritase Report</h4>
+                                </b>
+                            </center>
+                            <center>
+                                <b>
+                                    <span t-esc="start_date"/>
+                                    To
+                                    <span t-esc="end_date"/>
+                                </b>
+                            </center>
                         </div>
-                    </div>
+                        <br/>
+                        <t t-set="total_sum" t-value="0"/>
+                        <t t-set="total_rit" t-value="0"/>
+                        <!-- <t t-if="total_sum == total_rit" >
+                            tes
+                        </t > -->
 
-                </t>
+                        <t t-foreach="data.keys()" t-as="item">
+                            
+                            <table class="table table-condensed table-striped">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Document</th>
+                                        <th class="text-center">Date</th>
+                                        <th class="text-center">Driver</th>
+                                        <th class="text-center">Dump Truck</th>
+                                        <th class="text-center">Count</th>
+                                        <th class="text-center">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="data[item]" t-as="line">
+                                        <td class="text-center">
+                                            <span t-esc="line['doc_name']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['date']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['driver_name']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['vehicle_name']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="'{:,}'.format(line['ritase_count'])"/>
+                                            <t t-set="total_rit" t-value="total_rit + line['ritase_count']"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:,}'.format(line['amount'])"/>
+                                            <t t-set="total_sum" t-value="total_sum + line['amount']"/>
+                                        </td>
+                                    </tr>            
+                                </tbody>
+                            </table>
+                        </t>
+
+                        <div class="row">
+                            <div class="col-xs-4 pull-right">
+                                <table class="table table-condensed">
+                                    <tr>
+                                        <td><strong>Total</strong></td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:,}'.format(total_rit)"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:,}'.format(total_sum)"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </t>
+                    
+                </div>
+
             </div>
         </t>
     </template>

@@ -23,7 +23,7 @@ class ProductionLosstime(models.Model):
     date = fields.Date('Date', help='',  default=fields.Datetime.now, states=READONLY_STATES )
     shift = fields.Selection([
         ( "1" , '1'), 
-        ( "2" , '2'), 
+        ( "2" , '2'),
         ], string='Shift', index=True, required=True, states=READONLY_STATES )
     losstime_type = fields.Selection([
 		('slippery', 'Slippery'),
@@ -89,7 +89,6 @@ class ProductionLosstime(models.Model):
                     "end_datetime" : record.end_datetime,
                     "remarks" : record.remarks,
                 })
-
             record.state = "done"
     
     @api.multi

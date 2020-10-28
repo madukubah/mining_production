@@ -3,134 +3,304 @@
     <template id="production_cop_temp">
         <t t-call="report.external_layout">
             <div class="page">
-                <div class="oe_structure"/>
-                    <div class="row">
-                    <center>
-                        <b>
-                            <h4>Cost Of Production Report</h4>
-                        </b>
-                    </center>
-                    <center>
-                        <b>
-                            <span t-esc="start_date"/>
-                            To
-                            <span t-esc="end_date"/>
-                        </b>
-                    </center>
-                </div>
-                <br/>
-                <t t-set="total_sum" t-value="0"/>
-                    
-                <table class="table table-condensed table-striped">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th class="text-center">Date</th>
-                            <th class="text-center">Qty</th>
-                            <th class="text-center">Price</th>
-                            <th class="text-center">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr t-foreach="data['cop']" t-as="line">
-                            <td>
-                                <span t-esc="line['tag_name']"/>
-                            </td>
-                            <td class="text-center">
-                                <span t-esc="line['date']"/>
-                            </td>
-                            <td class="text-center">
-                                <span t-esc="line['product_uom_qty']"/>
-                            </td>
-                            <td class="text-center">
-                                <span t-esc="'{:,}'.format(line['price_unit'])"/>
-                            </td>
-                            <td class="text-right">
-                                <span t-esc="'{:,}'.format(line['amount'])"/>
-                                <t t-set="total_sum" t-value="total_sum + line['amount']"/>
-                            </td>
-                        </tr>            
-                    </tbody>
-                </table>
+                <div class="oe_structure" >
+                    <t t-if="group_by_loc == False" >
+                        <div class="row">
+                            <center>
+                                <b>
+                                    <h4>Cost Of Production Report</h4>
+                                </b>
+                            </center>
+                            <center>
+                                <b>
+                                    <span t-esc="start_date"/>
+                                    To
+                                    <span t-esc="end_date"/>
+                                </b>
+                            </center>
+                        </div>
+                        <br/>
+                        <t t-set="total_sum" t-value="0"/>
+                        
+                        <table class="table table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th class="text-center">Date</th>
+                                    <th class="text-center">Location</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-center">Price</th>
+                                    <th class="text-center">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="data['cop']" t-as="line">
+                                    <td>
+                                        <span t-esc="line['tag_name']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="line['date']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="line['location_name']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="line['product_uom_qty']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="'{:,}'.format(line['price_unit'])"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-esc="'{:,}'.format(line['amount'])"/>
+                                        <t t-set="total_sum" t-value="total_sum + line['amount']"/>
+                                    </td>
+                                </tr>            
+                            </tbody>
+                        </table>
 
-                <div class="row">
-                    <div class="col-xs-4 pull-right">
-                        <table class="table table-condensed">
-                            <tr>
-                                <td><strong>Total</strong></td>
-                                <td class="text-right">
-                                    <span t-esc="'{:,}'.format(total_sum)"/>
-                                </td>
-                            </tr>
+                        <div class="row">
+                            <div class="col-xs-4 pull-right">
+                                <table class="table table-condensed">
+                                    <tr>
+                                        <td><strong>Total</strong></td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:,}'.format(total_sum)"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div style="page-break-after: always;"/>
+
+                        <!-- ORE -->
+                        <div class="row">
+                            <center>
+                                <b>
+                                    <h4>Ore Production</h4>
+                                </b>
+                            </center>
+                        </div>
+                        <br/>
+                        <t t-set="total_sum" t-value="0"/>
+                        <t t-set="total_qty" t-value="0"/>
+                        <table class="table table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th class="text-center">Date</th>
+                                    <th class="text-center">Location</th>
+                                    <th class="text-center">Product</th>
+                                    <th class="text-center">Uom</th>
+                                    <th class="text-center">Price</th>
+                                    <th class="text-center">Qty</th>
+                                    <!-- <th class="text-center">Amount</th> -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="data['production']" t-as="line">
+                                    <td>
+                                        <span t-esc="line['name']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="line['date']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="line['location_name']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="line['product_name']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="line['product_uom']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="'{:,}'.format(line['price_unit'])"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="line['product_uom_qty']"/>
+                                        <t t-set="total_qty" t-value="total_qty + line['product_uom_qty']"/>
+                                    </td>
+                                    <!-- <td class="text-right">
+                                        <span t-esc="'{:,}'.format(line['amount'])"/>
+                                        <t t-set="total_sum" t-value="total_sum + line['amount']"/>
+                                    </td> -->
+                                </tr>            
+                            </tbody>
                         </table>
-                    </div>
-                </div>
-                <!-- ORE -->
-                <div class="oe_structure"/>
-                    <div class="row">
-                    <center>
-                        <b>
-                            <h4>Ore Production</h4>
-                        </b>
-                    </center>
-                </div>
-                <br/>
-                <t t-set="total_sum" t-value="0"/>
-                <t t-set="total_qty" t-value="0"/>
-                <table class="table table-condensed table-striped">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th class="text-center">Date</th>
-                            <th class="text-center">Product</th>
-                            <th class="text-center">Uom</th>
-                            <th class="text-center">Price</th>
-                            <th class="text-center">Qty</th>
-                            <th class="text-center">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr t-foreach="data['production']" t-as="line">
-                            <td>
-                                <span t-esc="line['name']"/>
-                            </td>
-                            <td class="text-center">
-                                <span t-esc="line['date']"/>
-                            </td>
-                            <td class="text-center">
-                                <span t-esc="line['product_name']"/>
-                            </td>
-                            <td class="text-center">
-                                <span t-esc="line['product_uom']"/>
-                            </td>
-                            <td class="text-center">
-                                <span t-esc="'{:,}'.format(line['price_unit'])"/>
-                            </td>
-                            <td class="text-center">
-                                <span t-esc="line['product_uom_qty']"/>
-                                <t t-set="total_qty" t-value="total_qty + line['product_uom_qty']"/>
-                            </td>
-                            <td class="text-right">
-                                <span t-esc="'{:,}'.format(line['amount'])"/>
-                                <t t-set="total_sum" t-value="total_sum + line['amount']"/>
-                            </td>
-                        </tr>            
-                    </tbody>
-                </table>
-                <div class="row">
-                    <div class="col-xs-4 pull-right">
-                        <table class="table table-condensed">
-                            <tr>
-                                <td><strong>Total</strong></td>
-                                <td class="text-right">
-                                    <span t-esc="'{:,}'.format(total_qty)"/>
-                                </td>
-                                <td class="text-right">
-                                    <span t-esc="'{:,}'.format(total_sum)"/>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+                        <div class="row">
+                            <div class="col-xs-4 pull-right">
+                                <table class="table table-condensed">
+                                    <tr>
+                                        <td><strong>Total</strong></td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:,}'.format(total_qty)"/>
+                                        </td>
+                                        <!-- <td class="text-right">
+                                            <span t-esc="'{:,}'.format(total_sum)"/>
+                                        </td> -->
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-if="group_by_loc == True" >
+                        <div class="row">
+                            <center>
+                                <b>
+                                    <h4>Cost Of Production Report</h4>
+                                </b>
+                            </center>
+                            <center>
+                                <b>
+                                    <span t-esc="start_date"/>
+                                    To
+                                    <span t-esc="end_date"/>
+                                </b>
+                            </center>
+                        </div>
+                        <br/>
+                        <t t-foreach="data['cop'].keys()" t-as="item">
+                            <div class="row">
+                                <center>
+                                    <b>
+                                        <h4><span t-esc="item"/></h4>
+                                    </b>
+                                </center>
+                            </div>
+                            <t t-set="total_sum" t-value="0"/>
+                        
+                            <table class="table table-condensed table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th class="text-center">Date</th>
+                                        <th class="text-center">Location</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-center">Price</th>
+                                        <th class="text-center">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="data['cop'][item]" t-as="line">
+                                        <td>
+                                            <span t-esc="line['tag_name']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['date']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['location_name']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['product_uom_qty']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="'{:,}'.format(line['price_unit'])"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:,}'.format(line['amount'])"/>
+                                            <t t-set="total_sum" t-value="total_sum + line['amount']"/>
+                                        </td>
+                                    </tr>            
+                                </tbody>
+                            </table>
+
+                            <div class="row">
+                                <div class="col-xs-4 pull-right">
+                                    <table class="table table-condensed">
+                                        <tr>
+                                            <td><strong>Total</strong></td>
+                                            <td class="text-right">
+                                                <span t-esc="'{:,}'.format(total_sum)"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </t>
+
+                        <div style="page-break-after: always;"/>
+
+                        <div class="row">
+                            <center>
+                                <b>
+                                    <h4>Ore Production</h4>
+                                </b>
+                            </center>
+                        </div>
+                        <br/>
+                        <t t-foreach="data['production'].keys()" t-as="item">
+                            <div class="row">
+                                <center>
+                                    <b>
+                                        <h4><span t-esc="item"/></h4>
+                                    </b>
+                                </center>
+                            </div>
+                            <t t-set="total_sum" t-value="0"/>
+                            <t t-set="total_qty" t-value="0"/>
+                            <table class="table table-condensed table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th class="text-center">Date</th>
+                                        <th class="text-center">Location</th>
+                                        <th class="text-center">Product</th>
+                                        <th class="text-center">Uom</th>
+                                        <th class="text-center">Price</th>
+                                        <th class="text-center">Qty</th>
+                                        <!-- <th class="text-center">Amount</th> -->
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="data['production'][item]" t-as="line">
+                                        <td>
+                                            <span t-esc="line['name']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['date']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['location_name']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['product_name']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['product_uom']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="'{:,}'.format(line['price_unit'])"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['product_uom_qty']"/>
+                                            <t t-set="total_qty" t-value="total_qty + line['product_uom_qty']"/>
+                                        </td>
+                                        <!-- <td class="text-right">
+                                            <span t-esc="'{:,}'.format(line['amount'])"/>
+                                            <t t-set="total_sum" t-value="total_sum + line['amount']"/>
+                                        </td> -->
+                                    </tr>            
+                                </tbody>
+                            </table>
+                            <div class="row">
+                                <div class="col-xs-4 pull-right">
+                                    <table class="table table-condensed">
+                                        <tr>
+                                            <td><strong>Total</strong></td>
+                                            <td class="text-right">
+                                                <span t-esc="'{:,}'.format(total_qty)"/>
+                                            </td>
+                                            <!-- <td class="text-right">
+                                                <span t-esc="'{:,}'.format(total_sum)"/>
+                                            </td> -->
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </t>
+                    </t>
                 </div>
             </div>
         </t>

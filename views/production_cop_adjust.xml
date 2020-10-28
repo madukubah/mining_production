@@ -23,10 +23,11 @@
             <field name="arch" type="xml">
                 <form string="COP Adjustment">
                     <header>
-                        <button name="action_draft" states="cancel" string="Set to Draft" type="object" groups="mining_production.production_group_manager" />
-                        <button name="action_reload" string="Reload" type="object" class="btn-primary" groups="mining_production.production_group_manager" attrs="{'invisible': [('state', 'in', ('done'))]}" />
-                        <button name="action_settle" string="Settle" type="object" states="draft,confirm" class="btn-primary" groups="mining_production.production_group_manager" />
-                        <button name="action_cancel" states="draft,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" />
+                        <button name="action_draft" states="cancel,confirm" string="Set to Draft" type="object" groups="mining_production.production_group_manager" />
+                        <button name="action_reload" string="Reload" type="object" class="btn-primary" groups="mining_production.production_group_manager" attrs="{'invisible': [('state', 'in', ('done', 'confirm', 'cancel'))]}" />
+                        <button name="action_confirm" string="Confirm" type="object" states="draft" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="action_settle" string="Settle" type="object" states="confirm" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="action_cancel" states="draft,confirm,done" string="Cancel" type="object" groups="mining_production.production_group_manager" />
                         <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done" readonly="1"  />
                     </header>
                     <sheet>
@@ -78,6 +79,32 @@
                                         <field name="vehicle_id" />
                                         <field name="driver_id" />
                                         <field name="value" />
+                                        <field name="amount" />
+                                        <field name="state" />
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Vehicle Losstime">
+                                <field name="vehicle_losstime_ids" >
+                                    <tree string="Vehicle Losstime" >
+                                        <field name="date" />
+                                        <field name="vehicle_id" />
+                                        <field name="tag_ids" widget="many2many_tags" />
+                                        <field name="driver_id" />
+                                        <field name="losstime_type" />
+                                        <field name="hour" />
+                                        <field name="state" />
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Losstime Accumulation">
+                                <field name="losstime_accumulation_ids" >
+                                    <tree string="Losstime Accumulation" >
+                                        <field name="date" />
+                                        <field name="vehicle_id" />
+                                        <field name="driver_id" />
+                                        <field name="losstime_type" />
+                                        <field name="reference" />
                                         <field name="amount" />
                                         <field name="state" />
                                     </tree>

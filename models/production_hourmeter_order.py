@@ -78,7 +78,6 @@ class ProductionHourmeterOrder(models.Model):
 
             order.write({'state': 'cancel'})
                 
-	
 class ProductionVehicleHourmeterLog(models.Model):
     _name = "production.vehicle.hourmeter.log"
     _inherits = {'production.operation.template': 'operation_template_id'}
@@ -94,7 +93,7 @@ class ProductionVehicleHourmeterLog(models.Model):
     start = fields.Float('Start Hour')
     end = fields.Float('End Hour')
     value = fields.Float('Hourmeter Value', group_operator="max", readonly=True, compute="_compute_value" )
-    amount = fields.Float(string='Amount', compute="_compute_amount" )
+    amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
     
     @api.onchange('vehicle_id')	
     def _change_vehicle_id(self):
@@ -109,7 +108,7 @@ class ProductionVehicleHourmeterLog(models.Model):
     @api.depends('value')	
     def _compute_amount(self):
         for record in self:
-            record.amount = record.value *  20000
+            record.amount = record.value * record.production_config_id.hm_price_unit
 
     @api.multi
     def post(self):
@@ -117,19 +116,15 @@ class ProductionVehicleHourmeterLog(models.Model):
         for compute ore cost of production
         '''
         for record in self:
-            ProductionConfig = self.env['production.config'].sudo()
-            production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
-            if not production_config.hm_tag_id :
-                raise UserError(_('Please Set Ritase COP Tag in Configuration file') )
             self.env['production.cop.tag.log'].sudo().create({
                     'cop_adjust_id' : record.cop_adjust_id.id,
                     'name' :   'HM / ' + record.date,
                     'date' : record.date,
                     'location_id' : record.location_id.id,
-                    'tag_id' : production_config.hm_tag_id.id,
+                    'tag_id' : record.production_config_id.hm_tag_id.id,
                     'product_uom_qty' : record.value,
                     # 'price_unit' : record.amount /record.value,
-                    'price_unit' : 20000, # TODO : change it programable
+                    'price_unit' : record.production_config_id.hm_price_unit, # TODO : change it programable
                     'amount' : record.amount,
                     'state' : 'posted',
                 })

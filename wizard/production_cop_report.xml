@@ -9,6 +9,7 @@
                     <group>
                         <group>
                             <field name="start_date"/>
+                            <field name="group_by_loc"/>
                         </group>
                         <group>
                             <field name="end_date"/>

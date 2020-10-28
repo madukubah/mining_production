@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from . import production_config
 from . import stock_warehouse
 from . import stock_picking
@@ -13,5 +14,6 @@ from . import production_pit
 from . import production_order
 from . import procurement
 from . import production_cop_adjust
-from . import fleet
 from . import production_cop_tag
+from . import fleet
+from . import production_losstime_accumulation

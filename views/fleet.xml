@@ -58,4 +58,36 @@
                 </field>
             </field>
     </record>
+
+    <record id='fleet_production_fleet_vehicle_losstime_view_tree' model='ir.ui.view'>
+        <field name="name">fleet.vehicle.losstime.tree</field>
+        <field name="model">fleet.vehicle.losstime</field>
+        <field name="inherit_id" ref="fleet_losstime.fleet_vehicle_losstime_list"/>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <field name="vehicle_id" position="after">
+                <field name="tag_ids" widget="many2many_tags" />
+            </field>
+            <field name="hour" position="after">
+                <field name="state"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_production_fleet_vehicle_losstime_form" model="ir.ui.view">
+            <field name="name">fleet.vehicle.losstime.form</field>
+            <field name="model">fleet.vehicle.losstime</field>
+            <field name="inherit_id" ref="fleet_losstime.view_fleet_vehicle_losstime_form"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet" position="before">
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                    </header>
+                </xpath>
+                <field name="vehicle_id" position="after">
+                    <field name="cop_adjust_id" invisible="1" />
+                </field>
+            </field>
+    </record>
 </odoo>
