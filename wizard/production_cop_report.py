@@ -78,22 +78,22 @@ class ProductionCopReport(models.TransientModel):
 
         final_dict = {}
         if self.group_by_loc :
-            cop_loc_dict = {}
+            loc_cop_dict = {}
             for row in rows:
-                if cop_loc_dict.get( row["location_name"] , False):
-                    cop_loc_dict[ row["location_name"] ] += [ row ]
+                if loc_cop_dict.get( row["location_name"] , False):
+                    loc_cop_dict[ row["location_name"] ] += [ row ]
                 else :
-                    cop_loc_dict[ row["location_name"] ] = [ row ]
+                    loc_cop_dict[ row["location_name"] ] = [ row ]
                     
-            production_loc_dict = {}
+            loc_production_dict = {}
             for row in production_rows:
-                if production_loc_dict.get( row["location_name"] , False):
-                    production_loc_dict[ row["location_name"] ] += [ row ]
+                if loc_production_dict.get( row["location_name"] , False):
+                    loc_production_dict[ row["location_name"] ] += [ row ]
                 else :
-                    production_loc_dict[ row["location_name"] ] = [ row ]
+                    loc_production_dict[ row["location_name"] ] = [ row ]
 
-            final_dict["cop"] = cop_loc_dict
-            final_dict["production"] = production_loc_dict
+            final_dict["cop"] = loc_cop_dict
+            final_dict["production"] = loc_production_dict
         else :
             final_dict["cop"] = rows
             final_dict["production"] = production_rows
@@ -107,5 +107,4 @@ class ProductionCopReport(models.TransientModel):
             'end_date': self.end_date,
 
         }
-        _logger.warning( datas )
         return self.env['report'].get_action(self,'mining_production.production_cop_temp', data=datas)

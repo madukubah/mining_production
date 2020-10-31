@@ -34,9 +34,10 @@ class ReportProductionRitaseTemp(models.AbstractModel):
             'doc_ids': data.get('ids'),
             'doc_model': data.get('model'),
             'data': data['form'],
+            'type': data['type'],
             'start_date': data['start_date'],
             'end_date': data['end_date'],
         }
         # print "===================docargs",docargs
         # _logger.warning( docargs )
-        return self.env['report'].render('mining_production.production_ritase_temp', docargs)
+        return self.env['report'].render( 'mining_production.production_ritase_temp', docargs )
