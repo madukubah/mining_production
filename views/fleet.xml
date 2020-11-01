@@ -25,6 +25,7 @@
                 </xpath>
                 <field name="cost_subtype_id" position="after">
                     <field name="product_uom_qty" />
+                    <field name="price_unit" />
                 </field>
             </field>
     </record>
@@ -55,6 +56,7 @@
                 <field name="vehicle_id" position="after">
                     <field name="cop_adjust_id" invisible="1" />
                     <field name="product_uom_qty"  />
+                    <field name="price_unit" />
                 </field>
             </field>
     </record>

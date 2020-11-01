@@ -25,25 +25,27 @@ class FleetServiceType(models.Model):
 
     @api.depends("product_id" )
     def _onset_product_id(self):
-        for rec in self:
-            if( rec.product_id.categ_id ):
-                category = rec.product_id.categ_id
-                rec.inventory_account_id = category.property_stock_valuation_account_id
+        for record in self:
+            if( record.product_id.categ_id ):
+                category = record.product_id.categ_id
+                record.inventory_account_id = category.property_stock_valuation_account_id
         
 class FleetVehicleLogServices(models.Model):
     _inherit = 'fleet.vehicle.log.services'
     
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
     product_uom_qty = fields.Integer( related='cost_id.product_uom_qty', string="Quantity", default=1)
-    cost_amount = fields.Float(related='cost_id.amount', string='Amount' )
+    price_unit = fields.Float(related='cost_id.price_unit', string='Price Unit', default=0 )
+    # cost_amount = fields.Float(related='cost_id.amount', string='Amount' )
 
     @api.onchange("product_uom_qty", "cost_subtype_id" )
     def _compute_amount(self):
-        for rec in self:
-            if( rec.cost_subtype_id.product_id ):
-                product = rec.cost_subtype_id.product_id
-                _logger.warning( product )
-                rec.amount = product.standard_price * rec.product_uom_qty
+        for record in self:
+            if( record.cost_subtype_id.product_id ):
+                product = record.cost_subtype_id.product_id
+                # _logger.warning( product )
+                record.price_unit = product.standard_price
+                record.amount = record.price_unit * record.product_uom_qty
                 
     @api.multi
     def post(self):
@@ -54,6 +56,7 @@ class FleetVehicleCost(models.Model):
 
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
     product_uom_qty = fields.Integer( string="Quantity", default=1)
+    price_unit = fields.Float( string='Price Unit', default=0 )
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
     
