@@ -219,19 +219,29 @@ class ProductionCopAdjust(models.Model):
     def _settle_cost(self):
         self.ensure_one()
         product_n_qty_list = {}
-        LogServices = self.env['fleet.vehicle.log.services'].sudo()
-        services = LogServices.search( [ ("cost_id", "in", [cost.id for cost in self.cost_ids ] )] )
         #VEHICLE COST that have comsumable products, 
-        for service in services:
-            if( service.cost_subtype_id.is_consumable and service.cost_subtype_id.product_id ) :
-                product = service.cost_subtype_id.product_id
+        for cost_id in self.cost_ids:
+            if( cost_id.cost_subtype_id.is_consumable and cost_id.cost_subtype_id.product_id ) :
+                product = cost_id.cost_subtype_id.product_id
                 if product_n_qty_list.get( product.id , False):
-                    product_n_qty_list[ product.id ]['qty'] += service.product_uom_qty
+                    product_n_qty_list[ product.id ]['qty'] += cost_id.product_uom_qty
                 else : 
                     product_n_qty_list[ product.id ] = {
-                        'product_id' : service.cost_subtype_id.product_id,
-                        'qty' : service.product_uom_qty,
+                        'product_id' : cost_id.cost_subtype_id.product_id,
+                        'qty' : cost_id.product_uom_qty,
                     }
+        # LogServices = self.env['fleet.vehicle.log.services'].sudo()
+        # services = LogServices.search( [ ("cost_id", "in", [cost.id for cost in self.cost_ids ] )] )
+        # for service in services:
+        #     if( service.cost_subtype_id.is_consumable and service.cost_subtype_id.product_id ) :
+        #         product = service.cost_subtype_id.product_id
+        #         if product_n_qty_list.get( product.id , False):
+        #             product_n_qty_list[ product.id ]['qty'] += service.product_uom_qty
+        #         else : 
+        #             product_n_qty_list[ product.id ] = {
+        #                 'product_id' : service.cost_subtype_id.product_id,
+        #                 'qty' : service.product_uom_qty,
+                    # }
         #COP TAG COST That have consumable products
         for tag_log in self.tag_log_ids:
             if( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) :
@@ -351,7 +361,6 @@ class ProductionCopAdjust(models.Model):
         if product_qty > 0 :
             amount_unit = product.standard_price
             not_consumable_cost = self._compute_not_consumable_cost()
-            # not_consumable_cost = self._compute_not_consumable_cost()
             new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty + self.get_qty_by_rit_product( except_prduct_id=product.id ) )
             product.with_context(force_company=self.company_id.id).sudo().write({ 'standard_price': new_std_price })
 

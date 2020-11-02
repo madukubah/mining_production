@@ -37,6 +37,13 @@
                         <field name="hm_minimal_cash" />
                         <field name="hm_vehicle_tag_id" />
                     </group>
+                    <group string="Vehicle" >
+                        <field name="refuel_service_type_ids" >
+                            <tree string="Refuel Service Types" editable="bottom" >
+                                <field name="name" />
+                            </tree>
+                        </field >
+                    </group>
                 </sheet>
             </form>
         </field>

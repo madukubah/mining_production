@@ -27,6 +27,7 @@
                             </h1>
                         </div>
                         <group>
+                            <field name="config_id" invisible="1" />
                             <field name="category"/>
                             <field name="is_consumable"/>
 					        <field name="product_id" attrs="{'invisible': [ ('is_consumable', '=', False) ] }" />

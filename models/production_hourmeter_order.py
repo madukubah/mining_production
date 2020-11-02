@@ -116,17 +116,18 @@ class ProductionVehicleHourmeterLog(models.Model):
         for compute ore cost of production
         '''
         for record in self:
-            self.env['production.cop.tag.log'].sudo().create({
-                    'cop_adjust_id' : record.cop_adjust_id.id,
-                    'name' :   'HM / ' + record.date,
-                    'date' : record.date,
-                    'location_id' : record.location_id.id,
-                    'tag_id' : record.production_config_id.hm_tag_id.id,
-                    'product_uom_qty' : record.value,
-                    # 'price_unit' : record.amount /record.value,
-                    'price_unit' : record.production_config_id.hm_price_unit, # TODO : change it programable
-                    'amount' : record.amount,
-                    'state' : 'posted',
-                })
-            record.write({'state' : 'posted' })
+            if record.state != 'posted' :
+                self.env['production.cop.tag.log'].sudo().create({
+                        'cop_adjust_id' : record.cop_adjust_id.id,
+                        'name' :   'HM / ' + record.date,
+                        'date' : record.date,
+                        'location_id' : record.location_id.id,
+                        'tag_id' : record.production_config_id.hm_tag_id.id,
+                        'product_uom_qty' : record.value,
+                        # 'price_unit' : record.amount /record.value,
+                        'price_unit' : record.production_config_id.hm_price_unit, # TODO : change it programable
+                        'amount' : record.amount,
+                        'state' : 'posted',
+                    })
+                record.write({'state' : 'posted' })
         

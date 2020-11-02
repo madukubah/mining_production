@@ -39,6 +39,8 @@ class ProductionConfig( models.Model ):
     hm_minimal_cash = fields.Float('Minimal Cash For Losstime', required=True, default=0 )
     hm_vehicle_tag_id = fields.Many2one('fleet.vehicle.tag', 'Hourmeter Vehicle Tag', required=True )
     
+    refuel_service_type_ids = fields.Many2many('fleet.service.type', 'config_service_type_rel', 'config_id', 'service_type_id', string='Refuel Service Types' )
+
     active = fields.Boolean(
         'Active', default=True,
         help="If unchecked, it will allow you to hide the rule without removing it.")

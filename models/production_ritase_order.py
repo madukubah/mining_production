@@ -356,19 +356,20 @@ class RitaseCounter(models.Model):
 		for compute ore cost of production
 		'''
 		for record in self:
-			self.env['production.cop.tag.log'].sudo().create({
-                    'cop_adjust_id' : record.cop_adjust_id.id,
-                    'name' :   'RITASE / ' + record.date,
-                    'date' : record.date,
-                    'location_id' : record.location_id.id,
-                    'tag_id' : record.production_config_id.rit_tag_id.id,
-                    'product_uom_qty' : record.ritase_count,
-                    # 'price_unit' : record.amount /record.ritase_count,
-                    'price_unit' : record.production_config_id.rit_price_unit, # TODO : change it programable
-                    'amount' : record.amount,
-                    'state' : 'posted',
-                })
-			record.write({'state' : 'posted' })
+			if record.state != 'posted' :
+				self.env['production.cop.tag.log'].sudo().create({
+						'cop_adjust_id' : record.cop_adjust_id.id,
+						'name' :   'RITASE / ' + record.date,
+						'date' : record.date,
+						'location_id' : record.location_id.id,
+						'tag_id' : record.production_config_id.rit_tag_id.id,
+						'product_uom_qty' : record.ritase_count,
+						# 'price_unit' : record.amount /record.ritase_count,
+						'price_unit' : record.production_config_id.rit_price_unit, # TODO : change it programable
+						'amount' : record.amount,
+						'state' : 'posted',
+					})
+				record.write({'state' : 'posted' })
 
 class RitaseLog(models.Model):
 	_name = "production.ritase.log"

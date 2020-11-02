@@ -38,16 +38,17 @@ class ProductionLosstimeAccumulation(models.Model):
     @api.multi
     def post(self):
         for record in self:
-            self.env['production.cop.tag.log'].sudo().create({
-                    'cop_adjust_id' : record.cop_adjust_id.id,
-                    'name' : record.date,
-                    'date' : record.date,
-                    # 'location_id' : record.location_id.id,
-                    'tag_id' : record.tag_id.id,
-                    'product_uom_qty' : 1,
-                    # 'price_unit' : record.amount /record.ritase_count,
-                    'price_unit' : record.amount, # TODO : change it programable
-                    'amount' : record.amount,
-                    'state' : 'posted',
-                })
-            record.write({'state' : 'posted' })
+            if record.state != 'posted' :
+                self.env['production.cop.tag.log'].sudo().create({
+                        'cop_adjust_id' : record.cop_adjust_id.id,
+                        'name' : record.date,
+                        'date' : record.date,
+                        # 'location_id' : record.location_id.id,
+                        'tag_id' : record.tag_id.id,
+                        'product_uom_qty' : 1,
+                        # 'price_unit' : record.amount /record.ritase_count,
+                        'price_unit' : record.amount, # TODO : change it programable
+                        'amount' : record.amount,
+                        'state' : 'posted',
+                    })
+                record.write({'state' : 'posted' })

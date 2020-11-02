@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
     <record id='fleet_production_vehicle_log_services_view_tree' model='ir.ui.view'>
         <field name="name">fleet.vehicle.log.services.tree</field>
         <field name="model">fleet.vehicle.log.services</field>
@@ -38,6 +39,7 @@
         <field name="arch" type="xml">
             <field name="date" position="after">
                 <field name="state"/>
+                <field name="production_config_id" invisible="1" />
             </field>
         </field>
     </record>
