@@ -41,7 +41,7 @@ class ProductionRitaseOrder(models.Model):
 	name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
 	production_order_id = fields.Many2one("production.order", 
         'Production Order', ondelete='set null', copy=False)
-	employee_id	= fields.Many2one('hr.employee', string='Checker', states=READONLY_STATES )
+	employee_id	= fields.Many2one('hr.employee', string='Checker', required=True, states=READONLY_STATES )
 	date = fields.Date('Date', help='',  default=fields.Datetime.now, states=READONLY_STATES )
 	picking_type_id = fields.Many2one('stock.picking.type', 'Deliver To', required=True, default=_default_picking_type,\
 		help="This will determine picking type of internal shipment", states=READONLY_STATES)

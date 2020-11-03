@@ -19,7 +19,7 @@ class ProductionHourmeterOrder(models.Model):
     }
 
     name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
-    employee_id	= fields.Many2one('hr.employee', string='Checker', states=READONLY_STATES )
+    employee_id	= fields.Many2one('hr.employee', string='Checker',required=True, states=READONLY_STATES )
     date = fields.Date('Date', help='',  default=fields.Datetime.now, states=READONLY_STATES )
     shift = fields.Selection([
         ( "1" , '1'),
