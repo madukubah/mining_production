@@ -28,7 +28,7 @@
                                     <tr>
                                         <th class="text-center">Document</th>
                                         <th class="text-center">Date</th>
-                                        <th class="text-center">Driver</th>
+                                        <th class="text-center">Operator</th>
                                         <th class="text-center">Heavy Equipment</th>
                                         <th class="text-center">Hourmeter</th>
                                         <!-- <th class="text-center">Amount</th> -->

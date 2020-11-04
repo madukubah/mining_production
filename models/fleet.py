@@ -6,7 +6,6 @@ from odoo.exceptions import UserError
 import logging
 _logger = logging.getLogger(__name__)
 
-
 class FleetServiceType(models.Model):
     _inherit = 'fleet.service.type'
 

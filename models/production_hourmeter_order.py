@@ -9,7 +9,6 @@ class ProductionHourmeterOrder(models.Model):
     _name = "production.hourmeter.order"
     _inherit = ['mail.thread', 'ir.needaction_mixin']
     _order = "id desc"
-
     
     READONLY_STATES = {
         'draft': [('readonly', False)] ,
