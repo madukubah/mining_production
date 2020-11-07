@@ -51,6 +51,9 @@
 
         "security/security.xml",
         "security/ir.model.access.csv",
+
+        "seed/production_ritase_seed.xml",
+        "seed/production_houtmeter_seed.xml",
     ],
     'qweb': [
         # 'static/src/xml/cashback_templates.xml',

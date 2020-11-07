@@ -62,7 +62,7 @@ class ProductionLosstime(models.Model):
     def action_reload(self):
         for record in self: 
             Vehicle = self.env['fleet.vehicle'].sudo()
-            vehicles = Vehicle.search( [ ( "tag_ids", "in", record.tag_ids.ids ), ( "state_id", "=", record.vehicle_state_id.id ) ] )
+            vehicles = Vehicle.search( [ ( "tag_ids", "in", record.tag_ids.ids ), ( "state_id", "=", record.vehicle_state_id.id ),  ( "driver_id", "!=", False ) ] )
             record.update({
                 'vehicle_ids': [( 6, 0, vehicles.ids )],
             })

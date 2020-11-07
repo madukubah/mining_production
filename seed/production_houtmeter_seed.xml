@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="production_houtmeter_seed_form_view" model="ir.ui.view">
+            <field name="name">sr.production.houtmeter.seed.form.view</field>
+            <field name="model">production.houtmeter.seed</field>
+            <field name="arch" type="xml">
+                <form string="Hourmeter Seed">
+                    <group>
+                        <group>
+                            <field name="date"/>
+                            <field name="employee_id"/>
+                            <field name="shift"/>
+                            <field name="cost_code_id"/>
+                            <field name="block_id"/>
+                            <field name="vehicle_count"/>
+                        </group>
+                    </group>
+                    <group>
+                            <field name="warehouse_id"/>
+                    </group>
+                    <group>
+                            <field name="location_ids"/>
+                    </group>
+
+                    <footer>
+                        <button name="action_seed" string="Sedd" class="oe_highlight"
+                                type="object"/>
+                        Or
+                        <button string="Cancel" class="btn-default" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_production_houtmeter_seed_wizard" model="ir.actions.act_window">
+            <field name="name">Hourmeter Seed</field>
+            <field name="res_model">production.houtmeter.seed</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="menu_production_houtmeter_seed_wizard"
+                  name="Hourmeter Seed"
+                  action="action_production_houtmeter_seed_wizard"
+                  parent="mining_production_seed"
+                  sequence="2"/>
+    </data>
+</odoo>

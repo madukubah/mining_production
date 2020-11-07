@@ -127,25 +127,26 @@
                                     </thead>
                                     <tbody>
                                         <!-- <t t-foreach="data.keys()" t-as="location"> -->
-                                            <tr t-foreach="data.keys()" t-as="line">
+                                        <t t-foreach="data.keys()" t-as="location">
+                                            <tr t-foreach="data[location].keys()" t-as="location_dest">
                                                 <td class="text-center">
-                                                    <span t-esc="data[line]['date']"/>
+                                                    <span t-esc="data[location][location_dest]['date']"/>
                                                 </td>
                                                 <td class="text-center">
-                                                    <span t-esc="data[line]['doc_name']"/>
+                                                    <span t-esc="data[location][location_dest]['doc_name']"/>
                                                 </td>
                                                 <td class="text-center">
-                                                    <span t-esc="data[line]['location_name']"/>
+                                                    <span t-esc="data[location][location_dest]['location_name']"/>
                                                 </td>
                                                 <td class="text-center">
-                                                    <span t-esc="data[line]['location_dest_name']"/>
+                                                    <span t-esc="data[location][location_dest]['location_dest_name']"/>
                                                 </td>
                                                 <td class="text-center">
-                                                    <span t-esc="'{:,}'.format(data[line]['ritase_count'])"/>
-                                                    <t t-set="total_rit" t-value="total_rit + data[line]['ritase_count']"/>
+                                                    <span t-esc="'{:,}'.format(data[location][location_dest]['ritase_count'])"/>
+                                                    <t t-set="total_rit" t-value="total_rit + data[location][location_dest]['ritase_count']"/>
                                                 </td>
                                             </tr>            
-                                        <!-- </t> -->
+                                        </t>
                                     </tbody>
                                 </table>
                             <!-- </t> -->

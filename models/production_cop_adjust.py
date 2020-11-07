@@ -44,6 +44,11 @@ class ProductionCopAdjust(models.Model):
     losstime_accumulation_ids = fields.One2many('production.losstime.accumulation', 'cop_adjust_id', 'Losstime Accumulation', states=READONLY_STATES )
     amount = fields.Float(string='Amount', compute="_compute_amount" )
 
+    sum_rit = fields.Float(string='Ritase Amount', compute="_compute_amount" )
+    sum_hm = fields.Float(string='Hourmeter Amount', compute="_compute_amount" )
+    sum_losstime_accumulation = fields.Float(string='Lostime Amount', compute="_compute_amount" )
+    sum_vehicle_cost = fields.Float(string='Vehicle Cost Amount', compute="_compute_amount" )
+
     state = fields.Selection( [
         ('draft', 'Draft'), 
         ('cancel', 'Cancelled'),
@@ -204,6 +209,11 @@ class ProductionCopAdjust(models.Model):
     @api.depends("rit_ids", "hourmeter_ids", "cost_ids", "tag_log_ids" )
     def _compute_amount(self):
         for record in self:
+            record.sum_rit = sum( [ rit.amount for rit in record.rit_ids ] )
+            record.sum_hm = sum( [ hourmeter.amount for hourmeter in record.hourmeter_ids ] )
+            record.sum_losstime_accumulation = sum( [ losstime_accumulation_id.amount for losstime_accumulation_id in record.losstime_accumulation_ids ] )
+            record.sum_vehicle_cost = sum( [ cost.amount for cost in record.cost_ids ] )
+
             if record.state != 'done' :
                 sum_rit = sum( [ rit.amount for rit in record.rit_ids.filtered(lambda r: r.state != 'posted') ] )
                 sum_hm = sum( [ hourmeter.amount for hourmeter in record.hourmeter_ids.filtered(lambda r: r.state != 'posted') ] )

@@ -29,32 +29,36 @@
                                     <th class="text-center">Date</th>
                                     <th class="text-center">Location</th>
                                     <th class="text-center">Qty</th>
-                                    <th class="text-center">Price</th>
+                                    <!-- <th class="text-center">Price</th> -->
                                     <th class="text-center">Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr t-foreach="data['cop']" t-as="line">
-                                    <td>
-                                        <span t-esc="line['tag_name']"/>
-                                    </td>
-                                    <td class="text-center">
-                                        <span t-esc="line['date']"/>
-                                    </td>
-                                    <td class="text-center">
-                                        <span t-esc="line['location_name']"/>
-                                    </td>
-                                    <td class="text-center">
-                                        <span t-esc="line['product_uom_qty']"/>
-                                    </td>
-                                    <td class="text-center">
-                                        <span t-esc="'{:,}'.format(line['price_unit'])"/>
-                                    </td>
-                                    <td class="text-right">
-                                        <span t-esc="'{:,}'.format(line['amount'])"/>
-                                        <t t-set="total_sum" t-value="total_sum + line['amount']"/>
-                                    </td>
-                                </tr>            
+                                <t t-foreach="data['cop'].keys()" t-as="date" >
+                                    <t t-foreach="data['cop'][date].keys()" t-as="tag_name" >
+                                            <tr t-foreach="data['cop'][date][tag_name].keys()" t-as="location_name">
+                                                <td>
+                                                    <span t-esc="data['cop'][date][tag_name][location_name]['tag_name']"/>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-esc="data['cop'][date][tag_name][location_name]['date']"/>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-esc="data['cop'][date][tag_name][location_name]['location_name']"/>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-esc="data['cop'][date][tag_name][location_name]['product_uom_qty']"/>
+                                                </td>
+                                                <!-- <td class="text-center">
+                                                    <span t-esc="'{:,}'.format(data['cop'][date][tag_name][location_name]['price_unit'])"/>
+                                                </td> -->
+                                                <td class="text-right">
+                                                    <span t-esc="'{:,}'.format(data['cop'][date][tag_name][location_name]['amount'])"/>
+                                                    <t t-set="total_sum" t-value="total_sum + data['cop'][date][tag_name][location_name]['amount']"/>
+                                                </td>
+                                            </tr>  
+                                    </t>          
+                                </t>          
                             </tbody>
                         </table>
 
@@ -94,7 +98,7 @@
                                     <th class="text-center">Uom</th>
                                     <th class="text-center">Price</th>
                                     <th class="text-center">Qty</th>
-                                    <!-- <th class="text-center">Amount</th> -->
+                                    <th class="text-center">Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -121,10 +125,10 @@
                                         <span t-esc="line['product_uom_qty']"/>
                                         <t t-set="total_qty" t-value="total_qty + line['product_uom_qty']"/>
                                     </td>
-                                    <!-- <td class="text-right">
+                                    <td class="text-right">
                                         <span t-esc="'{:,}'.format(line['amount'])"/>
                                         <t t-set="total_sum" t-value="total_sum + line['amount']"/>
-                                    </td> -->
+                                    </td>
                                 </tr>            
                             </tbody>
                         </table>
@@ -136,9 +140,9 @@
                                         <td class="text-right">
                                             <span t-esc="'{:,}'.format(total_qty)"/>
                                         </td>
-                                        <!-- <td class="text-right">
+                                        <td class="text-right">
                                             <span t-esc="'{:,}'.format(total_sum)"/>
-                                        </td> -->
+                                        </td>
                                     </tr>
                                 </table>
                             </div>
@@ -177,7 +181,7 @@
                                         <th class="text-center">Date</th>
                                         <th class="text-center">Location</th>
                                         <th class="text-center">Qty</th>
-                                        <th class="text-center">Price</th>
+                                        <!-- <th class="text-center">Price</th> -->
                                         <th class="text-center">Amount</th>
                                     </tr>
                                 </thead>
@@ -195,9 +199,9 @@
                                         <td class="text-center">
                                             <span t-esc="line['product_uom_qty']"/>
                                         </td>
-                                        <td class="text-center">
+                                        <!-- <td class="text-center">
                                             <span t-esc="'{:,}'.format(line['price_unit'])"/>
-                                        </td>
+                                        </td> -->
                                         <td class="text-right">
                                             <span t-esc="'{:,}'.format(line['amount'])"/>
                                             <t t-set="total_sum" t-value="total_sum + line['amount']"/>
@@ -250,7 +254,7 @@
                                         <th class="text-center">Uom</th>
                                         <th class="text-center">Price</th>
                                         <th class="text-center">Qty</th>
-                                        <!-- <th class="text-center">Amount</th> -->
+                                        <th class="text-center">Amount</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -277,10 +281,10 @@
                                             <span t-esc="line['product_uom_qty']"/>
                                             <t t-set="total_qty" t-value="total_qty + line['product_uom_qty']"/>
                                         </td>
-                                        <!-- <td class="text-right">
+                                        <td class="text-right">
                                             <span t-esc="'{:,}'.format(line['amount'])"/>
                                             <t t-set="total_sum" t-value="total_sum + line['amount']"/>
-                                        </td> -->
+                                        </td>
                                     </tr>            
                                 </tbody>
                             </table>
@@ -292,9 +296,9 @@
                                             <td class="text-right">
                                                 <span t-esc="'{:,}'.format(total_qty)"/>
                                             </td>
-                                            <!-- <td class="text-right">
+                                            <td class="text-right">
                                                 <span t-esc="'{:,}'.format(total_sum)"/>
-                                            </td> -->
+                                            </td>
                                         </tr>
                                     </table>
                                 </div>

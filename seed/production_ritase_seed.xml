@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="production_ritase_seed_form_view" model="ir.ui.view">
+            <field name="name">sr.production.ritase.seed.form.view</field>
+            <field name="model">production.ritase.seed</field>
+            <field name="arch" type="xml">
+                <form string="Ritase Seed">
+                    <group>
+                        <group>
+                            <field name="date"/>
+                            <field name="employee_id"/>
+                            <field name="shift"/>
+                            <field name="picking_type_id"/>
+                            <field name="cost_code_id"/>
+                            <field name="block_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="warehouse_id"/>
+                        </group>
+                        <group>
+                            <field name="warehouse_dest_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="location_ids"/>
+                        </group>
+                        <group>
+                            <field name="location_dest_ids"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="product_id"/>
+                        </group>
+                        <group>
+                            <field name="product_uom"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="load_vehicle_id"/>
+                        </group>
+                        <group>
+                            <field name="pile_vehicle_id"/>
+                        </group>
+                    </group>
+
+                    <footer>
+                        <button name="action_seed" string="Sedd" class="oe_highlight"
+                                type="object"/>
+                        Or
+                        <button string="Cancel" class="btn-default" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_production_ritase_seed_wizard" model="ir.actions.act_window">
+            <field name="name">Ritase Seed</field>
+            <field name="res_model">production.ritase.seed</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="menu_production_ritase_seed_wizard"
+                  name="Ritase Seed"
+                  action="action_production_ritase_seed_wizard"
+                  parent="mining_production_seed"
+                  sequence="2"/>
+    </data>
+</odoo>

@@ -42,25 +42,42 @@ class ProductionRitaseReport(models.TransientModel):
             final_dict["rows"] = rows
         elif self.type == 'summary' :
             ritase_orders = self.env['production.ritase.order'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "done" ) ])
-            loc_ritase_dict = {}
+            loc_dest_ritase_dict = {}
             for ritase_order in ritase_orders:
-                if loc_ritase_dict.get( ritase_order.location_id.name , False):
-                    loc_ritase_dict[ ritase_order.location_id.name ]["ritase_count"] += ritase_order.ritase_count
-                else :
-                    loc_ritase_dict[ ritase_order.location_id.name ] =  {
+                if loc_dest_ritase_dict.get( ritase_order.location_id.name , False):
+                    if loc_dest_ritase_dict[ ritase_order.location_id.name ].get( ritase_order.location_dest_id.name , False):
+                        loc_dest_ritase_dict[ ritase_order.location_id.name ][ ritase_order.location_dest_id.name ]["ritase_count"] += ritase_order.ritase_count
+                    else :
+                        loc_dest_ritase_dict[ ritase_order.location_id.name ][ ritase_order.location_dest_id.name ] =  {
                             "date" : ritase_order.date,
                             "doc_name" : ritase_order.name,
                             "location_name" : ritase_order.location_id.name,
                             "location_dest_name" : ritase_order.location_dest_id.name,
                             "ritase_count" : ritase_order.ritase_count,
                         } 
-            # for row in rows:
-            #     if loc_ritase_dict.get( row["location_name"] , False):
-            #         loc_ritase_dict[ row["location_name"] ] += [ row ]
+                else :
+                    loc_dest_ritase_dict[ ritase_order.location_id.name ] = {}
+                    loc_dest_ritase_dict[ ritase_order.location_id.name ][ ritase_order.location_dest_id.name ] =  {
+                            "date" : ritase_order.date,
+                            "doc_name" : ritase_order.name,
+                            "location_name" : ritase_order.location_id.name,
+                            "location_dest_name" : ritase_order.location_dest_id.name,
+                            "ritase_count" : ritase_order.ritase_count,
+                        } 
+            # loc_ritase_dict = {}
+            # for ritase_order in ritase_orders:
+            #     if loc_ritase_dict.get( ritase_order.location_id.name , False):
+            #         loc_ritase_dict[ ritase_order.location_id.name ]["ritase_count"] += ritase_order.ritase_count
             #     else :
-            #         loc_ritase_dict[ row["location_name"] ] = [ row ]
+            #         loc_ritase_dict[ ritase_order.location_id.name ] =  {
+            #                 "date" : ritase_order.date,
+            #                 "doc_name" : ritase_order.name,
+            #                 "location_name" : ritase_order.location_id.name,
+            #                 "location_dest_name" : ritase_order.location_dest_id.name,
+            #                 "ritase_count" : ritase_order.ritase_count,
+            #             } 
             
-            final_dict = loc_ritase_dict
+            final_dict = loc_dest_ritase_dict
         
         datas = {
             'ids': self.ids,
@@ -71,5 +88,5 @@ class ProductionRitaseReport(models.TransientModel):
             'end_date': self.end_date,
 
         }
-        # _logger.warning( datas )
+        # _logger.warning( loc_dest_ritase_dict )
         return self.env['report'].get_action(self,'mining_production.production_ritase_temp', data=datas)

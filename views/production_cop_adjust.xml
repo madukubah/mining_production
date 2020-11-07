@@ -56,6 +56,7 @@
                                         <field name="state" />
                                     </tree>
                                 </field>
+                                <!-- <field name="sum_vehicle_cost" string="Total" /> -->
                             </page>
                             <page string="DT Ritase">
                                 <field name="rit_ids" >
@@ -70,6 +71,7 @@
                                         <field name="state" />
                                     </tree>
                                 </field>
+                                <!-- <field name="sum_rit" string="Total" /> -->
                             </page>
                             <page string="HE Hourmeter">
                                 <field name="hourmeter_ids" >
@@ -83,6 +85,7 @@
                                         <field name="state" />
                                     </tree>
                                 </field>
+                                <!-- <field name="sum_hm" string="Total" /> -->
                             </page>
                             <page string="Vehicle Losstime">
                                 <field name="vehicle_losstime_ids" >
@@ -109,6 +112,7 @@
                                         <field name="state" />
                                     </tree>
                                 </field>
+                                <!-- <field name="sum_losstime_accumulation" string="Total" /> -->
                             </page>
                         </notebook>
                         <separator string="COP Tagging"/>
