@@ -15,9 +15,9 @@ class FleetServiceType(models.Model):
         domain=[('type', 'in', ['product', 'consu'])]
         )
     inventory_account_id = fields.Many2one('account.account', 
-        string='Inventory Account', 
-        compute='_onset_product_id', 
-        domain=[('deprecated', '=', False)], 
+            string='Inventory Account', 
+            compute='_onset_product_id', 
+            domain=[('deprecated', '=', False)], 
         )
     tag_id	= fields.Many2one('production.cop.tag', string='Tag' )
     config_id	= fields.Many2one('production.config', string='Production Config' )

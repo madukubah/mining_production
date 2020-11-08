@@ -337,7 +337,7 @@ class ProductionCopAdjust(models.Model):
             raise UserError(_('Please Set Default Lot Product Configuration file') )
 
         journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation( production_config.lot_id.product_id )
-        AccountMove = self.env['account.move']
+        AccountMove = self.env['account.move'].sudo()
         debit_amount = 0
         for move_line in move_lines:
             debit_amount += move_line[2]["credit"]
