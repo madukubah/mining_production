@@ -47,7 +47,7 @@ class ProductionCopReport(models.TransientModel):
                 date_tag_log_dict[ temp["date"] ][ temp["tag_name"] ] = {}
                 date_tag_log_dict[ temp["date"] ][ temp["tag_name"] ][ temp["location_name"] ] = temp
 
-        hr_contracts = self.env['hr.contract'].search([ "&", ( 'state', '=', "draft" ), ( 'department_id', '!=', "[(3,7,6,4,8,16)]" ) ])
+        hr_contracts = self.env['hr.contract'].sudo().search([ "&", ( 'state', '=', "draft" ), ( 'department_id', '!=', "[(3,7,6,4,8,16)]" ) ])
 
         if hr_contracts:
             temp = {}
