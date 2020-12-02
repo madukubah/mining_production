@@ -21,6 +21,19 @@
         </field>
     </record>
 
+    <!-- graph -->
+    <record id="production_ritase_order_graph" model="ir.ui.view">
+        <field name="name">production_ritase_order_graph</field>
+        <field name="model">production.ritase.order</field>
+        <field name="arch" type="xml">
+            <graph string="Ritase" type="bar">
+                <field name="location_id"  group="True" type="row" />
+                <field name="date" type="col"/>
+                <field name="ritase_count" type="measure" operator="+" />
+            </graph>
+        </field>
+    </record>
+
     <record id="view_production_ritase_order_form" model="ir.ui.view">
             <field name="name">production.ritase.order.form</field>
             <field name="model">production.ritase.order</field>

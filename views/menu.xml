@@ -5,7 +5,7 @@
         <field name="name">Ritase</field>
         <field name="res_model">production.ritase.order</field>
         <field name="view_type">form</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">tree,form,graph</field>
     </record>
 
     <record model="ir.actions.act_window" id="action_hourmeter_order">
@@ -80,6 +80,9 @@
 
     <menuitem id="mining_production_top" name="Production" sequence="2" web_icon="mining_production,static/description/icon.png" />
         
+        <menuitem id="production_dashboard" name="Dashboard" sequence="0" 
+                parent="mining_production_top"/>
+
         <menuitem id="production" name="Production" sequence="1" 
                 parent="mining_production_top"/>
 

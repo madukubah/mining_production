@@ -75,7 +75,7 @@ class ProductionRitaseOrder(models.Model):
 			)
 	load_vehicle_id = fields.Many2one('fleet.vehicle', 'Load Unit', required=True, states=READONLY_STATES )
 	pile_vehicle_id = fields.Many2one('fleet.vehicle', 'Pile Unit', required=True, states=READONLY_STATES )
-	ritase_count = fields.Integer( string="Ritase Total", required=True, default=0, digits=0, compute='_compute_ritase_count', readonly=True)
+	ritase_count = fields.Integer( string="Ritase Total", required=True, default=0, digits=0, compute='_compute_ritase_count', readonly=True, store=True )
 	counter_ids = fields.One2many(
         'production.ritase.counter',
         'ritase_order_id',
