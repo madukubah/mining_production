@@ -45,6 +45,7 @@
                   name="Hourmeter Seed"
                   action="action_production_houtmeter_seed_wizard"
                   parent="mining_production_seed"
+                  groups="production_group_manager"
                   sequence="2"/>
     </data>
 </odoo>

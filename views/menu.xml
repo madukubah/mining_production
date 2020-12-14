@@ -80,8 +80,6 @@
 
     <menuitem id="mining_production_top" name="Production" sequence="2" web_icon="mining_production,static/description/icon.png" />
         
-        <menuitem id="production_dashboard" name="Dashboard" sequence="0" 
-                parent="mining_production_top"/>
 
         <menuitem id="production" name="Production" sequence="1" 
                 parent="mining_production_top"/>
@@ -146,10 +144,14 @@
                 />
         
         <menuitem id="mining_production_report" name="Report" sequence="98" 
-                parent="mining_production_top"/>
+                parent="mining_production_top"
+                groups="production_group_manager"
+                />
 
         <menuitem id="production_config" name="Configuration" sequence="99" 
-                parent="mining_production_top"/>
+                parent="mining_production_top"
+                groups="production_group_manager"
+                />
         
             <menuitem name="Cost Code"
                     id="production_cost_code"
@@ -184,6 +186,6 @@
         
 
         <menuitem id="mining_production_seed" name="Seed" sequence="100" 
-                parent="mining_production_top" groups="base.group_no_one"/>
+                parent="mining_production_top" groups="production_group_manager"/>
             
 </odoo>

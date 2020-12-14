@@ -71,6 +71,7 @@
                   name="Ritase Seed"
                   action="action_production_ritase_seed_wizard"
                   parent="mining_production_seed"
+                  groups="production_group_manager"
                   sequence="2"/>
     </data>
 </odoo>
