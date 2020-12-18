@@ -138,5 +138,5 @@ class ProductionRitaseSeed(models.TransientModel):
                         "ritase_count" : counts
                     })
                 offset += 3
-
+                ritase._compute_ritase_count()
                 ritase.action_confirm()
