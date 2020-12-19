@@ -45,7 +45,7 @@ class ProductionRitaseSeed(models.TransientModel):
             types = type_obj.search([('code', '=', 'internal'), ('warehouse_id', '=', False)])
         return types[:1]
 
-    date = fields.Date('Date', required=True, default=time.strftime("%Y-%m-%d %H:%M:%S") )
+    date = fields.Date('Date', required=True, default=fields.Datetime.now )
     employee_id	= fields.Many2one('hr.employee', string='Checker', required=True, default=_default_employee )
     shift = fields.Selection([
         ( "1" , '1'),
