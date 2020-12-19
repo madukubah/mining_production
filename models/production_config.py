@@ -25,6 +25,7 @@ class ProductionConfig( models.Model ):
 		required=True, 
         )
     cop_journal_id = fields.Many2one('account.journal', string='COP Journal', default=_default_journal, required=True )
+    cop_cost_credit_account_id = fields.Many2one('account.account', string='COP Cost Credit Account', required=True )
     journal_type = fields.Selection(related='cop_journal_id.type', help="Technical field used for usability purposes" )
 
     rit_tag_id	= fields.Many2one('production.cop.tag', string='Ritase COP Tag', required=True )

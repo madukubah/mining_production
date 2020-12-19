@@ -22,6 +22,7 @@
                         <field name="journal_type" invisible="1" />
                         <field name="lot_id" />
                         <field name="cop_journal_id" />
+                        <field name="cop_cost_credit_account_id" />
                     </group>
                     <group string="Ritase" >
                         <field name="rit_tag_id" />

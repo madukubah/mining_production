@@ -335,6 +335,8 @@ class ProductionCopAdjust(models.Model):
             raise UserError(_('Please Set Default Configuration file') )
         if not production_config.lot_id :
             raise UserError(_('Please Set Default Lot Product Configuration file') )
+        if not production_config.cop_cost_credit_account_id :
+            raise UserError(_('Please Set COP Cost Credit Account in Configuration file') )
 
         journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation( production_config.lot_id.product_id )
         AccountMove = self.env['account.move'].sudo()
@@ -373,6 +375,46 @@ class ProductionCopAdjust(models.Model):
             not_consumable_cost = self._compute_not_consumable_cost()
             new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty + self.get_qty_by_rit_product( except_prduct_id=product.id ) )
             product.with_context(force_company=self.company_id.id).sudo().write({ 'standard_price': new_std_price })
+            #TODO : adjust stock ore account value with inventory value
+            inventory_value = product.standard_price * product_qty
+            tables = 'account_move_line'
+            # compute the balance, debit and credit for the provided accounts
+            request = ("SELECT account_id AS id, SUM(debit) AS debit, SUM(credit) AS credit, (SUM(debit) - SUM(credit)) AS balance" +\
+                    " FROM " + tables + " WHERE account_id = " + str(acc_valuation) + " GROUP BY account_id")
+            self.env.cr.execute(request)
+            balance = 0
+            for row in self.env.cr.dictfetchall():
+                balance += row['balance']
+            diff =  inventory_value - balance
+
+            if diff != 0 :
+                move_lines = []
+                credit_account_id = production_config.cop_cost_credit_account_id.id
+                move_lines += [(0, 0, {
+                        'name': self.name,
+                        'ref': self.name,
+                        'credit': abs(diff) if diff > 0 else 0,
+                        'debit':  abs(diff) if diff < 0 else 0,
+                        'account_id': credit_account_id,
+                    })]
+                move_lines += [(0, 0, {
+                        'name': self.name,
+                        'product_id': product.id,
+                        'quantity': 0,
+                        'product_uom_id': product.uom_id.id,
+                        'ref': self.name,
+                        'partner_id': False,
+                        'credit': abs(diff) if diff < 0 else 0,
+                        'debit':  abs(diff) if diff > 0 else 0,
+                        'account_id': acc_valuation,
+                    })]
+                date = self._context.get('force_period_date', fields.Date.context_today(self))
+                new_account_move = AccountMove.create({
+                    'journal_id': journal_id,
+                    'line_ids': move_lines,
+                    'date': date,
+                    'ref': self.name})
+                new_account_move.post()
 
     def _prepare_credit_product_cost(self, product, qty, cost):
         """

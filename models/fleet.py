@@ -9,7 +9,7 @@ _logger = logging.getLogger(__name__)
 class FleetServiceType(models.Model):
     _inherit = 'fleet.service.type'
 
-    is_consumable	=  fields.Boolean(string="Is Consumable",default=False )
+    is_consumable	=  fields.Boolean(string="Is Stockable",default=False )
     product_id = fields.Many2one(
         'product.product', 'Product',
         domain=[('type', 'in', ['product', 'consu'])]
