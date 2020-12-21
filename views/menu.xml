@@ -15,6 +15,13 @@
         <field name="view_mode">tree,form</field>
     </record>
 
+    <record model="ir.actions.act_window" id="action_watertruck_order">
+        <field name="name">Water Truck</field>
+        <field name="res_model">production.watertruck.order</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
     <record model="ir.actions.act_window" id="action_production_cost_code">
         <field name="name">Cost Code</field>
         <field name="res_model">production.cost.code</field>
@@ -123,6 +130,13 @@
             id="mining_hourmeter"
             parent="mining_production_top" 
             action="action_hourmeter_order"
+            sequence= "3"
+            />
+
+        <menuitem name="Water Truck"
+            id="mining_watertruck"
+            parent="mining_production_top" 
+            action="action_watertruck_order"
             sequence= "3"
             />
         

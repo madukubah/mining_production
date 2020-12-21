@@ -20,6 +20,15 @@
             <field name="number_increment">1</field>
         </record>
 
+        <record id="sequence_watertruck_order" model="ir.sequence">
+            <field name="name">Watertruck</field>
+            <field name="code">watertruck</field>
+            <field name="prefix">WT/</field>
+            <field name="padding">4</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+
         <record id="sequence_production_order" model="ir.sequence">
             <field name="name">Production Order</field>
             <field name="code">production_order</field>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- order -->
+    <record id="production_watertruck_order_list" model="ir.ui.view">
+        <field name="name">production_watertruck_order_list</field>
+        <field name="model">production.watertruck.order</field>
+        <field name="type">tree</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="Water Truck List">
+                <field name="name" />
+                <field name="date" />
+                <field name="employee_id" />
+                <field name="state" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_production_watertruck_order_form" model="ir.ui.view">
+            <field name="name">production.watertruck.order.form</field>
+            <field name="model">production.watertruck.order</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <form string="Water Truck">
+                    <header>
+                        <button name="action_draft" states="cancel" string="Set to Draft" type="object" groups="mining_production.production_group_manager" />
+                        <button name="action_confirm" string="Confirm" type="object" states="draft" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="action_done" string="Done" type="object" states="confirm" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="action_cancel" states="draft,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done" readonly="1"  />
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only" string="Water Truck Name" ></label>
+                            <h1>
+                                <field name="name" />
+                            </h1>
+                        </div>
+                        <group>
+                            <field name="date" />
+                            <field name="employee_id" />
+                        </group>
+                        <notebook>
+                            <page string="Counters"  >
+                                <field name="counter_ids"  >
+                                    <!-- <tree string="Counters" editable="bottom"  > -->
+                                    <tree string="Counters" >
+                                        <field name="order_id" invisible="1" />
+                                        <field name="name" invisible="1" />
+                                        <field name="date" invisible="1" />
+                                        <field name="vehicle_id" />
+                                        <field name="driver_id" />
+									</tree>
+                                </field >
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+    </record>
+
+    <!-- TODO logs -->
+    <record id="view_production_watertruck_counter_form" model="ir.ui.view">
+            <field name="name">production.watertruck.counter.form</field>
+            <field name="model">production.watertruck.counter</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <form string="Water Truck">
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="order_id" invisible="1" />
+                            <field name="name" invisible="1" />
+                            <field name="cop_adjust_id" invisible="1" />
+                            <field name="date" />
+                            <field name="shift" />
+                            <field name="vehicle_id" />
+                            <field name="driver_id" />
+                        </group>
+                        <notebook>
+                            <page string="Logs"  >
+                                <field name="log_ids" >
+                                    <tree string="Logs" >
+                                        <field name="datetime" />
+                                    </tree>
+                                </field >
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+    </record>
+
+    <record id="view_production_watertruck_log_form" model="ir.ui.view">
+            <field name="name">production.watertruck.log.form</field>
+            <field name="model">production.watertruck.log</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <form string="Log">
+                    <sheet>
+                        <group>
+                            <field name="counter_id" invisible="1"/>
+                            <field name="datetime" />
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+    </record>
+</odoo>

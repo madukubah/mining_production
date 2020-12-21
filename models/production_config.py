@@ -40,6 +40,12 @@ class ProductionConfig( models.Model ):
     hm_minimal_cash = fields.Float('Minimal Cash For Losstime', required=True, default=0 )
     hm_vehicle_tag_id = fields.Many2one('fleet.vehicle.tag', 'Hourmeter Vehicle Tag', required=True )
     
+    wt_tag_id	= fields.Many2one('production.cop.tag', string='Water Truck COP Tag', required=True )
+    wt_losstime_tag_id	= fields.Many2one('production.cop.tag', string='Losstime COP Tag', required=True )
+    wt_price_unit = fields.Float('Price Per Ritase', required=True, default=0 )
+    wt_minimal_cash = fields.Float('Minimal Cash For Losstime', required=True, default=0 )
+    wt_vehicle_tag_id = fields.Many2one('fleet.vehicle.tag', 'Water Truck Vehicle Tag', required=True )
+
     refuel_service_type_ids = fields.Many2many('fleet.service.type', 'config_service_type_rel', 'config_id', 'service_type_id', string='Refuel Service Types' )
 
     active = fields.Boolean(
