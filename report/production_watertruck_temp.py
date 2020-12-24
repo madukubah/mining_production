@@ -19,7 +19,25 @@
 #
 ##############################################################################
 
-from . import production_cop_temp
-from . import production_ritase_temp
-from . import production_hourmeter_temp
-from . import production_watertruck_temp
+import logging
+from odoo import api, fields, models
+
+_logger = logging.getLogger(__name__)
+
+
+class ReportProductionWatertruckTemp(models.AbstractModel):
+    _name = 'report.mining_production.production_watertruck_temp'
+
+    @api.model
+    def render_html(self, docids, data=None):
+        docargs =  {
+            'doc_ids': data.get('ids'),
+            'doc_model': data.get('model'),
+            'data': data['form'],
+            'type': data['type'],
+            'start_date': data['start_date'],
+            'end_date': data['end_date'],
+        }
+        # print "===================docargs",docargs
+        # _logger.warning( docargs )
+        return self.env['report'].render( 'mining_production.production_watertruck_temp', docargs )

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <report
+                id="action_production_watertruck_report_wise"
+                string="Ritase Report"
+                model="production.watertruck.report"
+                report_type="qweb-pdf"
+                file="mining_production.production_watertruck_temp"
+                name="mining_production.production_watertruck_temp"
+        />
+    </data>
+</odoo>

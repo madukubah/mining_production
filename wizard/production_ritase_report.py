@@ -67,9 +67,32 @@ class ProductionRitaseReport(models.TransientModel):
                         } 
             final_dict = loc_dest_ritase_dict
         elif self.type == 'per_employee' :
-            ritase_orders = self.env['production.ritase.order'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "done" ) ])
+            ritase_counters = self.env['production.ritase.counter'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "posted" ) ])
             employee_ritase_dict = {}
-            final_dict = loc_dest_ritase_dict
+            for ritase_counter in ritase_counters:
+                temp = {}
+                temp["doc_name"] = ritase_counter.ritase_order_id.name
+                temp["name"] = ritase_counter.name
+                temp["date"] = ritase_counter.date
+                if ritase_counter.location_id :
+                    temp["location_name"] = ritase_counter.location_id.name
+                else:
+                    temp["location_name"] = "-"
+                if ritase_counter.ritase_order_id.location_dest_id :
+                    temp["location_dest_name"] = ritase_counter.ritase_order_id.location_dest_id.name
+                else:
+                    temp["location_dest_name"] = "-"
+                temp["vehicle_name"] = ritase_counter.vehicle_id.name
+                temp["driver_name"] = ritase_counter.driver_id.name
+                temp["ritase_count"] = ritase_counter.ritase_count
+                temp["amount"] = ritase_counter.amount
+
+                if employee_ritase_dict.get( ritase_counter.driver_id.name , False):
+                    employee_ritase_dict[ ritase_counter.driver_id.name ] += [ temp ]
+                else:
+                    employee_ritase_dict[ ritase_counter.driver_id.name ] = [ temp ]
+                    
+            final_dict = employee_ritase_dict
         datas = {
             'ids': self.ids,
             'model': 'production.ritase.report',

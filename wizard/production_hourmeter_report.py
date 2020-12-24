@@ -13,6 +13,7 @@ class ProductionHourmeterReport(models.TransientModel):
     type = fields.Selection([
         ( "detail" , 'Detail'),
         ( "summary" , 'Summary'),
+        ( "per_employee" , 'Per Employee'),
         ], default="detail", string='Type', index=True, required=True )
 
     @api.multi
@@ -24,6 +25,7 @@ class ProductionHourmeterReport(models.TransientModel):
             temp["doc_name"] = hourmeter_log.hourmeter_order_id.name
             temp["name"] = hourmeter_log.name
             temp["date"] = hourmeter_log.date
+            temp["location_name"] = hourmeter_log.location_id.name
             temp["vehicle_name"] = hourmeter_log.vehicle_id.name
             temp["driver_name"] = hourmeter_log.driver_id.name
             temp["hourmeter_value"] = hourmeter_log.value
@@ -40,8 +42,14 @@ class ProductionHourmeterReport(models.TransientModel):
                 else :
                     vehicle_hourmeter_dict[ row["vehicle_name"] ] = [ row ]
             final_dict = vehicle_hourmeter_dict
-            
-
+        elif self.type == 'per_employee' :
+            employee_hourmeter_dict = {}
+            for row in rows:
+                if employee_hourmeter_dict.get( row["driver_name"] , False):
+                    employee_hourmeter_dict[ row["driver_name"] ] += [ row ]
+                else :
+                    employee_hourmeter_dict[ row["driver_name"] ] = [ row ]
+            final_dict = employee_hourmeter_dict
         
         datas = {
             'ids': self.ids,
