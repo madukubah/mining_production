@@ -49,7 +49,10 @@
                                         <field name="name" invisible="1" />
                                         <field name="date" invisible="1" />
                                         <field name="vehicle_id" />
+                                        <field name="capacity" />
                                         <field name="driver_id" />
+                                        <field name="ritase_count" />
+                                        <field name="amount" />
 									</tree>
                                 </field >
                             </page>
@@ -81,6 +84,7 @@
                             <field name="date" />
                             <field name="shift" />
                             <field name="vehicle_id" />
+                            <field name="capacity" />
                             <field name="driver_id" />
                         </group>
                         <notebook>

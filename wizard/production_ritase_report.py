@@ -13,6 +13,7 @@ class ProductionRitaseReport(models.TransientModel):
     type = fields.Selection([
         ( "detail" , 'Detail'),
         ( "summary" , 'Summary'),
+        ( "per_employee" , 'Per Employee'),
         ], default="detail", string='Type', index=True, required=True )
 
     @api.multi
@@ -64,21 +65,11 @@ class ProductionRitaseReport(models.TransientModel):
                             "location_dest_name" : ritase_order.location_dest_id.name,
                             "ritase_count" : ritase_order.ritase_count,
                         } 
-            # loc_ritase_dict = {}
-            # for ritase_order in ritase_orders:
-            #     if loc_ritase_dict.get( ritase_order.location_id.name , False):
-            #         loc_ritase_dict[ ritase_order.location_id.name ]["ritase_count"] += ritase_order.ritase_count
-            #     else :
-            #         loc_ritase_dict[ ritase_order.location_id.name ] =  {
-            #                 "date" : ritase_order.date,
-            #                 "doc_name" : ritase_order.name,
-            #                 "location_name" : ritase_order.location_id.name,
-            #                 "location_dest_name" : ritase_order.location_dest_id.name,
-            #                 "ritase_count" : ritase_order.ritase_count,
-            #             } 
-            
             final_dict = loc_dest_ritase_dict
-        
+        elif self.type == 'per_employee' :
+            ritase_orders = self.env['production.ritase.order'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "done" ) ])
+            employee_ritase_dict = {}
+            final_dict = loc_dest_ritase_dict
         datas = {
             'ids': self.ids,
             'model': 'production.ritase.report',

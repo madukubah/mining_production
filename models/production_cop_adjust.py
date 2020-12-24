@@ -39,6 +39,8 @@ class ProductionCopAdjust(models.Model):
     cost_ids = fields.One2many('fleet.vehicle.cost', 'cop_adjust_id', 'Vehicle Costs', states=READONLY_STATES )
     rit_ids = fields.One2many('production.ritase.counter', 'cop_adjust_id', 'Ritase Costs', states=READONLY_STATES )
     hourmeter_ids = fields.One2many('production.vehicle.hourmeter.log', 'cop_adjust_id', 'Hourmeter Costs', states=READONLY_STATES )
+    watertruck_ids = fields.One2many('production.watertruck.counter', 'cop_adjust_id', 'Water Truck Costs', states=READONLY_STATES )
+
     tag_log_ids = fields.One2many('production.cop.tag.log', 'cop_adjust_id', 'COP Tagging', states=READONLY_STATES )
     vehicle_losstime_ids = fields.One2many('fleet.vehicle.losstime', 'cop_adjust_id', 'Vehicle Losstime', states=READONLY_STATES )
     losstime_accumulation_ids = fields.One2many('production.losstime.accumulation', 'cop_adjust_id', 'Losstime Accumulation', states=READONLY_STATES )
@@ -46,6 +48,7 @@ class ProductionCopAdjust(models.Model):
 
     sum_rit = fields.Float(string='Ritase Amount', compute="_compute_amount" )
     sum_hm = fields.Float(string='Hourmeter Amount', compute="_compute_amount" )
+    sum_watertruck = fields.Float(string='Water Truck Amount', compute="_compute_amount" )
     sum_losstime_accumulation = fields.Float(string='Lostime Amount', compute="_compute_amount" )
     sum_vehicle_cost = fields.Float(string='Vehicle Cost Amount', compute="_compute_amount" )
 
@@ -116,6 +119,12 @@ class ProductionCopAdjust(models.Model):
             'hourmeter_ids': [( 6, 0, hourmeter_log.ids )],
         })
 
+        WaterTruck = self.env['production.watertruck.counter'].sudo()
+        watertrucks = WaterTruck.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "order_id.state", "=", "done" ) ] )
+        self.update({
+            'watertruck_ids': [( 6, 0, watertrucks.ids )],
+        })
+
         CopTagLog = self.env['production.cop.tag.log'].sudo()
         tag_log = CopTagLog.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
         self.update({
@@ -142,12 +151,18 @@ class ProductionCopAdjust(models.Model):
             driver_id = vehicle_losstime_id.driver_id.id
             minimal_cash = 0
             tag_id = False
+            # RIT
             if self.production_config_id.rit_vehicle_tag_id.id in vehicle_losstime_id.tag_ids.ids :
                 minimal_cash = self.production_config_id.rit_minimal_cash
                 tag_id = self.production_config_id.rit_losstime_tag_id.id
+            # HM
             if self.production_config_id.hm_vehicle_tag_id.id in vehicle_losstime_id.tag_ids.ids :
                 minimal_cash = self.production_config_id.hm_minimal_cash
                 tag_id = self.production_config_id.hm_losstime_tag_id.id
+            # WT
+            if self.production_config_id.wt_vehicle_tag_id.id in vehicle_losstime_id.tag_ids.ids :
+                minimal_cash = self.production_config_id.wt_minimal_cash
+                tag_id = self.production_config_id.wt_losstime_tag_id.id
 
             if vehicle_driver_dict.get( vehicle_id , False):
                 vehicle_driver_dict[ vehicle_id ][ driver_id ] = {
@@ -190,6 +205,17 @@ class ProductionCopAdjust(models.Model):
                         vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] = 0
                     vehicle_driver_dict[ vehicle_id ][ driver_id ]['reference'] = hourmeter_id.hourmeter_order_id.name
 
+        for watertruck_id in self.watertruck_ids:
+            vehicle_id = watertruck_id.vehicle_id.id
+            driver_id = watertruck_id.driver_id.id
+            if vehicle_driver_dict.get( vehicle_id , False):
+                if vehicle_driver_dict[ vehicle_id ].get( driver_id , False):
+                    if vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] - watertruck_id.amount >= 0 :
+                        vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] -= watertruck_id.amount
+                    else :
+                        vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] = 0
+                    vehicle_driver_dict[ vehicle_id ][ driver_id ]['reference'] = watertruck_id.order_id.name
+
         LosstimeAccumulation = self.env['production.losstime.accumulation'].sudo()
         for vehicle_id, driver in vehicle_driver_dict.items():
             for driver_id, obj in driver.items():
@@ -206,21 +232,25 @@ class ProductionCopAdjust(models.Model):
         return
 
 
-    @api.depends("rit_ids", "hourmeter_ids", "cost_ids", "tag_log_ids" )
+    @api.depends("rit_ids", "hourmeter_ids", "watertruck_ids", "cost_ids", "tag_log_ids" )
     def _compute_amount(self):
         for record in self:
             record.sum_rit = sum( [ rit.amount for rit in record.rit_ids ] )
             record.sum_hm = sum( [ hourmeter.amount for hourmeter in record.hourmeter_ids ] )
+            record.sum_watertruck = sum( [ watertruck.amount for watertruck in record.watertruck_ids ] )
+
             record.sum_losstime_accumulation = sum( [ losstime_accumulation_id.amount for losstime_accumulation_id in record.losstime_accumulation_ids ] )
             record.sum_vehicle_cost = sum( [ cost.amount for cost in record.cost_ids ] )
 
             if record.state != 'done' :
                 sum_rit = sum( [ rit.amount for rit in record.rit_ids.filtered(lambda r: r.state != 'posted') ] )
                 sum_hm = sum( [ hourmeter.amount for hourmeter in record.hourmeter_ids.filtered(lambda r: r.state != 'posted') ] )
+                sum_watertruck = sum( [ watertruck.amount for watertruck in record.watertruck_ids.filtered(lambda r: r.state != 'posted') ] )
+
                 sum_losstime_accumulation = sum( [ losstime_accumulation_id.amount for losstime_accumulation_id in record.losstime_accumulation_ids.filtered(lambda r: r.state != 'posted') ] )
                 sum_vehicle_cost = sum( [ cost.amount for cost in record.cost_ids.filtered(lambda r: r.state != 'posted') ] )
                 sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids.filtered(lambda r: r.state != 'posted') ] )
-                record.amount = sum_hm + sum_rit + sum_cop_tag + sum_vehicle_cost + sum_losstime_accumulation
+                record.amount = sum_hm + sum_rit + sum_watertruck + sum_cop_tag + sum_vehicle_cost + sum_losstime_accumulation
             else:
                 sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids.filtered(lambda r: r.state == 'posted') ] )
                 record.amount = sum_cop_tag
@@ -240,18 +270,6 @@ class ProductionCopAdjust(models.Model):
                         'product_id' : cost_id.cost_subtype_id.product_id,
                         'qty' : cost_id.product_uom_qty,
                     }
-        # LogServices = self.env['fleet.vehicle.log.services'].sudo()
-        # services = LogServices.search( [ ("cost_id", "in", [cost.id for cost in self.cost_ids ] )] )
-        # for service in services:
-        #     if( service.cost_subtype_id.is_consumable and service.cost_subtype_id.product_id ) :
-        #         product = service.cost_subtype_id.product_id
-        #         if product_n_qty_list.get( product.id , False):
-        #             product_n_qty_list[ product.id ]['qty'] += service.product_uom_qty
-        #         else : 
-        #             product_n_qty_list[ product.id ] = {
-        #                 'product_id' : service.cost_subtype_id.product_id,
-        #                 'qty' : service.product_uom_qty,
-                    # }
         #COP TAG COST That have consumable products
         for tag_log in self.tag_log_ids:
             if( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) :
@@ -290,6 +308,7 @@ class ProductionCopAdjust(models.Model):
         self.cost_ids.post()
         self.rit_ids.post()
         self.hourmeter_ids.post()
+        self.watertruck_ids.post()
         self.vehicle_losstime_ids.post()
         self.losstime_accumulation_ids.post()
         self.write({ 'state' : 'done' })
@@ -456,13 +475,15 @@ class ProductionCopAdjust(models.Model):
     def _compute_not_consumable_cost(self):
         sum_rit = sum( [ rit.amount for rit in self.rit_ids ] )
         sum_hm = sum( [ hourmeter.amount for hourmeter in self.hourmeter_ids ] )
+        sum_watertruck = sum( [ watertruck.amount for watertruck in self.watertruck_ids ] )
+
         sum_losstime_accumulation = sum( [ losstime_accumulation_id.amount for losstime_accumulation_id in self.losstime_accumulation_ids ] )
         # except VEHICLE COST and COP TAG COST that have comsumable products
         # because it already compute in stock move ( stock interim cost )
         sum_cop_tag = sum( [ tag_log.amount for tag_log in self.tag_log_ids if not ( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) ] )
         sum_vehicle_cost = sum( [ cost.amount for cost in self.cost_ids if not ( cost.cost_subtype_id.is_consumable and cost.cost_subtype_id.product_id ) ] )
 
-        return sum_hm + sum_rit + sum_cop_tag + sum_vehicle_cost + sum_losstime_accumulation
+        return sum_hm + sum_rit + sum_watertruck + sum_cop_tag + sum_vehicle_cost + sum_losstime_accumulation
 
     @api.multi
     def _get_accounting_data_for_valuation(self, product_id):

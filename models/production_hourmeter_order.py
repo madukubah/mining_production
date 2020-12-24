@@ -115,7 +115,7 @@ class ProductionVehicleHourmeterLog(models.Model):
         for compute ore cost of production
         '''
         for record in self:
-            if record.state != 'posted' :
+            if record.state != 'posted' and record.cop_adjust_id :
                 self.env['production.cop.tag.log'].sudo().create({
                         'cop_adjust_id' : record.cop_adjust_id.id,
                         'name' :   'HM / ' + record.date,

@@ -87,6 +87,20 @@
                                 </field>
                                 <!-- <field name="sum_hm" string="Total" /> -->
                             </page>
+                            <page string="Water Truck Ritase">
+                                <field name="watertruck_ids" >
+                                    <tree string="Water Truck Ritase" >
+                                        <field name="date" />
+                                        <field name="vehicle_id" />
+                                        <field name="capacity" />
+                                        <field name="driver_id" />
+                                        <field name="ritase_count" />
+                                        <field name="amount" />
+                                        <field name="state" />
+                                    </tree>
+                                </field>
+                                <!-- <field name="sum_hm" string="Total" /> -->
+                            </page>
                             <page string="Vehicle Losstime">
                                 <field name="vehicle_losstime_ids" >
                                     <tree string="Vehicle Losstime" >

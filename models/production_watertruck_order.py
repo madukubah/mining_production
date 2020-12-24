@@ -24,7 +24,7 @@ class ProductionWatertruckOrder(models.Model):
     counter_ids = fields.One2many(
         'production.watertruck.counter',
         'order_id',
-        string='HE Hourmeter',
+        string='Counters',
         copy=True, states=READONLY_STATES )
 
     state = fields.Selection( [
@@ -34,6 +34,13 @@ class ProductionWatertruckOrder(models.Model):
         ('done', 'Done'),
         ], string='Status', readonly=True, copy=False, index=True, track_visibility='onchange', default='draft')
     
+    @api.multi
+    def unlink(self):
+        for order in self:
+            if order.state in ['confirm', "done"] :
+                raise UserError(_('Cannot delete  order which is in state \'%s\'.') %(order.state,))
+        return super(ProductionWatertruckOrder, self).unlink()
+        
     @api.model
     def create(self, values):
         seq = self.env['ir.sequence'].next_by_code('watertruck')
@@ -52,6 +59,11 @@ class ProductionWatertruckOrder(models.Model):
             order.write({ 'state' : 'confirm' })
     
     @api.multi
+    def action_done( self ):
+        for order in self:
+            order.state = 'done'
+
+    @api.multi
     def action_cancel(self):
         for order in self:
             for counter_id in order.counter_ids:
@@ -62,6 +74,12 @@ class ProductionWatertruckOrder(models.Model):
 
 class ProductionWatertruckCounter(models.Model):
     _name = "production.watertruck.counter"
+
+    WATERTRUCK_PRICE = {
+        '6000': 7000 ,
+        '10000': 15000 ,
+        '16000': 20000 ,
+    }
 
     @api.model
     def _default_config(self):
@@ -80,7 +98,14 @@ class ProductionWatertruckCounter(models.Model):
         ( "1" , '1'),
         ( "2" , '2'),
         ], string='Shift', index=True )
+
     vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
+    capacity = fields.Selection([
+        ( "6000" , '6000 L'),
+        ( "10000" , '10000 L'),
+        ( "16000" , '16000 L'),
+        ], string='Capacity', index=True, required=True, default="6000" )
+        
     driver_id	= fields.Many2one('res.partner', string='Driver', required=True )
 
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
@@ -89,14 +114,53 @@ class ProductionWatertruckCounter(models.Model):
         'counter_id',
         string='Logs',
         copy=True )
+    ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0, compute='_compute_ritase_count' )
+    amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
     
+    @api.depends( 'vehicle_id', 'date' )
+    def _compute_name(self):
+        for record in self:
+            name = record.vehicle_id.name
+            if not name:
+                name = record.date
+            elif record.date:
+                name += ' / ' + record.date
+            record.name = name
+
+    @api.depends('ritase_count')
+    def _compute_amount(self):
+        for record in self:
+            record.amount = record.ritase_count * ProductionWatertruckCounter.WATERTRUCK_PRICE[ record.capacity ]
+
+    @api.multi
+    def post(self):
+        for record in self:
+            if record.state != 'posted' and record.cop_adjust_id :
+                self.env['production.cop.tag.log'].sudo().create({
+                        'cop_adjust_id' : record.cop_adjust_id.id,
+                        'name' :   'Water Truck / ' + record.date,
+                        'date' : record.date,
+                        'tag_id' : record.production_config_id.wt_tag_id.id,
+                        'product_uom_qty' : record.ritase_count,
+                        # 'price_unit' : record.amount /record.ritase_count,
+                        'price_unit' : ProductionWatertruckCounter.WATERTRUCK_PRICE[ record.capacity ], # TODO : change it programable
+                        'amount' : record.amount,
+                        'state' : 'posted',
+                    })
+                record.write({'state' : 'posted' })
+
     @api.onchange('vehicle_id')	
     def _change_vehicle_id(self):
         for record in self:
             record.driver_id = record.vehicle_id.driver_id
+    
+    @api.depends('log_ids')	
+    def _compute_ritase_count(self):
+        for record in self:
+            record.ritase_count = len( record.log_ids )
 
 class WatertruckLog(models.Model):
 	_name = "production.watertruck.log"
