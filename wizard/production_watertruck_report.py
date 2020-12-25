@@ -84,7 +84,6 @@ class ProductionWatertruckReport(models.TransientModel):
             'type': self.type,
             'start_date': self.start_date,
             'end_date': self.end_date,
-
         }
         # _logger.warning( loc_dest_ritase_dict )
         return self.env['report'].get_action(self,'mining_production.production_watertruck_temp', data=datas)
