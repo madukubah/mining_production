@@ -102,7 +102,7 @@ class ProductionWatertruckCounter(models.Model):
     vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
     capacity = fields.Selection([
         ( "6000" , '6000 L'),
-        ( "10000" , '10000 L'),
+        ( "8000" , '8000 L'),
         ( "16000" , '16000 L'),
         ], string='Capacity', index=True, required=True, default="6000" )
         
