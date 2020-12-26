@@ -77,8 +77,8 @@ class ProductionWatertruckCounter(models.Model):
 
     WATERTRUCK_PRICE = {
         '6000': 7000 ,
-        '10000': 15000 ,
-        '16000': 20000 ,
+        '8000': 10000 ,
+        '16000': 21000 ,
     }
 
     @api.model
