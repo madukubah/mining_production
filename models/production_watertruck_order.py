@@ -130,7 +130,7 @@ class ProductionWatertruckCounter(models.Model):
                 name += ' / ' + record.date
             record.name = name
 
-    @api.depends('ritase_count')
+    @api.depends('ritase_count', 'capacity')
     def _compute_amount(self):
         for record in self:
             record.amount = record.ritase_count * ProductionWatertruckCounter.WATERTRUCK_PRICE[ record.capacity ]
