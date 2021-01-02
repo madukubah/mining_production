@@ -98,6 +98,7 @@ class FleetVehicleCost(models.Model):
         for record in self:
             self.env['fleet.vehicle.log.fuel'].sudo().create({
                     'cost_id' : record.id,
+                    'vehicle_id' : record.vehicle_id.id,
                     'cost_subtype_id' : record.cost_subtype_id.id,
                     'liter' : record.product_uom_qty,
                     'price_per_liter' : record.price_unit,
@@ -131,3 +132,37 @@ class FleetVehicleLosstime(models.Model):
     def post(self):
         for record in self:
             record.write({'state' : 'posted' })
+
+class FleetVehicleLogFuel(models.Model):
+    _inherit = 'fleet.vehicle.log.fuel'
+
+    @api.model
+    def _default_config(self):
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+        return production_config[0]
+
+    @api.model
+    def default_get(self, default_fields):
+        res = super(FleetVehicleLogFuel, self).default_get(default_fields)
+        production_config = self._default_config()
+        service = None
+        if production_config.refuel_service_type_ids :
+            service = production_config.refuel_service_type_ids[0]
+        res.update({
+            'date': fields.Date.context_today(self),
+            'cost_subtype_id': service and service.id or False,
+            'cost_type': 'fuel'
+        })
+        return res
+
+    vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', related="cost_id.vehicle_id", required=True, help='Vehicle concerned by this log', store=True )
+
+    @api.model
+    def create(self, values):
+        _logger.warning( values )
+        res = super(FleetVehicleLogFuel, self ).create(values)
+        return res
+    

@@ -91,7 +91,7 @@ class ProductionVehicleHourmeterLog(models.Model):
 
     start = fields.Float('Start Hour')
     end = fields.Float('End Hour')
-    value = fields.Float('Hourmeter Value', group_operator="max", readonly=True, compute="_compute_value" )
+    value = fields.Float('Hourmeter Value', group_operator="max", readonly=True, compute="_compute_value", store=True )
     amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
     
     @api.onchange('vehicle_id')	
