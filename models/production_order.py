@@ -60,7 +60,7 @@ class ProductionOrder(models.Model):
         'Quantity To Produce',
         compute='_compute_ritase',
         default=1.0, digits=dp.get_precision('Product Unit of Measure'),
-        readonly=True, required=True )
+        readonly=True, required=True, store=True )
     product_uom_id = fields.Many2one(
         'product.uom', 'Product Unit of Measure',
 		domain=[ ('category_id.name','=',"Mining")  ],
