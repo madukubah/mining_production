@@ -30,8 +30,8 @@ class ProductionOperationTemplate(models.Model):
             'stock.location', 'Location',
 			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict" )
-    cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict", required=True )
-    block_id = fields.Many2one('production.block', string='Block', ondelete="restrict", required=True )
+    cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict" )
+    block_id = fields.Many2one('production.block', string='Block', ondelete="restrict")
     vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
     driver_id	= fields.Many2one('res.partner', string='Driver', required=True )
 

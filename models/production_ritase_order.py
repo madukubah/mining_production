@@ -60,6 +60,8 @@ class ProductionRitaseOrder(models.Model):
             'stock.location', 'Destination Location',
 			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict", required=True, states=READONLY_STATES)
+	cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict" )
+	
 	shift = fields.Selection([
         ( "1" , '1'),
         ( "2" , '2'),
@@ -322,7 +324,9 @@ class RitaseCounter(models.Model):
 			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict" )
 	date = fields.Date('Date', help='', related="ritase_order_id.date", readonly=True, default=fields.Datetime.now )
-	shift = fields.Selection( [
+	cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', related="ritase_order_id.cost_code_id", ondelete="restrict" )
+
+	shift = fields.Selection([
         ( "1" , '1'),
         ( "2" , '2'),
         ] , string='Shift', index=True, related="ritase_order_id.shift" )
@@ -375,7 +379,7 @@ class RitaseLog(models.Model):
 	_name = "production.ritase.log"
 
 	counter_id = fields.Many2one("production.ritase.counter", string="Dump Truck Activity", ondelete="cascade" )
-	datetime = fields.Datetime('Date Time', help='',  default=time.strftime("%Y-%m-%d %H:%M:%S") )
+	datetime = fields.Datetime('Date Time', help='',  default=fields.Datetime.now )
 
 class RitaseLotMove(models.Model):
 	_name = "production.ritase.lot.move"

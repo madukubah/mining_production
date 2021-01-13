@@ -79,6 +79,7 @@
                             </group>
                         </group>
                         <group>
+                            <field name="cost_code_id" />
                             <field name="product_id" />
                             <field name="product_uom" />
                             <field name="shift" />
