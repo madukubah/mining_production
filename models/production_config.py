@@ -24,6 +24,8 @@ class ProductionConfig( models.Model ):
         'stock.production.lot', 'Default Production Lot',
 		required=True, 
         )
+    product_ids = fields.Many2many('product.product', 'production_config_product_rel', 'config_id', 'product_id', string='Materials' )
+    
     cop_journal_id = fields.Many2one('account.journal', string='COP Journal', default=_default_journal, required=True )
     cop_cost_credit_account_id = fields.Many2one('account.account', string='COP Cost Credit Account', required=True )
     journal_type = fields.Selection(related='cop_journal_id.type', help="Technical field used for usability purposes" )

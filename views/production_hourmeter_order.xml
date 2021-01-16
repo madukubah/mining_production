@@ -39,7 +39,6 @@
                         <group>
                             <field name="date" />
                             <field name="employee_id" />
-                            <field name="shift" />
                         </group>
                         
                         <notebook>
@@ -51,7 +50,8 @@
                                         <field name="name" invisible="1" />
                                         <field name="date" invisible="1" />
                                         <field name="amount" invisible="1" />
-                                        <field name="cost_code_id" />
+                                        <field name="shift" />
+                                        <field name="cost_code_ids" />
                                         <field name="block_id" />
                                         <field name="location_id" />
                                         <field name="vehicle_id" />
@@ -72,27 +72,37 @@
             </field>
     </record>
 
-    <!-- logs -->
-    <record id="view_production_vehicle_hourmeter_log_form" model="ir.ui.view">
+
+    <record id="view_production_vehicle_hourmeter_log_form1" model="ir.ui.view">
             <field name="name">production.vehicle.hourmeter.log.form</field>
             <field name="model">production.vehicle.hourmeter.log</field>
-            <field name="mode">primary</field>
-            <field eval="7" name="priority"/>
-            <field name="inherit_id" ref="view_production_operation_template_form"/>
+            <field name="priority">1</field>
             <field name="arch" type="xml">
-                <form position="attributes">
-                    <attribute name="string">HE Hourmeter</attribute>
+                <form string="HE Hourmeter">
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="production_config_id" invisible="1" />
+                            <field name="name" invisible="1" />
+                            <field name="cop_adjust_id" invisible="1" />
+                            <field name="hourmeter_order_id" invisible="1"/>
+                            <field name="hourmeter_id" invisible="1"/>
+                            <field name="date" />
+                            <field name="shift" />
+                            <field name="vehicle_id" />
+                            <field name="driver_id" string="Operator" />
+                            <field name="start" />
+                            <field name="end" />
+                            <field name="value" />
+                            <field name="location_id" />
+                            <field name="cost_code_ids" widget="many2many_tags" />
+                            <field name="block_id" />
+                            
+                        </group>
+                    </sheet>
                 </form>
-                <field name="driver_id" position="attributes">
-                    <attribute name="string">Operator</attribute>
-                </field>
-                <field name="date" position="after">
-                    <field name="hourmeter_order_id" invisible="1"/>
-                    <field name="hourmeter_id" invisible="1"/>
-                    <field name="start" />
-                    <field name="end" />
-                    <field name="value" />
-                </field>
             </field>
     </record>
 

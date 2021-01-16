@@ -96,6 +96,7 @@ class ProductionRitaseSeed(models.TransientModel):
                     "warehouse_dest_id" : self.warehouse_dest_id.id ,
                     "location_id" : location_id.id ,
                     "location_dest_id" : location_dest_id.id ,
+                    "cost_code_id" : self.cost_code_id.id ,
                     "product_id" : self.product_id.id,
                     "product_uom" : self.product_uom.id,
                     "load_vehicle_id" : self.load_vehicle_id.id,

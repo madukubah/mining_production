@@ -21,6 +21,7 @@
                         <field name="company_id" invisible="1" />
                         <field name="journal_type" invisible="1" />
                         <field name="lot_id" />
+                        <field name="product_ids" widget="many2many_tags" />
                         <field name="cop_journal_id" />
                         <field name="cop_cost_credit_account_id" />
                     </group>

@@ -111,8 +111,8 @@ class ProductionWatertruckCounter(models.Model):
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
     log_ids = fields.One2many(
         'production.watertruck.log',
-        'counter_id',
-        string='Logs',
+        'counter_id' ,
+        string='Logs' ,
         copy=True )
     ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0, compute='_compute_ritase_count' )
     amount = fields.Float(string='Amount', compute="_compute_amount", store=True )

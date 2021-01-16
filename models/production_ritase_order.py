@@ -1,16 +1,33 @@
  # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
-import time
+# import time
+import datetime
+from dateutil.relativedelta import relativedelta
 
-# import logging
-# _logger = logging.getLogger(__name__)
+import logging
+_logger = logging.getLogger(__name__)
 
 class ProductionRitaseOrder(models.Model):
 	_name = "production.ritase.order"
 	_inherit = ['mail.thread', 'ir.needaction_mixin']
 	_order = 'id desc'
 	
+	@api.onchange('warehouse_id', "warehouse_dest_id")	
+	def _default_product(self):
+		ProductionConfig = self.env['production.config'].sudo()
+		production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+		if not production_config :
+			raise UserError(_('Please Set Configuration file') )
+		product_ids = [ x.id for x in production_config[0].product_ids ]
+		_logger.warning( product_ids )
+		product_ids = self.env['product.product'].sudo(  ).search( [ ("id", "in", product_ids ) ] )
+		return {
+				'domain':{
+					'product_id':[('id','in', product_ids.ids )] ,
+					} 
+				}
+		
 	@api.model
 	def _default_picking_type(self):
 		type_obj = self.env['stock.picking.type']
@@ -75,8 +92,12 @@ class ProductionRitaseOrder(models.Model):
             default=lambda self: self._context.get('product_uom', False),
 			states=READONLY_STATES
 			)
-	load_vehicle_id = fields.Many2one('fleet.vehicle', 'Load Unit', required=True, states=READONLY_STATES )
-	pile_vehicle_id = fields.Many2one('fleet.vehicle', 'Pile Unit', required=True, states=READONLY_STATES )
+	# load_vehicle_id = fields.Many2one('fleet.vehicle', 'Load Unit', required=True, states=READONLY_STATES )
+	# pile_vehicle_id = fields.Many2one('fleet.vehicle', 'Pile Unit', required=True, states=READONLY_STATES )
+
+	load_vehicle_ids = fields.Many2many('fleet.vehicle', 'ritase_order_load_vehicle_rel', 'ritase_order_id', 'vehicle_id', 'Load Unit', copy=False, states=READONLY_STATES)
+	pile_vehicle_ids = fields.Many2many('fleet.vehicle', 'ritase_order_pile_vehicle_rel', 'ritase_order_id', 'vehicle_id', 'Pile Unit', copy=False, states=READONLY_STATES)
+
 	ritase_count = fields.Integer( string="Ritase Total", required=True, default=0, digits=0, compute='_compute_ritase_count', readonly=True, store=True )
 	counter_ids = fields.One2many(
         'production.ritase.counter',
@@ -144,6 +165,8 @@ class ProductionRitaseOrder(models.Model):
 		PackOperationLot = self.env['stock.pack.operation.lot'].sudo()
 		for order in self:
 			order._create_picking()
+			_logger.warning( "generate_logs" )
+			order.counter_ids.generate_logs()
 			picking_ids = order.picking_ids.filtered(lambda r: r.state != 'cancel')
 			if len( picking_ids ) != 1 :
 				raise UserError(_('1 file Rit only have 1 file Picking. Please cancel another picking file') )
@@ -173,7 +196,6 @@ class ProductionRitaseOrder(models.Model):
 			picking_ids = order.picking_ids.filtered(lambda x: x.state not in ('done','cancel'))
 			picking_ids.do_new_transfer()
 			order.state = 'done'
-			
 	
 	@api.multi
 	def action_cancel(self):
@@ -315,6 +337,7 @@ class ProductionRitaseOrder(models.Model):
 class RitaseCounter(models.Model):
 	_name = "production.ritase.counter"
 	_inherits = {'production.operation.template': 'operation_template_id'}
+	_order = 'driver_id asc'
 
 	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="restrict" )
 	product_id = fields.Many2one("product.product", string="Material", related="ritase_order_id.product_id", ondelete="restrict" )
@@ -336,9 +359,50 @@ class RitaseCounter(models.Model):
         'counter_id',
         string='Logs',
         copy=True )
-	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0, compute='_compute_ritase_count' )
+	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0 )
+	start_datetime = fields.Datetime('Start Date Time', help='',  default=fields.Datetime.now, store=True )
+	end_datetime = fields.Datetime('End Date Time', help='' , store=True)
+	minutes = fields.Float('Minutes', readonly=True, compute="_compute_minutes" )
+	# ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0, compute='_compute_ritase_count' )
 	amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 	
+	@api.onchange('start_datetime', 'end_datetime')
+	def _compute_minutes(self):
+		for record in self:
+			#compute end date
+			if record.start_datetime and record.end_datetime :
+				start = datetime.datetime.strptime(record.start_datetime, '%Y-%m-%d %H:%M:%S')
+				ends = datetime.datetime.strptime(record.end_datetime, '%Y-%m-%d %H:%M:%S')
+				diff = relativedelta(ends, start)
+				record.minutes = diff.minutes
+				# _logger.warning( start )
+				# _logger.warning( ends )
+				# _logger.warning( diff.hours )
+
+	def generate_logs(self):
+		for record in self:
+			_logger.warning( "generate_logs" )
+			record.log_ids.unlink()
+			seconds = record.minutes * 60
+			interval = seconds / record.ritase_count
+			start = datetime.datetime.strptime(record.start_datetime , '%Y-%m-%d %H:%M:%S')
+			end = datetime.datetime.strptime(record.end_datetime , '%Y-%m-%d %H:%M:%S')
+			for i in range( record.ritase_count - 1 ) :
+				_logger.warning( record.vehicle_id.name )
+				_logger.warning( start )
+				_logger.warning( interval )
+				_logger.warning( start + datetime.timedelta( 0, interval ) )
+				self.env['production.ritase.log'].create({
+					"counter_id" : record.id ,
+					"datetime" : start  ,
+				})
+				start = start + datetime.timedelta( 0, interval )
+			self.env['production.ritase.log'].create({
+				"counter_id" : record.id ,
+				"datetime" : end  ,
+			})
+		return True
+
 	@api.onchange('vehicle_id')
 	def _change_vehicle_id(self):
 		for record in self:

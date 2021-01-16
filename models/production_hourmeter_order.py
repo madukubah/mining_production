@@ -20,10 +20,10 @@ class ProductionHourmeterOrder(models.Model):
     name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
     employee_id	= fields.Many2one('hr.employee', string='Checker',required=True, states=READONLY_STATES )
     date = fields.Date('Date', help='',  default=fields.Datetime.now, states=READONLY_STATES )
-    shift = fields.Selection([
-        ( "1" , '1'),
-        ( "2" , '2'),
-        ], string='Shift', index=True, required=True, states=READONLY_STATES )
+    # shift = fields.Selection([
+    #     ( "1" , '1'),
+    #     ( "2" , '2'),
+    #     ], string='Shift', index=True, required=True, states=READONLY_STATES )
     vehicle_hourmeter_log_ids = fields.One2many(
         'production.vehicle.hourmeter.log',
         'hourmeter_order_id',
@@ -79,7 +79,18 @@ class ProductionHourmeterOrder(models.Model):
                 
 class ProductionVehicleHourmeterLog(models.Model):
     _name = "production.vehicle.hourmeter.log"
-    _inherits = {'production.operation.template': 'operation_template_id'}
+    # _inherits = {'production.operation.template': 'operation_template_id'}
+
+    @api.model
+    def _default_config(self):
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+        return production_config[0]
+    
+    name = fields.Char(compute='_compute_name', store=True)
+    production_config_id = fields.Many2one('production.config', string='Config', default=_default_config)
 
     hourmeter_order_id = fields.Many2one("production.hourmeter.order", string="Hourmeter Order", ondelete="restrict" )
     hourmeter_id = fields.Many2one('fleet.vehicle.hourmeter', 'Hourmeter', help='Odometer measure of the vehicle at the moment of this log')
@@ -87,12 +98,37 @@ class ProductionVehicleHourmeterLog(models.Model):
     shift = fields.Selection( [
         ( "1" , '1'),
         ( "2" , '2'),
-        ], string='Shift', index=True, related="hourmeter_order_id.shift" )
-
+        ], string='Shift', index=True, required=True )
+    location_id = fields.Many2one(
+            'stock.location', 'Location',
+			domain=[ ('usage','=',"internal")  ],
+            ondelete="restrict" )
     start = fields.Float('Start Hour')
     end = fields.Float('End Hour')
     value = fields.Float('Hourmeter Value', group_operator="max", readonly=True, compute="_compute_value", store=True )
     amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
+
+    # cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict" )
+    cost_code_ids = fields.Many2many('production.cost.code', 'hourmeter_log_cost_code_rel', 'hourmeter_log_id', 'cost_code_id', 'Cost Code', copy=False)
+
+
+    block_id = fields.Many2one('production.block', string='Block', ondelete="restrict")
+    vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
+    driver_id	= fields.Many2one('res.partner', string='Driver', required=True )
+
+    cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
+    state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
+      required=True, readonly=True, copy=False, default='draft' )
+    
+    @api.depends( 'vehicle_id', 'date' )
+    def _compute_name(self):
+        for record in self:
+            name = record.vehicle_id.name
+            if not name:
+                name = record.date
+            elif record.date:
+                name += ' / ' + record.date
+            record.name = name
     
     @api.onchange('vehicle_id')	
     def _change_vehicle_id(self):
