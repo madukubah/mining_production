@@ -17,10 +17,16 @@
         "views/stock_move_views.xml",
         'views/menu.xml',
         "views/production_config.xml",
-        "views/production_hourmeter_order.xml",
         "views/production_operation_template.xml",
+
+        "views/production_hourmeter_order.xml",
+        "views/production_he_performance.xml",
+        
         "views/production_ritase_order.xml",
+        "views/production_dumptruck_performance.xml",
+
         'views/production_watertruck_order.xml',
+
         "views/stock_views.xml",
         "views/cost_code.xml",
         "views/production_block.xml",

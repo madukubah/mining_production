@@ -10,7 +10,12 @@
             <tree string="Hourmeter List">
                 <field name="name" />
                 <field name="date" />
+                <field name="shift" />
+                <field name="location_id" />
                 <field name="employee_id" />
+                <field name="vehicle_id" />
+                <field name="driver_id" />
+                <field name="value" />
                 <field name="state" />
             </tree>
         </field>
@@ -38,7 +43,16 @@
                         </div>
                         <group>
                             <field name="date" />
+                            <field name="shift" />
+                            <field name="location_id" />
                             <field name="employee_id" />
+
+                            <field name="vehicle_id" />
+                            <field name="driver_id" />
+
+                            <!-- <field name="start" />
+                            <field name="end" />
+                            <field name="value" /> -->
                         </group>
                         
                         <notebook>
@@ -50,12 +64,16 @@
                                         <field name="name" invisible="1" />
                                         <field name="date" invisible="1" />
                                         <field name="amount" invisible="1" />
-                                        <field name="shift" />
-                                        <field name="cost_code_ids" />
-                                        <field name="block_id" />
+                                        <!-- <field name="shift" /> -->
+                                        <field name="cost_code_id" />
+                                        <!-- <field name="cost_code_ids" /> -->
+                                        <!-- <field name="block_id" /> -->
                                         <field name="location_id" />
                                         <field name="vehicle_id" />
                                         <field name="driver_id" string="Operator" />
+                                        <field name="start_datetime" />
+                                        <field name="end_datetime" />
+                                        <field name="hours" />
                                         <field name="start" />
                                         <field name="end" />
                                         <field name="value" />
@@ -71,7 +89,6 @@
                 </form>
             </field>
     </record>
-
 
     <record id="view_production_vehicle_hourmeter_log_form1" model="ir.ui.view">
             <field name="name">production.vehicle.hourmeter.log.form</field>
@@ -93,12 +110,19 @@
                             <field name="shift" />
                             <field name="vehicle_id" />
                             <field name="driver_id" string="Operator" />
+                            <field name="block_id" />
+                            <field name="location_id" />
+                            <field name="cost_code_id"/>
+
+                            <field name="start_datetime" />
+                            <field name="end_datetime" />
+                            <!-- <field name="minutes" /> -->
+
                             <field name="start" />
                             <field name="end" />
                             <field name="value" />
-                            <field name="location_id" />
-                            <field name="cost_code_ids" widget="many2many_tags" />
-                            <field name="block_id" />
+                            <field name="hours" />
+                            <!-- <field name="cost_code_ids" widget="many2many_tags" /> -->
                             
                         </group>
                     </sheet>

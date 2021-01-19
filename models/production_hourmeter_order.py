@@ -3,7 +3,12 @@
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-import time
+# import time
+import datetime
+from dateutil.relativedelta import relativedelta
+
+import logging
+_logger = logging.getLogger(__name__)
 
 class ProductionHourmeterOrder(models.Model):
     _name = "production.hourmeter.order"
@@ -20,10 +25,23 @@ class ProductionHourmeterOrder(models.Model):
     name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
     employee_id	= fields.Many2one('hr.employee', string='Checker',required=True, states=READONLY_STATES )
     date = fields.Date('Date', help='',  default=fields.Datetime.now, states=READONLY_STATES )
-    # shift = fields.Selection([
-    #     ( "1" , '1'),
-    #     ( "2" , '2'),
-    #     ], string='Shift', index=True, required=True, states=READONLY_STATES )
+
+    location_id = fields.Many2one(
+            'stock.location', 'Location',
+			domain=[ ('usage','=',"internal")  ],
+            ondelete="restrict" )
+    vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
+    driver_id	= fields.Many2one('res.partner', string='Driver', required=True )
+
+    start = fields.Float('Start Hour')
+    end = fields.Float('End Hour')
+    hours = fields.Float('Hour (World Clock)', group_operator="max", readonly=True, compute="_compute_value", store=True )
+    value = fields.Float('Hourmeter Value', group_operator="max", readonly=True, compute="_compute_value", store=True )
+
+    shift = fields.Selection([
+        ( "1" , '1'),
+        ( "2" , '2'),
+        ], string='Shift', index=True, required=True, states=READONLY_STATES )
     vehicle_hourmeter_log_ids = fields.One2many(
         'production.vehicle.hourmeter.log',
         'hourmeter_order_id',
@@ -35,6 +53,16 @@ class ProductionHourmeterOrder(models.Model):
         ('confirm', 'Confirmed'),
         ('done', 'Done'),
         ], string='Status', readonly=True, copy=False, index=True, track_visibility='onchange', default='draft')
+
+    @api.depends('start', 'end')
+    def _compute_value(self):
+        for record in self:
+            record.value = record.end - record.start
+
+    @api.onchange('vehicle_id')	
+    def _change_vehicle_id(self):
+        for record in self:
+            record.driver_id = record.vehicle_id.driver_id
 
     @api.model
     def create(self, values):
@@ -79,6 +107,7 @@ class ProductionHourmeterOrder(models.Model):
                 
 class ProductionVehicleHourmeterLog(models.Model):
     _name = "production.vehicle.hourmeter.log"
+    _order = "start_datetime asc"
     # _inherits = {'production.operation.template': 'operation_template_id'}
 
     @api.model
@@ -94,32 +123,47 @@ class ProductionVehicleHourmeterLog(models.Model):
 
     hourmeter_order_id = fields.Many2one("production.hourmeter.order", string="Hourmeter Order", ondelete="restrict" )
     hourmeter_id = fields.Many2one('fleet.vehicle.hourmeter', 'Hourmeter', help='Odometer measure of the vehicle at the moment of this log')
-    date = fields.Date('Date', help='', related="hourmeter_order_id.date", readonly=True, default=fields.Datetime.now )
+    date = fields.Date('Date', help='', related="hourmeter_order_id.date", readonly=True, default=fields.Datetime.now, store=True )
     shift = fields.Selection( [
         ( "1" , '1'),
         ( "2" , '2'),
-        ], string='Shift', index=True, required=True )
+        ],related="hourmeter_order_id.shift",  string='Shift', index=True, required=True, store=True )
     location_id = fields.Many2one(
             'stock.location', 'Location',
+            related="hourmeter_order_id.location_id",
 			domain=[ ('usage','=',"internal")  ],
+            store=True,
             ondelete="restrict" )
+
+    start_datetime = fields.Datetime('Start Date Time', help='',  default=fields.Datetime.now, store=True )
+    end_datetime = fields.Datetime('End Date Time', help='' , store=True)
+    hours = fields.Float('Hours', readonly=True, compute="_compute_value", store=True )
+
     start = fields.Float('Start Hour')
     end = fields.Float('End Hour')
     value = fields.Float('Hourmeter Value', group_operator="max", readonly=True, compute="_compute_value", store=True )
+
     amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 
-    # cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict" )
-    cost_code_ids = fields.Many2many('production.cost.code', 'hourmeter_log_cost_code_rel', 'hourmeter_log_id', 'cost_code_id', 'Cost Code', copy=False)
-
-
+    cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict" )
     block_id = fields.Many2one('production.block', string='Block', ondelete="restrict")
-    vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
-    driver_id	= fields.Many2one('res.partner', string='Driver', required=True )
+
+    vehicle_id = fields.Many2one('fleet.vehicle',  string='Vehicle',  related="hourmeter_order_id.vehicle_id", required=True, store=True )
+    driver_id	= fields.Many2one('res.partner', string='Driver', related="hourmeter_order_id.driver_id", required=True, store=True )
 
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
-    
+
+    @api.onchange('start_datetime', 'end_datetime')
+    def _compute_minutes(self):
+        for record in self:
+            if record.start_datetime and record.end_datetime :
+                start = datetime.datetime.strptime(record.start_datetime, '%Y-%m-%d %H:%M:%S')
+                ends = datetime.datetime.strptime(record.end_datetime, '%Y-%m-%d %H:%M:%S')
+                diff = relativedelta(ends, start)
+                record.minutes = diff.minutes + ( diff.hours * 60 )
+
     @api.depends( 'vehicle_id', 'date' )
     def _compute_name(self):
         for record in self:
@@ -139,6 +183,12 @@ class ProductionVehicleHourmeterLog(models.Model):
     def _compute_value(self):
         for record in self:
             record.value = record.end - record.start
+            if record.start_datetime and record.end_datetime :
+                start = datetime.datetime.strptime(record.start_datetime, '%Y-%m-%d %H:%M:%S')
+                ends = datetime.datetime.strptime(record.end_datetime, '%Y-%m-%d %H:%M:%S')
+                diff = relativedelta(ends, start)
+
+                record.hours = diff.hours
 
     @api.depends('value')	
     def _compute_amount(self):
@@ -165,4 +215,3 @@ class ProductionVehicleHourmeterLog(models.Model):
                         'state' : 'posted',
                     })
                 record.write({'state' : 'posted' })
-        

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="production_he_performance_list" model="ir.ui.view">
+        <field name="name">production.he.performance.list</field>
+        <field name="model">production.he.performance</field>
+        <field name="type">tree</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="Heavy Equipment Performance List">
+                <field name="date" />
+                <field name="vehicle_id" />
+                <field name="state" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_production_he_performance_form" model="ir.ui.view">
+            <field name="name">production.he.performance.form</field>
+            <field name="model">production.he.performance</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <form string="Heavy Equipment Performance">
+                    <header>
+                        <button name="action_draft" states="cancel" string="Set to Draft" type="object" groups="mining_production.production_group_manager" />
+                        <button name="action_reload" string="Reload" type="object" class="btn-primary" groups="mining_production.production_group_manager" attrs="{'invisible': [('state', 'in', ('done'))]}" />
+                        <button name="action_confirm" string="Confirm" type="object" states="draft" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="action_done" string="Done" type="object" states="confirm" class="btn-primary" groups="mining_production.production_group_manager" />
+                        <button name="action_cancel" states="draft,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done" readonly="1"  />
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="name" invisible="1" />
+                            <field name="date" />
+                            <field name="vehicle_id" />
+                            <field name="availability" />
+                            <!-- <field name="minutes" /> -->
+                            <field name="breakdown" />
+                            <field name="standby" />
+                        </group>
+                        <group>
+                            <field name="physical_availability" />
+                            <field name="used_availability" />
+                            <field name="mechanical_availability" />
+                            <field name="effective_utilization" />
+                        </group>
+                        <notebook>
+                            <page string="Hourmeter Logs">
+                                <field name="log_ids">
+                                    <tree string="Hourmeter Logs" >
+                                        <field name="vehicle_id" />
+                                        <field name="cost_code_id" />
+                                        <field name="location_id" />
+                                        <field name="value" operator="+" />
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Loss Time" >
+                                <field name="vehicle_losstime_ids" >
+                                    <tree string="Loss Time" >
+                                        <field name="vehicle_id" />
+                                        <field name="losstime_type" />
+                                        <field name="remarks" />
+                                        <field name="hour" />
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+    </record>
+</odoo>

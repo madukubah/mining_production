@@ -10,9 +10,10 @@
             <tree string="Production Order List" decoration-muted="state=='cancel'" decoration-success="state=='done'" >
                 <field name="name" />
                 <field name="date" />
+                <field name="pit_id" />
                 <field name="product_id" />
-                <field name="product_uom_id" />
                 <field name="product_qty" />
+                <field name="product_uom_id" />
                 <field name="state" />
                 <field name="active" invisible="1" />
             </tree>
@@ -57,8 +58,8 @@
                                     <field name="product_qty" attrs="{'readonly': [('has_moves', '=', True)]}"/>
                                     <field name="product_uom_id" options="{'no_open':True,'no_create':True}" attrs="{'readonly': [('has_moves', '=', True)]}"/>
                                 </div>
-                                <field name="shift" />
-                                <field name="cost_code_id" />
+                                <field name="shift" invisible="1" />
+                                <field name="cost_code_id" invisible="1" />
                                 <field name="picking_type_id" domain="[('code', '=', 'mining_production')]" attrs="{'readonly': [('has_moves', '=', True)]}"/>
                                 <field name="user_id" invisible="1" />
                                 <field name="production_config_id" invisible="1" />
@@ -82,6 +83,19 @@
                                         <field name="ritase_count" />
                                         <field name="product_uom" />
                                         <field name="state" />
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Dump Truck Performance" >
+                                <field name="dumptruck_ids" readonly="1" edit="0" decoration-muted="state=='done'" >
+                                    <tree string="Dump Truck Performance" >
+                                        <field name="date" />
+                                        <field name="vehicle_id" />
+                                        <field name="physical_availability" />
+                                        <field name="used_availability" />
+                                        <field name="mechanical_availability" />
+                                        <field name="effective_utilization" />
+                                        <field name="state" invisible="1" />
                                     </tree>
                                 </field>
                             </page>

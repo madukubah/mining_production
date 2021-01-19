@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
     <record model="ir.actions.act_window" id="action_ritase_order">
         <field name="name">Ritase</field>
         <field name="res_model">production.ritase.order</field>
@@ -85,6 +84,20 @@
         <field name="view_mode">tree,form</field>
     </record>
 
+    <record model="ir.actions.act_window" id="production_dumptruck_performance_action">
+        <field name="name">Dumptruck Performance</field>
+        <field name="res_model">production.dumptruck.performance</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record model="ir.actions.act_window" id="production_he_performance_action">
+        <field name="name">HE Performance</field>
+        <field name="res_model">production.he.performance</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
     <menuitem id="mining_production_top" name="Production" sequence="2" web_icon="mining_production,static/description/icon.png" />
         
 
@@ -119,28 +132,44 @@
                 action="action_production_cop_adjust"
                 sequence= "99"
                 />
-        <menuitem name="Ritase"
-                id="mining_ritase"
-                parent="mining_production_top" 
-                action="action_ritase_order"
+        
+        <menuitem id="mining_ritase_menu" name="Ritase" sequence="2" 
+                parent="mining_production_top"/>
+            <menuitem name="Ritase"
+                    id="mining_ritase"
+                    parent="mining_ritase_menu" 
+                    action="action_ritase_order"
+                    sequence= "1"
+                    />
+            <menuitem name="Dumptruck Performance"
+                    id="dumptruck_performance"
+                    parent="mining_ritase_menu" 
+                    action="production_dumptruck_performance_action"
+                    sequence= "2"
+                    />
+        <menuitem id="mining_hourmeter_menu" name="Houmeter" sequence="3" 
+                        parent="mining_production_top"/>
+            <menuitem name="Hourmeter"
+                id="mining_hourmeter"
+                parent="mining_hourmeter_menu" 
+                action="action_hourmeter_order"
+                sequence= "1"
+                />
+            <menuitem name="HE Performance"
+                id="he_performance"
+                parent="mining_hourmeter_menu" 
+                action="production_he_performance_action"
                 sequence= "2"
                 />
-
-        <menuitem name="Hourmeter"
-            id="mining_hourmeter"
-            parent="mining_production_top" 
-            action="action_hourmeter_order"
-            sequence= "3"
-            />
 
         <menuitem name="Water Truck"
             id="mining_watertruck"
             parent="mining_production_top" 
             action="action_watertruck_order"
-            sequence= "3"
+            sequence= "4"
             />
         
-        <menuitem id="production_losstime_menu" name="Losstime" sequence="4" 
+        <menuitem id="production_losstime_menu" name="Losstime" sequence="5" 
                 parent="mining_production_top"/>
 
             <menuitem name="Production Losstime"
@@ -197,7 +226,6 @@
                 id="production_cop_tag_menu" 
                 sequence= "7"
                 />
-        
 
         <menuitem id="mining_production_seed" name="Seed" sequence="100" 
                 parent="mining_production_top" groups="production_group_manager"/>

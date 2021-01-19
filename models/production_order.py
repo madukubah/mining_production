@@ -73,8 +73,8 @@ class ProductionOrder(models.Model):
     shift = fields.Selection([
         ( "1" , '1'),
         ( "2" , '2'),
-        ], string='Shift', index=True, required=True, states=READONLY_STATES )
-    cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict", required=True, states=READONLY_STATES )
+        ], string='Shift', index=True, states=READONLY_STATES )
+    cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict", states=READONLY_STATES )
     has_moves = fields.Boolean(compute='_has_moves')
     move_ids = fields.One2many(
         'stock.move', 'production_order_id', 'Moves',
@@ -94,6 +94,11 @@ class ProductionOrder(models.Model):
     active = fields.Boolean(
         'Active', default=True,
         help="If unchecked, it will allow you to hide the rule without removing it.")
+
+    # performance
+    # dump truck
+    dumptruck_ids = fields.Many2many('production.dumptruck.performance', 'production_order_dumptruck_performance_rel', 'production_order_id', 'dumptruck_performance_id', 'Dump Truck', copy=False, states=READONLY_STATES)
+
 
     @api.onchange('product_id', 'picking_type_id', 'company_id')
     def onchange_product_id(self):
@@ -134,10 +139,39 @@ class ProductionOrder(models.Model):
     @api.multi
     def action_reload( self ):
         RitaseOrder = self.env['production.ritase.order'].sudo()
-        ritase_order = RitaseOrder.search( [ ( "date", "=", self.date ), ( "state", "=", "confirm" ), ( "product_id", "=", self.product_id.id ), ( "location_id", "=", self.location_id.id ) ] )
+        ritase_orders = RitaseOrder.search( [ ( "date", "=", self.date ), ( "state", "=", "confirm" ), ( "product_id", "=", self.product_id.id ), ( "location_id", "=", self.location_id.id ) ] )
         self.update({
-            'rit_ids': [( 6, 0, ritase_order.ids )],
+            'rit_ids': [( 6, 0, ritase_orders.ids )],
         })
+        # get dump truck
+        dumptruck_ids = []
+        for ritase_order in ritase_orders:
+            for counter in ritase_order.counter_ids:
+                if counter.vehicle_id.id not in dumptruck_ids :
+                    dumptruck_ids += [ counter.vehicle_id.id ]
+        
+        _logger.warning( dumptruck_ids )
+        DumptruckPerformance = self.env['production.dumptruck.performance'].sudo()
+        dumptruck_performance_ids = []
+        for dumptruck_id in dumptruck_ids:
+            dumptruck_performances = DumptruckPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "=", dumptruck_id ) ] )
+            if not dumptruck_performances : 
+                # dumptruck_performance = 
+                DumptruckPerformance.create({
+                        "date" : self.date ,
+                        "end_date" : self.date ,
+                        "vehicle_id" : dumptruck_id ,
+                }).action_reload( )
+                # dumptruck_performance.action_reload( )
+                # dumptruck_performance_ids += [ dumptruck_performance.id ]
+
+        dumptruck_performances = DumptruckPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "in", dumptruck_ids ) ] )
+        self.update({
+            'dumptruck_ids': [( 6, 0, dumptruck_performances.ids )],
+        })
+
+
+
 
     @api.multi
     def action_done(self):
@@ -176,11 +210,11 @@ class ProductionOrder(models.Model):
         
     @api.model
     def create(self, values):
-        if not values.get('name', False) or values['name'] == _('New'):
-            if values.get('picking_type_id'):
-                values['name'] = self.env['stock.picking.type'].browse(values['picking_type_id']).sequence_id.next_by_id()
-            else:
-                values['name'] = self.env['ir.sequence'].next_by_code('production_order') or _('New')
+        # if not values.get('name', False) or values['name'] == _('New'):
+        if values.get('picking_type_id'):
+            values['name'] = self.env['stock.picking.type'].browse(values['picking_type_id']).sequence_id.next_by_id()
+        else:
+            values['name'] = self.env['ir.sequence'].next_by_code('production_order') or _('New')
         if not values.get('procurement_group_id'):
             values['procurement_group_id'] = self.env["procurement.group"].create({'name': values['name']}).id
 

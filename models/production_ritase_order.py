@@ -11,7 +11,7 @@ _logger = logging.getLogger(__name__)
 class ProductionRitaseOrder(models.Model):
 	_name = "production.ritase.order"
 	_inherit = ['mail.thread', 'ir.needaction_mixin']
-	_order = 'id desc'
+	_order = 'date asc'
 	
 	@api.onchange('warehouse_id', "warehouse_dest_id")	
 	def _default_product(self):
@@ -346,8 +346,13 @@ class RitaseCounter(models.Model):
 			related="ritase_order_id.location_id",
 			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict" )
+	location_dest_id = fields.Many2one(
+            'stock.location', 'Location',
+			related="ritase_order_id.location_dest_id",
+			domain=[ ('usage','=',"internal")  ],
+            ondelete="restrict" )
 	date = fields.Date('Date', help='', related="ritase_order_id.date", readonly=True, default=fields.Datetime.now )
-	cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', related="ritase_order_id.cost_code_id", ondelete="restrict" )
+	cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', related="ritase_order_id.cost_code_id", ondelete="restrict", store=True )
 
 	shift = fields.Selection([
         ( "1" , '1'),
@@ -369,15 +374,11 @@ class RitaseCounter(models.Model):
 	@api.onchange('start_datetime', 'end_datetime')
 	def _compute_minutes(self):
 		for record in self:
-			#compute end date
 			if record.start_datetime and record.end_datetime :
 				start = datetime.datetime.strptime(record.start_datetime, '%Y-%m-%d %H:%M:%S')
 				ends = datetime.datetime.strptime(record.end_datetime, '%Y-%m-%d %H:%M:%S')
 				diff = relativedelta(ends, start)
-				record.minutes = diff.minutes
-				# _logger.warning( start )
-				# _logger.warning( ends )
-				# _logger.warning( diff.hours )
+				record.minutes = diff.minutes + ( diff.hours * 60 )
 
 	def generate_logs(self):
 		for record in self:
@@ -441,8 +442,11 @@ class RitaseCounter(models.Model):
 
 class RitaseLog(models.Model):
 	_name = "production.ritase.log"
+	_order = 'datetime asc'
 
 	counter_id = fields.Many2one("production.ritase.counter", string="Dump Truck Activity", ondelete="cascade" )
+	vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', related="counter_id.vehicle_id", store=True)
+	cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', related="counter_id.cost_code_id", store=True)
 	datetime = fields.Datetime('Date Time', help='',  default=fields.Datetime.now )
 
 class RitaseLotMove(models.Model):
