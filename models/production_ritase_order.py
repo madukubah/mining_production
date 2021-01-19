@@ -11,7 +11,7 @@ _logger = logging.getLogger(__name__)
 class ProductionRitaseOrder(models.Model):
 	_name = "production.ritase.order"
 	_inherit = ['mail.thread', 'ir.needaction_mixin']
-	_order = 'date asc'
+	_order = 'date desc'
 	
 	@api.onchange('warehouse_id', "warehouse_dest_id")	
 	def _default_product(self):

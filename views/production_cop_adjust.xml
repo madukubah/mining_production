@@ -44,7 +44,14 @@
                             <field name="production_config_id" />
                             <field name="amount" />
                         </group>
-                        <separator string="Summary "/>
+                        <separator string="Production"/>
+                        <field name="produced_items" >
+                            <tree string="Production" >
+                                <field name="product_id" />
+                                <field name="product_qty" />
+                            </tree>
+                        </field>
+                        <separator string="Summary"/>
                         <notebook>
                             <page string="Vehicle Costs">
                                 <field name="cost_ids" >

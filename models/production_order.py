@@ -13,6 +13,20 @@ class ProductionOrder(models.Model):
     _inherit = ['mail.thread', 'ir.needaction_mixin']
     _order = "id desc"
     
+    @api.onchange('pit_id', "location_id")	
+    def _default_product(self):
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+        product_ids = [ x.id for x in production_config[0].product_ids ]
+        _logger.warning( product_ids )
+        product_ids = self.env['product.product'].sudo(  ).search( [ ("id", "in", product_ids ) ] )
+        return {
+                'domain':{
+                    'product_id':[('id','in', product_ids.ids )] ,
+                    }
+                }
     @api.model
     def _get_default_picking_type(self):
         return self.env['stock.picking.type'].search([
@@ -101,9 +115,8 @@ class ProductionOrder(models.Model):
     # Heavy Equipment
     he_ids = fields.Many2many('production.he.performance', 'production_order_he_performance_rel', 'production_order_id', 'he_performance_id', 'Heavy Equipment', copy=False, states=READONLY_STATES)
 
-
     @api.onchange('product_id', 'picking_type_id', 'company_id')
-    def onchange_product_id(self):
+    def onchange_product_id(self) :
         """ Finds UoM of changed product. """
         if self.product_id:
             self.product_uom_id = self.product_id.uom_id.id

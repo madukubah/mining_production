@@ -4,7 +4,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 import time
-
+from odoo.addons import decimal_precision as dp
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -51,6 +51,9 @@ class ProductionCopAdjust(models.Model):
     sum_watertruck = fields.Float(string='Water Truck Amount', compute="_compute_amount" )
     sum_losstime_accumulation = fields.Float(string='Lostime Amount', compute="_compute_amount" )
     sum_vehicle_cost = fields.Float(string='Vehicle Cost Amount', compute="_compute_amount" )
+
+    production_order_ids = fields.Many2many('production.order', 'production_cop_adjust_production_order_rel', 'cop_adjust_id', 'production_order_id', 'Production Order', copy=False, states=READONLY_STATES)
+    produced_items = fields.One2many('production.product', 'cop_adjust_id', 'Produced Item', states=READONLY_STATES )
 
     state = fields.Selection( [
         ('draft', 'Draft'), 
@@ -141,8 +144,35 @@ class ProductionCopAdjust(models.Model):
         })
 
         self.adjust_losstime()
+        self.get_produced_item()
         return True
     
+    def get_produced_item(self):
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+        product_ids = [ x.id for x in production_config[0].product_ids ]
+        _logger.warning( product_ids )
+        product_ids = self.env['product.product'].sudo(  ).search( [ ("id", "in", product_ids ) ] )
+
+        ProductionOrder = self.env['production.order'].sudo()
+        production_orders = ProductionOrder.search( [ ( "date", "=", self.date ) ] )
+        product_qty_dict = {}
+        for production_order in production_orders :
+            if product_qty_dict.get( production_order.product_id.id , False):
+                product_qty_dict[ production_order.product_id.id ] += production_order.product_qty
+            else:
+                product_qty_dict[ production_order.product_id.id ] = production_order.product_qty
+
+        self.produced_items.unlink()
+        for product, qty in product_qty_dict.items():
+            self.env['production.product'].sudo().create({
+                'cop_adjust_id' : self.id,
+                'product_id' : product,
+                'product_qty' : qty,
+            })
+
     def adjust_losstime(self):
         self.ensure_one()
         self.losstime_accumulation_ids.unlink()
@@ -510,3 +540,17 @@ class ProductionCopAdjust(models.Model):
             raise UserError(_('You don\'t have any stock valuation account defined on your product category. You must define one before processing this operation.'))
         journal_id = accounts_data['stock_journal'].id
         return journal_id, acc_src, acc_dest, acc_valuation
+
+class ProductProduction(models.Model):
+    _name = "production.product"
+
+    cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP' )
+    product_id = fields.Many2one(
+        'product.product', 'Product',
+        domain=[('type', 'in', ['product', 'consu'])],
+        readonly=True )
+
+    product_qty = fields.Float(
+        'Quantity (WMT)',
+        default=0.0, digits=dp.get_precision('Product Unit of Measure'),
+        readonly=True, required=True, store=True )

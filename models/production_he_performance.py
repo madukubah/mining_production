@@ -10,7 +10,6 @@ _logger = logging.getLogger(__name__)
 
 class ProductionHEPerformance(models.Model):
 	_name = "production.he.performance"
-
 	_inherit = ['mail.thread', 'ir.needaction_mixin']
 
 	READONLY_STATES = {
