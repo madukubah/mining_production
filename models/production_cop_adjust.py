@@ -108,19 +108,22 @@ class ProductionCopAdjust(models.Model):
         })
 
         RitaseCounter = self.env['production.ritase.counter'].sudo()
-        ritase_counter = RitaseCounter.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "ritase_order_id.state", "=", "done" ) ] )
+        # ritase_counter = RitaseCounter.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "ritase_order_id.state", "=", "done" ) ] )
+        ritase_counter = RitaseCounter.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
         self.update({
             'rit_ids': [( 6, 0, ritase_counter.ids )],
         })
 
         HourmeterLog = self.env['production.vehicle.hourmeter.log'].sudo()
-        hourmeter_log = HourmeterLog.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "hourmeter_order_id.state", "=", "done" ) ] )
+        # hourmeter_log = HourmeterLog.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "hourmeter_order_id.state", "=", "done" ) ] )
+        hourmeter_log = HourmeterLog.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
         self.update({
             'hourmeter_ids': [( 6, 0, hourmeter_log.ids )],
         })
 
         WaterTruck = self.env['production.watertruck.counter'].sudo()
-        watertrucks = WaterTruck.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "order_id.state", "=", "done" ) ] )
+        # watertrucks = WaterTruck.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "order_id.state", "=", "done" ) ] )
+        watertrucks = WaterTruck.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
         self.update({
             'watertruck_ids': [( 6, 0, watertrucks.ids )],
         })

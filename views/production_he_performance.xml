@@ -35,7 +35,7 @@
                             <field name="date" />
                             <field name="vehicle_id" />
                             <field name="availability" />
-                            <!-- <field name="minutes" /> -->
+                            <field name="hours" />
                             <field name="breakdown" />
                             <field name="standby" />
                         </group>

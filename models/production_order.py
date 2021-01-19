@@ -98,6 +98,8 @@ class ProductionOrder(models.Model):
     # performance
     # dump truck
     dumptruck_ids = fields.Many2many('production.dumptruck.performance', 'production_order_dumptruck_performance_rel', 'production_order_id', 'dumptruck_performance_id', 'Dump Truck', copy=False, states=READONLY_STATES)
+    # Heavy Equipment
+    he_ids = fields.Many2many('production.he.performance', 'production_order_he_performance_rel', 'production_order_id', 'he_performance_id', 'Heavy Equipment', copy=False, states=READONLY_STATES)
 
 
     @api.onchange('product_id', 'picking_type_id', 'company_id')
@@ -152,22 +154,51 @@ class ProductionOrder(models.Model):
         
         _logger.warning( dumptruck_ids )
         DumptruckPerformance = self.env['production.dumptruck.performance'].sudo()
-        dumptruck_performance_ids = []
         for dumptruck_id in dumptruck_ids:
             dumptruck_performances = DumptruckPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "=", dumptruck_id ) ] )
             if not dumptruck_performances : 
-                # dumptruck_performance = 
                 DumptruckPerformance.create({
                         "date" : self.date ,
                         "end_date" : self.date ,
                         "vehicle_id" : dumptruck_id ,
                 }).action_reload( )
-                # dumptruck_performance.action_reload( )
-                # dumptruck_performance_ids += [ dumptruck_performance.id ]
-
+            else:
+                for x in dumptruck_performances :
+                    x.action_reload() 
+               
         dumptruck_performances = DumptruckPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "in", dumptruck_ids ) ] )
         self.update({
             'dumptruck_ids': [( 6, 0, dumptruck_performances.ids )],
+        })
+        # ========================
+        # get heavy equipment
+        he_ids = []
+        for ritase_order in ritase_orders:
+            for load_vehicle in ritase_order.load_vehicle_ids:
+                if load_vehicle.id not in he_ids :
+                    he_ids += [ load_vehicle.id ]
+            for pile_vehicle in ritase_order.pile_vehicle_ids:
+                if pile_vehicle.id not in he_ids :
+                    he_ids += [ pile_vehicle.id ]
+        
+        _logger.warning( he_ids )
+        HEPerformance = self.env['production.he.performance'].sudo()
+        for he_id in he_ids:
+            he_performances = HEPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "=", he_id ) ] )
+            if not he_performances : 
+                HEPerformance.create({
+                        "date" : self.date ,
+                        "end_date" : self.date ,
+                        "vehicle_id" : he_id ,
+                }).action_reload( )
+            else:
+                for x in he_performances :
+                    x.action_reload() 
+
+
+        he_performances = HEPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "in", he_ids ) ] )
+        self.update({
+            'he_ids': [( 6, 0, he_performances.ids )],
         })
 
 

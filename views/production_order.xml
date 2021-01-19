@@ -99,6 +99,19 @@
                                     </tree>
                                 </field>
                             </page>
+                            <page string="Heavy Equipment Performance" >
+                                <field name="he_ids" readonly="1" edit="0" decoration-muted="state=='done'" >
+                                    <tree string="Heavy Equipment Performance" >
+                                        <field name="date" />
+                                        <field name="vehicle_id" />
+                                        <field name="physical_availability" />
+                                        <field name="used_availability" />
+                                        <field name="mechanical_availability" />
+                                        <field name="effective_utilization" />
+                                        <field name="state" invisible="1" />
+                                    </tree>
+                                </field>
+                            </page>
                             <page string="Finished Products">
                                 <field name="move_ids" options="{'reload_on_button': True}" >
                                     <tree editable="bottom" delete="0" default_order="is_done desc,sequence" decoration-muted="is_done" decoration-warning="quantity_done&gt;product_uom_qty" decoration-success="quantity_done==product_uom_qty" create="0" edit="0">
