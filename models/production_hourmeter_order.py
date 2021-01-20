@@ -35,7 +35,7 @@ class ProductionHourmeterOrder(models.Model):
 
     start = fields.Float('Start Hour')
     end = fields.Float('End Hour')
-    hours = fields.Float('Hour (World Clock)', group_operator="max", readonly=True, compute="_compute_value", store=True )
+    hours = fields.Float('Hour (World Clock)', group_operator="max", readonly=True, compute="_compute_minutes", store=True )
     value = fields.Float('Hourmeter Value', group_operator="max", readonly=True, compute="_compute_value", store=True )
 
     shift = fields.Selection([
@@ -163,6 +163,8 @@ class ProductionVehicleHourmeterLog(models.Model):
                 ends = datetime.datetime.strptime(record.end_datetime, '%Y-%m-%d %H:%M:%S')
                 diff = relativedelta(ends, start)
                 record.minutes = diff.minutes + ( diff.hours * 60 )
+                record.hours = diff.hours
+
 
     @api.depends( 'vehicle_id', 'date' )
     def _compute_name(self):
