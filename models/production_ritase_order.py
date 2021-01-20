@@ -371,6 +371,12 @@ class RitaseCounter(models.Model):
 	# ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0, compute='_compute_ritase_count' )
 	amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 	
+	@api.onchange( 'date' )
+	def _set_date(self):
+		for record in self:
+			record.start_datetime = record.date
+			record.end_datetime = record.date
+
 	@api.onchange('start_datetime', 'end_datetime')
 	def _compute_minutes(self):
 		for record in self:

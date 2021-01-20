@@ -135,7 +135,7 @@ class ProductionVehicleHourmeterLog(models.Model):
             store=True,
             ondelete="restrict" )
 
-    start_datetime = fields.Datetime('Start Date Time', help='',  default=fields.Datetime.now, store=True )
+    start_datetime = fields.Datetime('Start Date Time', help='', store=True )
     end_datetime = fields.Datetime('End Date Time', help='' , store=True)
     hours = fields.Float('Hours', readonly=True, compute="_compute_value", store=True )
 
@@ -154,6 +154,13 @@ class ProductionVehicleHourmeterLog(models.Model):
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
+
+    @api.onchange( 'date' )
+    def _set_date(self):
+        for record in self:
+            record.start_datetime = record.date
+            record.end_datetime = record.date
+                
 
     @api.onchange('start_datetime', 'end_datetime')
     def _compute_minutes(self):
