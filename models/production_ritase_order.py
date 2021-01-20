@@ -368,7 +368,6 @@ class RitaseCounter(models.Model):
 	start_datetime = fields.Datetime('Start Date Time', help='',  default=fields.Datetime.now, store=True )
 	end_datetime = fields.Datetime('End Date Time', help='' , store=True)
 	minutes = fields.Float('Minutes', readonly=True, compute="_compute_minutes" )
-	# ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0, compute='_compute_ritase_count' )
 	amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 	
 	@api.onchange( 'date' )
@@ -464,5 +463,3 @@ class RitaseLotMove(models.Model):
 		required=True,
         )
 	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0 )
-	
-

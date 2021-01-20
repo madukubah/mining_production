@@ -20,7 +20,6 @@ class ProductionOrder(models.Model):
         if not production_config :
             raise UserError(_('Please Set Configuration file') )
         product_ids = [ x.id for x in production_config[0].product_ids ]
-        _logger.warning( product_ids )
         product_ids = self.env['product.product'].sudo(  ).search( [ ("id", "in", product_ids ) ] )
         return {
                 'domain':{
@@ -115,6 +114,22 @@ class ProductionOrder(models.Model):
     # Heavy Equipment
     he_ids = fields.Many2many('production.he.performance', 'production_order_he_performance_rel', 'production_order_id', 'he_performance_id', 'Heavy Equipment', copy=False, states=READONLY_STATES)
 
+    # cost analisys
+    cost_ids = fields.Many2many('fleet.vehicle.cost', 'production_order_cost_rel', 'production_order_id', 'cost_id', 'Vehicle Cost', copy=False, states=READONLY_STATES)
+    counter_ids = fields.Many2many('production.ritase.counter', 'production_order_ritase_rel', 'production_order_id', 'rit_id', 'Ritase', copy=False, states=READONLY_STATES)
+    hourmeter_ids = fields.Many2many('production.vehicle.hourmeter.log', 'production_order_hourmeter_rel', 'production_order_id', 'hourmeter_id', 'Hourmeter', copy=False, states=READONLY_STATES)
+    
+    total_amount = fields.Float(string='Total Cost (IDR)', compute="_compute_amount" )
+
+    @api.depends("cost_ids", "counter_ids", "hourmeter_ids" )
+    def _compute_amount(self):
+        for record in self:
+            sum_rit = sum( [ rit.amount for rit in record.counter_ids ] )
+            sum_hm = sum( [ hourmeter.amount for hourmeter in record.hourmeter_ids ] )
+            sum_vehicle_cost = sum( [ cost.amount for cost in record.cost_ids ] )
+
+            record.total_amount = sum_rit + sum_hm + sum_vehicle_cost
+
     @api.onchange('product_id', 'picking_type_id', 'company_id')
     def onchange_product_id(self) :
         """ Finds UoM of changed product. """
@@ -153,6 +168,7 @@ class ProductionOrder(models.Model):
 
     @api.multi
     def action_reload( self ):
+        self.ensure_one()
         RitaseOrder = self.env['production.ritase.order'].sudo()
         ritase_orders = RitaseOrder.search( [ ( "date", "=", self.date ), ( "state", "=", "confirm" ), ( "product_id", "=", self.product_id.id ), ( "location_id", "=", self.location_id.id ) ] )
         self.update({
@@ -165,7 +181,6 @@ class ProductionOrder(models.Model):
                 if counter.vehicle_id.id not in dumptruck_ids :
                     dumptruck_ids += [ counter.vehicle_id.id ]
         
-        _logger.warning( dumptruck_ids )
         DumptruckPerformance = self.env['production.dumptruck.performance'].sudo()
         for dumptruck_id in dumptruck_ids:
             dumptruck_performances = DumptruckPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "=", dumptruck_id ) ] )
@@ -194,7 +209,6 @@ class ProductionOrder(models.Model):
                 if pile_vehicle.id not in he_ids :
                     he_ids += [ pile_vehicle.id ]
         
-        _logger.warning( he_ids )
         HEPerformance = self.env['production.he.performance'].sudo()
         for he_id in he_ids:
             he_performances = HEPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "=", he_id ) ] )
@@ -208,10 +222,31 @@ class ProductionOrder(models.Model):
                 for x in he_performances :
                     x.action_reload() 
 
-
         he_performances = HEPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "in", he_ids ) ] )
         self.update({
             'he_ids': [( 6, 0, he_performances.ids )],
+        })
+
+        counter_ids = []
+        for ritase_order in ritase_orders:
+            counter_ids += ritase_order.counter_ids.ids
+        self.update({
+            'counter_ids': [( 6, 0, counter_ids )],
+        })
+
+        HourmeterLog = self.env['production.vehicle.hourmeter.log'].sudo()
+        # hourmeter_log = HourmeterLog.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "hourmeter_order_id.state", "=", "done" ) ] )
+        hourmeter_log = HourmeterLog.search( [ ( "vehicle_id", "in", he_ids ), ( "date", "=", self.date ) ] )
+        self.update({
+            'hourmeter_ids': [( 6, 0, hourmeter_log.ids )],
+        })
+
+        he_ids += dumptruck_ids
+        VehicleCost = self.env['fleet.vehicle.cost'].sudo()
+        vehicle_costs = VehicleCost.search( [ ( "vehicle_id", "in", he_ids ), ( "date", "=", self.date ), ( "state", "=", "draft" ) ] )
+        vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs if vehicle_cost.cost_subtype_id.is_consumable ]
+        self.update({
+            'cost_ids': [( 6, 0, vehicle_costs_ids )],
         })
 
 

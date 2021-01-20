@@ -292,7 +292,7 @@ class ProductionCopAdjust(models.Model):
     def _settle_cost(self):
         self.ensure_one()
         product_n_qty_list = {}
-        #VEHICLE COST that have comsumable products, 
+        #VEHICLE COST that have stockable products, 
         for cost_id in self.cost_ids:
             if( cost_id.cost_subtype_id.is_consumable and cost_id.cost_subtype_id.product_id ) :
                 product = cost_id.cost_subtype_id.product_id
@@ -303,7 +303,7 @@ class ProductionCopAdjust(models.Model):
                         'product_id' : cost_id.cost_subtype_id.product_id,
                         'qty' : cost_id.product_uom_qty,
                     }
-        #COP TAG COST That have consumable products
+        #COP TAG LOG That have stockable products
         for tag_log in self.tag_log_ids:
             if( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) :
                 product = tag_log.tag_id.product_id

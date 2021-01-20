@@ -202,7 +202,8 @@ class ProductionVehicleHourmeterLog(models.Model):
     @api.depends('value')	
     def _compute_amount(self):
         for record in self:
-            record.amount = record.value * record.production_config_id.hm_price_unit
+            # for employee commisions we using world clock house
+            record.amount = record.hours * record.production_config_id.hm_price_unit
 
     @api.multi
     def post(self):

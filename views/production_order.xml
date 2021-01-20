@@ -31,7 +31,7 @@
                         <button name="action_reload" string="Reload" type="object" class="btn-primary" attrs="{'invisible': [('state', 'in', ('done', 'confirm', 'cancel'))]}" />
                         <button name="action_confirm" string="Confirm" type="object" states="draft" class="btn-primary"  />
                         <button name="action_done" string="Produce" type="object" states="confirm" class="btn-primary"   />
-                        <button name="action_cancel" string="Cancel" type="object" attrs="{'invisible': [('state', 'in', ('done'))]}" />
+                        <button name="action_cancel" string="Cancel" type="object" attrs="{'invisible': [('state', 'in', ('done','cancel'))]}" />
                         <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done"/>
                     </header>
                     <sheet>
@@ -127,6 +127,51 @@
                                         <field name="quantity_done" attrs="{'readonly': ['|', ('is_done', '=', True), ('has_tracking', 'in', ['lot','serial'])]}" string="Produced"/>
                                         <button name="mining_split_move_lot" string="Register lots" type="object" icon="fa-list"
                                             attrs="{'invisible': [('has_tracking', 'not in', ['lot','serial'])]}"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                        <separator string="Cost Analisys"/>
+                        <group>
+                            <field name="total_amount" />
+                        </group>
+                        <notebook>
+                            <page string="Vehicle Costs">
+                                <field name="cost_ids" readonly="1" edit="0" decoration-muted="state=='done'" >
+                                    <tree string="Vehicle Costs" >
+                                        <field name="date" />
+                                        <field name="vehicle_id" />
+                                        <field name="cost_subtype_id" />
+                                        <field name="amount" />
+                                        <field name="state" />
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="DT Ritase">
+                                <field name="counter_ids" readonly="1" edit="0" decoration-muted="state=='done'" >
+                                    <tree string="DT Ritase" >
+                                        <field name="date" />
+                                        <field name="location_id" />
+                                        <field name="vehicle_id" />
+                                        <field name="driver_id" />
+                                        <field name="product_id" />
+                                        <field name="ritase_count" />
+                                        <field name="amount" string="Employee Fee" />
+                                        <field name="state" />
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="HE Hourmeter">
+                                <field name="hourmeter_ids" readonly="1" edit="0" decoration-muted="state=='done'" >
+                                    <tree string="HE Hourmeter" >
+                                        <field name="date" />
+                                        <field name="location_id" />
+                                        <field name="vehicle_id" />
+                                        <field name="driver_id" />
+                                        <field name="hours" />
+                                        <field name="value" />
+                                        <field name="amount" string="Employee Fee" />
+                                        <field name="state" />
                                     </tree>
                                 </field>
                             </page>
