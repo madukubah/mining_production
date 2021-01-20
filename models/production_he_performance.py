@@ -97,8 +97,7 @@ class ProductionHEPerformance(models.Model):
 			record.update({
 				'vehicle_losstime_ids': [( 6, 0, losstimes.ids )],
 			})
-			_logger.warning( losstimes )
-
+			# _logger.warning( losstimes )
 			record.breakdown = sum( [ x.hour for x in losstimes if(x.losstime_type == "breakdown") ] )
 			record.standby = sum( [ x.hour for x in losstimes if(x.losstime_type != "breakdown") ] )
 

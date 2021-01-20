@@ -152,6 +152,7 @@
                             <field name="log_ids" >
                                 <tree string="Logs" >
                                     <field name="datetime" />
+                                    <field name="cost_code_id" />
                                 </tree>
                             </field >
                         </page>

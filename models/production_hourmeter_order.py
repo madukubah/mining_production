@@ -13,7 +13,7 @@ _logger = logging.getLogger(__name__)
 class ProductionHourmeterOrder(models.Model):
     _name = "production.hourmeter.order"
     _inherit = ['mail.thread', 'ir.needaction_mixin']
-    _order = "id desc"
+    _order = "date desc"
     
     READONLY_STATES = {
         'draft': [('readonly', False)] ,
