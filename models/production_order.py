@@ -235,7 +235,6 @@ class ProductionOrder(models.Model):
         })
 
         HourmeterLog = self.env['production.vehicle.hourmeter.log'].sudo()
-        # hourmeter_log = HourmeterLog.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "hourmeter_order_id.state", "=", "done" ) ] )
         hourmeter_log = HourmeterLog.search( [ ( "vehicle_id", "in", he_ids ), ( "date", "=", self.date ) ] )
         self.update({
             'hourmeter_ids': [( 6, 0, hourmeter_log.ids )],
@@ -243,7 +242,7 @@ class ProductionOrder(models.Model):
 
         he_ids += dumptruck_ids
         VehicleCost = self.env['fleet.vehicle.cost'].sudo()
-        vehicle_costs = VehicleCost.search( [ ( "vehicle_id", "in", he_ids ), ( "date", "=", self.date ), ( "state", "=", "draft" ) ] )
+        vehicle_costs = VehicleCost.search( [ ( "vehicle_id", "in", he_ids ), ( "date", "=", self.date ) ] )
         vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs if vehicle_cost.cost_subtype_id.is_consumable ]
         self.update({
             'cost_ids': [( 6, 0, vehicle_costs_ids )],
