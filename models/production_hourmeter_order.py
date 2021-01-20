@@ -33,10 +33,10 @@ class ProductionHourmeterOrder(models.Model):
     vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
     driver_id	= fields.Many2one('res.partner', string='Driver', required=True )
 
-    start = fields.Float('Start Hour')
-    end = fields.Float('End Hour')
-    hours = fields.Float('Hour (World Clock)', group_operator="max", readonly=True, compute="_compute_minutes", store=True )
-    value = fields.Float('Hourmeter Value', group_operator="max", readonly=True, compute="_compute_value", store=True )
+    # start = fields.Float('Start Hour')
+    # end = fields.Float('End Hour')
+    # hours = fields.Float('Hour (World Clock)', group_operator="max", readonly=True, compute="_compute_minutes", store=True )
+    # value = fields.Float('Hourmeter Value', group_operator="max", readonly=True, compute="_compute_value", store=True )
 
     shift = fields.Selection([
         ( "1" , '1'),

@@ -15,7 +15,7 @@
                 <field name="employee_id" />
                 <field name="vehicle_id" />
                 <field name="driver_id" />
-                <field name="value" />
+                <!-- <field name="value" /> -->
                 <field name="state" />
             </tree>
         </field>
