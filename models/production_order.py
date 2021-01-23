@@ -192,6 +192,10 @@ class ProductionOrder(models.Model):
                 }).action_reload( )
             else:
                 for x in dumptruck_performances :
+                    x.update( {
+                        "date" : self.date ,
+                        "end_date" : self.date ,
+                    } )
                     x.action_reload() 
                
         dumptruck_performances = DumptruckPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "in", dumptruck_ids ) ] )
@@ -220,6 +224,10 @@ class ProductionOrder(models.Model):
                 }).action_reload( )
             else:
                 for x in he_performances :
+                    x.update( {
+                        "date" : self.date ,
+                        "end_date" : self.date ,
+                    } )
                     x.action_reload() 
 
         he_performances = HEPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "in", he_ids ) ] )
@@ -227,29 +235,28 @@ class ProductionOrder(models.Model):
             'he_ids': [( 6, 0, he_performances.ids )],
         })
 
-        counter_ids = []
-        for ritase_order in ritase_orders:
-            counter_ids += ritase_order.counter_ids.ids
-        self.update({
-            'counter_ids': [( 6, 0, counter_ids )],
-        })
+        return True
+        # TODO : for cost analysis
+        # counter_ids = []
+        # for ritase_order in ritase_orders:
+        #     counter_ids += ritase_order.counter_ids.ids
+        # self.update({
+        #     'counter_ids': [( 6, 0, counter_ids )],
+        # })
 
-        HourmeterLog = self.env['production.vehicle.hourmeter.log'].sudo()
-        hourmeter_log = HourmeterLog.search( [ ( "vehicle_id", "in", he_ids ), ( "date", "=", self.date ) ] )
-        self.update({
-            'hourmeter_ids': [( 6, 0, hourmeter_log.ids )],
-        })
+        # HourmeterLog = self.env['production.vehicle.hourmeter.log'].sudo()
+        # hourmeter_log = HourmeterLog.search( [ ( "vehicle_id", "in", he_ids ), ( "date", "=", self.date ) ] )
+        # self.update({
+        #     'hourmeter_ids': [( 6, 0, hourmeter_log.ids )],
+        # })
 
-        he_ids += dumptruck_ids
-        VehicleCost = self.env['fleet.vehicle.cost'].sudo()
-        vehicle_costs = VehicleCost.search( [ ( "vehicle_id", "in", he_ids ), ( "date", "=", self.date ) ] )
-        vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs if vehicle_cost.cost_subtype_id.is_consumable ]
-        self.update({
-            'cost_ids': [( 6, 0, vehicle_costs_ids )],
-        })
-
-
-
+        # he_ids += dumptruck_ids
+        # VehicleCost = self.env['fleet.vehicle.cost'].sudo()
+        # vehicle_costs = VehicleCost.search( [ ( "vehicle_id", "in", he_ids ), ( "date", "=", self.date ) ] )
+        # vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs if vehicle_cost.cost_subtype_id.is_consumable ]
+        # self.update({
+        #     'cost_ids': [( 6, 0, vehicle_costs_ids )],
+        # })
 
     @api.multi
     def action_done(self):

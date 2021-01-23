@@ -337,7 +337,7 @@ class ProductionRitaseOrder(models.Model):
 class RitaseCounter(models.Model):
 	_name = "production.ritase.counter"
 	_inherits = {'production.operation.template': 'operation_template_id'}
-	_order = 'driver_id asc'
+	_order = 'driver_id asc ,date asc'
 
 	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="restrict" )
 	product_id = fields.Many2one("product.product", string="Material", related="ritase_order_id.product_id", ondelete="restrict" )

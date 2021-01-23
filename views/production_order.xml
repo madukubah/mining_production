@@ -131,7 +131,7 @@
                                 </field>
                             </page>
                         </notebook>
-                        <separator string="Cost Analisys"/>
+                        <!-- <separator string="Cost Analisys"/>
                         <group>
                             <field name="total_amount" />
                         </group>
@@ -175,7 +175,7 @@
                                     </tree>
                                 </field>
                             </page>
-                        </notebook>
+                        </notebook> -->
                     </sheet>
                     <div class="oe_chatter">
                         <field name="message_follower_ids" widget="mail_followers"/>

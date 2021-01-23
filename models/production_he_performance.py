@@ -83,8 +83,7 @@ class ProductionHEPerformance(models.Model):
 		for record in self: 
 			# record.log_ids.unlink()
 			Hourmeter_log = self.env['production.vehicle.hourmeter.log'].sudo()
-			# logs = Hourmeter_log.search([ ( 'vehicle_id', '=', self.vehicle_id.id ), ( 'start_datetime', '>=', record.date+" 00:00:01" ), ( 'end_datetime', '<=', record.end_date+" 23:00:59" ) ])
-			logs = Hourmeter_log.search([ ( 'vehicle_id', '=', self.vehicle_id.id )  ])
+			logs = Hourmeter_log.search([ ( 'vehicle_id', '=', self.vehicle_id.id ), ( 'start_datetime', '>=', record.date+" 00:00:01" ), ( 'end_datetime', '<=', record.end_date+" 23:00:59" ) ])
 			record.update({
 				'log_ids': [( 6, 0, logs.ids )],
 			})
@@ -92,12 +91,10 @@ class ProductionHEPerformance(models.Model):
 			record.hours = sum( [ x.value for x in logs ] )
 
 			Losstimes = self.env['fleet.vehicle.losstime'].sudo()
-			# losstimes = Losstimes.search([ ( 'vehicle_id', '=', self.vehicle_id.id ), ( 'date', '>=', record.date ), ( 'date', '<=', record.end_date ) ])
-			losstimes = Losstimes.search([ ( 'vehicle_id', '=', self.vehicle_id.id ) ])
+			losstimes = Losstimes.search([ ( 'vehicle_id', '=', self.vehicle_id.id ), ( 'date', '>=', record.date ), ( 'date', '<=', record.end_date ) ])
 			record.update({
 				'vehicle_losstime_ids': [( 6, 0, losstimes.ids )],
 			})
-			# _logger.warning( losstimes )
 			record.breakdown = sum( [ x.hour for x in losstimes if(x.losstime_type == "breakdown") ] )
 			record.standby = sum( [ x.hour for x in losstimes if(x.losstime_type != "breakdown") ] )
 

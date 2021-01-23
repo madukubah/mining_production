@@ -107,7 +107,7 @@ class ProductionHourmeterOrder(models.Model):
                 
 class ProductionVehicleHourmeterLog(models.Model):
     _name = "production.vehicle.hourmeter.log"
-    _order = "start_datetime asc"
+    _order = "driver_id asc ,start_datetime asc"
     # _inherits = {'production.operation.template': 'operation_template_id'}
 
     @api.model

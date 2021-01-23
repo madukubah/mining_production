@@ -74,6 +74,7 @@ class ProductionWatertruckOrder(models.Model):
 
 class ProductionWatertruckCounter(models.Model):
     _name = "production.watertruck.counter"
+    _order = 'driver_id asc ,date asc'
 
     WATERTRUCK_PRICE = {
         '6000': 7000 ,

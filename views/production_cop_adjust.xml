@@ -40,6 +40,7 @@
                         <group>
                             <field name="company_id" invisible="1" />
                             <field name="date" />
+                            <field name="end_date" />
                             <field name="employee_id" />
                             <field name="production_config_id" />
                             <field name="amount" />
@@ -69,6 +70,7 @@
                                 <field name="rit_ids" >
                                     <tree string="DT Ritase" >
                                         <field name="date" />
+                                        <field name="ritase_order_id" />
                                         <field name="location_id" />
                                         <field name="vehicle_id" />
                                         <field name="driver_id" />
@@ -84,6 +86,7 @@
                                 <field name="hourmeter_ids" >
                                     <tree string="HE Hourmeter" >
                                         <field name="date" />
+                                        <field name="hourmeter_order_id" />
                                         <field name="location_id" />
                                         <field name="vehicle_id" />
                                         <field name="driver_id" />
@@ -99,6 +102,7 @@
                                 <field name="watertruck_ids" >
                                     <tree string="Water Truck Ritase" >
                                         <field name="date" />
+                                        <field name="order_id" />
                                         <field name="vehicle_id" />
                                         <field name="capacity" />
                                         <field name="driver_id" />
@@ -117,7 +121,7 @@
                                         <field name="tag_ids" widget="many2many_tags" />
                                         <field name="driver_id" />
                                         <field name="losstime_type" />
-                                        <field name="hour" />
+                                        <field name="hours" />
                                         <field name="state" />
                                     </tree>
                                 </field>

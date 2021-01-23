@@ -34,6 +34,7 @@ class ProductionCopAdjust(models.Model):
         default=lambda self: self.env['res.company']._company_default_get('production.order'),
         required=True)
     date = fields.Date('Date', help='', default=fields.Datetime.now, states=READONLY_STATES )
+    end_date = fields.Date('Date', help='', default=fields.Datetime.now, states=READONLY_STATES )
     employee_id	= fields.Many2one('hr.employee', string='Responsible', states=READONLY_STATES )
     production_config_id	= fields.Many2one('production.config', string='Production Config', default=_default_config, states=READONLY_STATES )
     cost_ids = fields.One2many('fleet.vehicle.cost', 'cop_adjust_id', 'Vehicle Costs', states=READONLY_STATES )
@@ -112,33 +113,33 @@ class ProductionCopAdjust(models.Model):
 
         RitaseCounter = self.env['production.ritase.counter'].sudo()
         # ritase_counter = RitaseCounter.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "ritase_order_id.state", "=", "done" ) ] )
-        ritase_counter = RitaseCounter.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
+        ritase_counter = RitaseCounter.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
         self.update({
             'rit_ids': [( 6, 0, ritase_counter.ids )],
         })
 
         HourmeterLog = self.env['production.vehicle.hourmeter.log'].sudo()
         # hourmeter_log = HourmeterLog.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "hourmeter_order_id.state", "=", "done" ) ] )
-        hourmeter_log = HourmeterLog.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
+        hourmeter_log = HourmeterLog.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
         self.update({
             'hourmeter_ids': [( 6, 0, hourmeter_log.ids )],
         })
 
         WaterTruck = self.env['production.watertruck.counter'].sudo()
         # watertrucks = WaterTruck.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "order_id.state", "=", "done" ) ] )
-        watertrucks = WaterTruck.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
+        watertrucks = WaterTruck.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ) , ( "state", "=", "draft" ) ] )
         self.update({
             'watertruck_ids': [( 6, 0, watertrucks.ids )],
         })
 
         CopTagLog = self.env['production.cop.tag.log'].sudo()
-        tag_log = CopTagLog.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
+        tag_log = CopTagLog.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
         self.update({
             'tag_log_ids': [( 6, 0, tag_log.ids )],
         })
 
         VehicleLosstime = self.env['fleet.vehicle.losstime'].sudo()
-        vehicle_losstime = VehicleLosstime.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
+        vehicle_losstime = VehicleLosstime.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
         self.update({
             'vehicle_losstime_ids': [( 6, 0, vehicle_losstime.ids )],
         })
@@ -157,7 +158,7 @@ class ProductionCopAdjust(models.Model):
         product_ids = self.env['product.product'].sudo(  ).search( [ ("id", "in", product_ids ) ] )
 
         ProductionOrder = self.env['production.order'].sudo()
-        production_orders = ProductionOrder.search( [ ( "date", "=", self.date ) ] )
+        production_orders = ProductionOrder.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ) ] )
         product_qty_dict = {}
         for production_order in production_orders :
             if product_qty_dict.get( production_order.product_id.id , False):
@@ -176,7 +177,7 @@ class ProductionCopAdjust(models.Model):
     def adjust_losstime(self):
         self.ensure_one()
         self.losstime_accumulation_ids.unlink()
-        vehicle_driver_dict = {}
+        vehicle_driver_date_dict = {}
         for vehicle_losstime_id in self.vehicle_losstime_ids:
             if vehicle_losstime_id.losstime_type not in ("slippery", "rainy"):
                 continue
@@ -197,71 +198,77 @@ class ProductionCopAdjust(models.Model):
                 minimal_cash = self.production_config_id.wt_minimal_cash
                 tag_id = self.production_config_id.wt_losstime_tag_id.id
 
-            if vehicle_driver_dict.get( vehicle_id , False):
-                vehicle_driver_dict[ vehicle_id ][ driver_id ] = {
-                        'date' : self.date,
-                        'losstime_type' : vehicle_losstime_id.losstime_type,
-                        'tag_id' : tag_id,
-                        'reference' : '',
-                        'amount' : minimal_cash
-                    }
+            temp = {
+                'date' : vehicle_losstime_id.date,
+                'losstime_type' : vehicle_losstime_id.losstime_type,
+                'tag_id' : tag_id,
+                'reference' : '',
+                'amount' : minimal_cash
+            }
+            if vehicle_driver_date_dict.get( vehicle_id , False):
+                if vehicle_driver_date_dict[ vehicle_id ].get( driver_id , False):
+                    if vehicle_driver_date_dict[ vehicle_id ][ driver_id ].get( temp['date'] , False):
+                        vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ temp['date'] ] = temp
+                    else :
+                        vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ temp['date'] ] = temp
+                else :
+                    vehicle_driver_date_dict[ vehicle_id ][ driver_id ] = {}
+                    vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ temp['date'] ] = temp
             else :
-                vehicle_driver_dict[ vehicle_id ] = {
-                    driver_id : {
-                        'date' : self.date,
-                        'losstime_type' : vehicle_losstime_id.losstime_type,
-                        'tag_id' : tag_id,
-                        'reference' : '',
-                        'amount' : minimal_cash
-                    }
-                }
+                vehicle_driver_date_dict[ vehicle_id ] = {}
+                vehicle_driver_date_dict[ vehicle_id ][ driver_id ] = {}
+                vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ temp['date'] ] = temp
         
         for rit_id in self.rit_ids:
             vehicle_id = rit_id.vehicle_id.id
             driver_id = rit_id.driver_id.id
-            if vehicle_driver_dict.get( vehicle_id , False):
-                if vehicle_driver_dict[ vehicle_id ].get( driver_id , False):
-                    if vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] - rit_id.amount >= 0 :
-                        vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] -= rit_id.amount
-                    else :
-                        vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] = 0
-                    vehicle_driver_dict[ vehicle_id ][ driver_id ]['reference'] = rit_id.ritase_order_id.name
+            if vehicle_driver_date_dict.get( vehicle_id , False):
+                if vehicle_driver_date_dict[ vehicle_id ].get( driver_id , False):
+                    if vehicle_driver_date_dict[ vehicle_id ][ driver_id ].get( rit_id.date , False):
+                        if vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ rit_id.date ]['amount'] - rit_id.amount >= 0 :
+                            vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ rit_id.date ]['amount'] -= rit_id.amount
+                        else :
+                            vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ rit_id.date ]['amount'] = 0
+                        vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ rit_id.date ]['reference'] += ','+rit_id.ritase_order_id.name
         
         for hourmeter_id in self.hourmeter_ids:
             vehicle_id = hourmeter_id.vehicle_id.id
             driver_id = hourmeter_id.driver_id.id
-            if vehicle_driver_dict.get( vehicle_id , False):
-                if vehicle_driver_dict[ vehicle_id ].get( driver_id , False):
-                    if vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] - hourmeter_id.amount >= 0 :
-                        vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] -= hourmeter_id.amount
-                    else :
-                        vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] = 0
-                    vehicle_driver_dict[ vehicle_id ][ driver_id ]['reference'] = hourmeter_id.hourmeter_order_id.name
+            if vehicle_driver_date_dict.get( vehicle_id , False):
+                if vehicle_driver_date_dict[ vehicle_id ].get( driver_id , False):
+                    if vehicle_driver_date_dict[ vehicle_id ][ driver_id ].get( hourmeter_id.date , False):
+                        if vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ hourmeter_id.date ]['amount'] - hourmeter_id.amount >= 0 :
+                            vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ hourmeter_id.date ]['amount'] -= hourmeter_id.amount
+                        else :
+                            vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ hourmeter_id.date ]['amount'] = 0
+                        vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ hourmeter_id.date ]['reference'] += ','+hourmeter_id.hourmeter_order_id.name
 
         for watertruck_id in self.watertruck_ids:
             vehicle_id = watertruck_id.vehicle_id.id
             driver_id = watertruck_id.driver_id.id
-            if vehicle_driver_dict.get( vehicle_id , False):
-                if vehicle_driver_dict[ vehicle_id ].get( driver_id , False):
-                    if vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] - watertruck_id.amount >= 0 :
-                        vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] -= watertruck_id.amount
-                    else :
-                        vehicle_driver_dict[ vehicle_id ][ driver_id ]['amount'] = 0
-                    vehicle_driver_dict[ vehicle_id ][ driver_id ]['reference'] = watertruck_id.order_id.name
+            if vehicle_driver_date_dict.get( vehicle_id , False):
+                if vehicle_driver_date_dict[ vehicle_id ].get( driver_id , False):
+                    if vehicle_driver_date_dict[ vehicle_id ][ driver_id ].get( watertruck_id.date , False):
+                        if vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ watertruck_id.date ]['amount'] - watertruck_id.amount >= 0 :
+                            vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ watertruck_id.date ]['amount'] -= watertruck_id.amount
+                        else :
+                            vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ watertruck_id.date ]['amount'] = 0
+                        vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ watertruck_id.date ]['reference'] += ','+watertruck_id.order_id.name
 
         LosstimeAccumulation = self.env['production.losstime.accumulation'].sudo()
-        for vehicle_id, driver in vehicle_driver_dict.items():
-            for driver_id, obj in driver.items():
-                LosstimeAccumulation.create({
-                    'cop_adjust_id' : self.id,
-                    'date' : obj['date'],
-                    'tag_id' : obj['tag_id'],
-                    'vehicle_id' : vehicle_id,
-                    'driver_id' : driver_id,
-                    'losstime_type' : obj['losstime_type'],
-                    'reference' : obj['reference'],
-                    'amount' : obj['amount'],
-                })
+        for vehicle_id, driver in vehicle_driver_date_dict.items():
+            for driver_id, date_obj in driver.items():
+                for date , obj in date_obj.items():
+                    LosstimeAccumulation.create({
+                        'cop_adjust_id' : self.id,
+                        'date' : obj['date'],
+                        'tag_id' : obj['tag_id'],
+                        'vehicle_id' : vehicle_id,
+                        'driver_id' : driver_id,
+                        'losstime_type' : obj['losstime_type'],
+                        'reference' : obj['reference'],
+                        'amount' : obj['amount'],
+                    })
         return
 
 
