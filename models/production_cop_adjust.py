@@ -105,7 +105,7 @@ class ProductionCopAdjust(models.Model):
     def _reload(self):
         self.ensure_one()
         VehicleCost = self.env['fleet.vehicle.cost'].sudo()
-        vehicle_costs = VehicleCost.search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ) ] )
+        vehicle_costs = VehicleCost.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
         vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs if vehicle_cost.cost_subtype_id.is_consumable ]
         self.update({
             'cost_ids': [( 6, 0, vehicle_costs_ids )],
