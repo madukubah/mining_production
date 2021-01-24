@@ -11,7 +11,7 @@
                 <field name="name" />
                 <field name="date" />
                 <!-- <field name="shift" /> -->
-                <field name="location_id" />
+                <!-- <field name="location_id" /> -->
                 <field name="employee_id" />
                 <field name="vehicle_id" />
                 <!-- <field name="driver_id" /> -->
