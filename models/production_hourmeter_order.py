@@ -31,7 +31,7 @@ class ProductionHourmeterOrder(models.Model):
 			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict" )
     vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
-    driver_id	= fields.Many2one('res.partner', string='Driver', required=True )
+    driver_id	= fields.Many2one('res.partner', string='Driver' )
 
     # start = fields.Float('Start Hour')
     # end = fields.Float('End Hour')
