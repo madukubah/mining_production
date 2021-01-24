@@ -41,7 +41,7 @@ class ProductionHourmeterOrder(models.Model):
     shift = fields.Selection([
         ( "1" , '1'),
         ( "2" , '2'),
-        ], string='Shift', index=True, required=True, states=READONLY_STATES )
+        ], default='1', string='Shift', index=True, required=True, states=READONLY_STATES )
     vehicle_hourmeter_log_ids = fields.One2many(
         'production.vehicle.hourmeter.log',
         'hourmeter_order_id',

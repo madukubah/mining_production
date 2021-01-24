@@ -43,12 +43,12 @@
                         </div>
                         <group>
                             <field name="date" />
-                            <field name="shift" />
+                            <field name="shift" invisible="1" />
                             <field name="location_id" />
                             <field name="employee_id" />
 
                             <field name="vehicle_id" />
-                            <field name="driver_id" />
+                            <field name="driver_id" invisible="1" />
 
                             <!-- <field name="start" />
                             <field name="end" />
