@@ -117,6 +117,7 @@ class ProductionVehicleHourmeterLog(models.Model):
         if not production_config :
             raise UserError(_('Please Set Configuration file') )
         return production_config[0]
+
     
     name = fields.Char(compute='_compute_name', store=True)
     production_config_id = fields.Many2one('production.config', string='Config', default=_default_config)
@@ -126,11 +127,14 @@ class ProductionVehicleHourmeterLog(models.Model):
     date = fields.Date('Date', help='', related="hourmeter_order_id.date", readonly=True, default=fields.Datetime.now, store=True )
     shift = fields.Selection( [
         ( "1" , '1'),
-        ( "2" , '2'),
-        ],related="hourmeter_order_id.shift",  string='Shift', index=True, required=True, store=True )
+        ( "2" , '2')],
+        # related="hourmeter_order_id.shift", 
+        # default=_default_shift,
+        string='Shift', index=True, required=True, store=True )
     location_id = fields.Many2one(
             'stock.location', 'Location',
-            related="hourmeter_order_id.location_id",
+            # default=hourmeter_order_id.location_id,
+            # related="hourmeter_order_id.location_id",
 			domain=[ ('usage','=',"internal")  ],
             store=True,
             ondelete="restrict" )
@@ -149,18 +153,29 @@ class ProductionVehicleHourmeterLog(models.Model):
     block_id = fields.Many2one('production.block', string='Block', ondelete="restrict")
 
     vehicle_id = fields.Many2one('fleet.vehicle',  string='Vehicle',  related="hourmeter_order_id.vehicle_id", required=True, store=True )
-    driver_id	= fields.Many2one('res.partner', string='Driver', related="hourmeter_order_id.driver_id", required=True, store=True )
+    driver_id	= fields.Many2one('res.partner', 
+                    string='Driver', 
+                    # default=hourmeter_order_id.driver_id,
+                    # related="hourmeter_order_id.driver_id", 
+                    required=True, store=True )
 
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
+
+
+    @api.onchange( 'hourmeter_order_id' )
+    def _change_hourmeter_order_id(self):
+        for record in self:
+            record.shift = record.hourmeter_order_id.shift
+            record.location_id = record.hourmeter_order_id.location_id
+            record.driver_id = record.hourmeter_order_id.driver_id
 
     @api.onchange( 'date' )
     def _set_date(self):
         for record in self:
             record.start_datetime = record.date
             record.end_datetime = record.date
-                
 
     @api.onchange('start_datetime', 'end_datetime')
     def _compute_minutes(self):
