@@ -10,11 +10,11 @@
             <tree string="Hourmeter List">
                 <field name="name" />
                 <field name="date" />
-                <field name="shift" />
+                <!-- <field name="shift" /> -->
                 <field name="location_id" />
                 <field name="employee_id" />
                 <field name="vehicle_id" />
-                <field name="driver_id" />
+                <!-- <field name="driver_id" /> -->
                 <!-- <field name="value" /> -->
                 <field name="state" />
             </tree>
