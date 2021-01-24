@@ -46,7 +46,7 @@ class ProductionHourmeterOrder(models.Model):
         'production.vehicle.hourmeter.log',
         'hourmeter_order_id',
         string='HE Hourmeter',
-        copy=True, states=READONLY_STATES )
+        copy=False, states=READONLY_STATES )
     state = fields.Selection( [
         ('draft', 'Draft'), 
         ('cancel', 'Cancelled'),
