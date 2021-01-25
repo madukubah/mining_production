@@ -20,3 +20,4 @@ from . import fleet
 from . import production_losstime_accumulation
 from . import production_dumptruck_performance
 from . import production_he_performance
+from . import production_batch

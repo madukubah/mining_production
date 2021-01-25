@@ -48,7 +48,7 @@
                         </group>
                         <notebook>
                             <page string="RIT" >
-                                <field name="counter_ids" >
+                                <field name="counter_ids" readonly="1" edit="0" >
                                     <tree string="RIT" >
                                         <field name="vehicle_id" />
                                         <field name="cost_code_id" />
@@ -60,7 +60,7 @@
                                 </field>
                             </page>
                             <page string="Logs" >
-                                <field name="log_ids" >
+                                <field name="log_ids" readonly="1" edit="0" >
                                     <tree string="Logs" >
                                         <field name="vehicle_id" />
                                         <field name="cost_code_id" />
@@ -68,8 +68,8 @@
                                     </tree>
                                 </field>
                             </page>
-                            <page string="Loss Time" >
-                                <field name="vehicle_losstime_ids" >
+                            <page string="Loss Time"  >
+                                <field name="vehicle_losstime_ids" readonly="1" edit="0" >
                                     <tree string="Loss Time" >
                                         <field name="vehicle_id" />
                                         <field name="losstime_type" />

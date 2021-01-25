@@ -48,17 +48,24 @@
                         </group>
                         <notebook>
                             <page string="Hourmeter Logs">
-                                <field name="log_ids">
+                                <field name="log_ids" readonly="1" edit="0" >
                                     <tree string="Hourmeter Logs" >
-                                        <field name="vehicle_id" />
+                                        <field name="shift" />
                                         <field name="cost_code_id" />
                                         <field name="location_id" />
-                                        <field name="value" operator="+" />
+                                        <field name="vehicle_id" />
+                                        <field name="driver_id" string="Operator" />
+                                        <field name="start_datetime" />
+                                        <field name="end_datetime" />
+                                        <field name="hours" />
+                                        <field name="start" />
+                                        <field name="end" />
+                                        <field name="value" />
                                     </tree>
                                 </field>
                             </page>
-                            <page string="Loss Time" >
-                                <field name="vehicle_losstime_ids" >
+                            <page string="Loss Time">
+                                <field name="vehicle_losstime_ids" readonly="1" edit="0" >
                                     <tree string="Loss Time" >
                                         <field name="vehicle_id" />
                                         <field name="losstime_type" />

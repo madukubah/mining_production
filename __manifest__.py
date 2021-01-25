@@ -32,7 +32,10 @@
         "views/production_block.xml",
         # "views/production_losstime.xml",
         "views/production_pit.xml",
+
+        "views/production_batch.xml",
         "views/production_order.xml",
+
         "views/procurement_views.xml",
         "views/production_cop_adjust.xml",
         "views/fleet_service_type.xml",

@@ -69,6 +69,11 @@ class ProductionDumptruckPerformance(models.Model):
 	def action_done(self):
 		for order in self:
 			order.write({'state': 'done'})
+	
+	@api.multi
+	def action_cancel(self):
+		for order in self:
+			order.write({'state': 'cancel'})
 
 	@api.multi
 	def action_confirm(self):

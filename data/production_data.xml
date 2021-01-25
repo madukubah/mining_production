@@ -38,6 +38,15 @@
             <field name="number_increment">1</field>
         </record>
 
+        <record id="sequence_production_batch" model="ir.sequence">
+            <field name="name">Production Batch</field>
+            <field name="code">production_batch</field>
+            <field name="prefix">PROD/BATCH/</field>
+            <field name="padding">4</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+
         <record id="sequence_production_cop_adjust" model="ir.sequence">
             <field name="name">Cop Adjust</field>
             <field name="code">cop_adjust</field>

@@ -51,6 +51,10 @@ class ProductionOrder(models.Model):
         'res.company', 'Company',
         default=lambda self: self.env['res.company']._company_default_get('production.order'),
         required=True)
+    production_batch_id = fields.Many2one(
+        'production.batch', 'Production Batch',
+        copy=False)
+
     production_config_id = fields.Many2one('production.config', string='Production Config', default=_default_config, states=READONLY_STATES )
     name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
     employee_id	= fields.Many2one('hr.employee', string='Grade Control', states=READONLY_STATES )
@@ -164,7 +168,7 @@ class ProductionOrder(models.Model):
     def action_confirm(self):
         for order in self:
             order._generate_moves()
-        self.state = 'confirm'
+            order.state = 'confirm'
 
     @api.multi
     def action_reload( self ):
@@ -174,68 +178,71 @@ class ProductionOrder(models.Model):
         self.update({
             'rit_ids': [( 6, 0, ritase_orders.ids )],
         })
-        # get dump truck
-        dumptruck_ids = []
-        for ritase_order in ritase_orders:
-            for counter in ritase_order.counter_ids:
-                if counter.vehicle_id.id not in dumptruck_ids :
-                    dumptruck_ids += [ counter.vehicle_id.id ]
-        
-        DumptruckPerformance = self.env['production.dumptruck.performance'].sudo()
-        for dumptruck_id in dumptruck_ids:
-            dumptruck_performances = DumptruckPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "=", dumptruck_id ) ] )
-            if not dumptruck_performances : 
-                DumptruckPerformance.create({
-                        "date" : self.date ,
-                        "end_date" : self.date ,
-                        "vehicle_id" : dumptruck_id ,
-                }).action_reload( )
-            else:
-                for x in dumptruck_performances :
-                    x.update( {
-                        "date" : self.date ,
-                        "end_date" : self.date ,
-                    } )
-                    x.action_reload() 
-               
-        dumptruck_performances = DumptruckPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "in", dumptruck_ids ) ] )
-        self.update({
-            'dumptruck_ids': [( 6, 0, dumptruck_performances.ids )],
-        })
-        # ========================
-        # get heavy equipment
-        he_ids = []
-        for ritase_order in ritase_orders:
-            for load_vehicle in ritase_order.load_vehicle_ids:
-                if load_vehicle.id not in he_ids :
-                    he_ids += [ load_vehicle.id ]
-            for pile_vehicle in ritase_order.pile_vehicle_ids:
-                if pile_vehicle.id not in he_ids :
-                    he_ids += [ pile_vehicle.id ]
-        
-        HEPerformance = self.env['production.he.performance'].sudo()
-        for he_id in he_ids:
-            he_performances = HEPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "=", he_id ) ] )
-            if not he_performances : 
-                HEPerformance.create({
-                        "date" : self.date ,
-                        "end_date" : self.date ,
-                        "vehicle_id" : he_id ,
-                }).action_reload( )
-            else:
-                for x in he_performances :
-                    x.update( {
-                        "date" : self.date ,
-                        "end_date" : self.date ,
-                    } )
-                    x.action_reload() 
-
-        he_performances = HEPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "in", he_ids ) ] )
-        self.update({
-            'he_ids': [( 6, 0, he_performances.ids )],
-        })
-
         return True
+
+        # # get dump truck
+        # dumptruck_ids = []
+        # for ritase_order in ritase_orders:
+        #     for counter in ritase_order.counter_ids:
+        #         if counter.vehicle_id.id not in dumptruck_ids :
+        #             dumptruck_ids += [ counter.vehicle_id.id ]
+        
+        # DumptruckPerformance = self.env['production.dumptruck.performance'].sudo()
+        # for dumptruck_id in dumptruck_ids:
+        #     dumptruck_performances = DumptruckPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "=", dumptruck_id ) ] )
+        #     if not dumptruck_performances : 
+        #         DumptruckPerformance.create({
+        #                 "date" : self.date ,
+        #                 "end_date" : self.date ,
+        #                 "vehicle_id" : dumptruck_id ,
+        #         }).action_reload( )
+        #     else:
+        #         for x in dumptruck_performances :
+        #             x.update( {
+        #                 "date" : self.date ,
+        #                 "end_date" : self.date ,
+        #             } )
+        #             x.action_reload() 
+               
+        # dumptruck_performances = DumptruckPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "in", dumptruck_ids ) ] )
+        # self.update({
+        #     'dumptruck_ids': [( 6, 0, dumptruck_performances.ids )],
+        # })
+        # # ========================
+        # # get heavy equipment
+        # he_ids = []
+        # for ritase_order in ritase_orders:
+        #     for load_vehicle in ritase_order.load_vehicle_ids:
+        #         if load_vehicle.id not in he_ids :
+        #             he_ids += [ load_vehicle.id ]
+        #     for pile_vehicle in ritase_order.pile_vehicle_ids:
+        #         if pile_vehicle.id not in he_ids :
+        #             he_ids += [ pile_vehicle.id ]
+        
+        # HEPerformance = self.env['production.he.performance'].sudo()
+        # for he_id in he_ids:
+        #     he_performances = HEPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "=", he_id ) ] )
+        #     if not he_performances : 
+        #         HEPerformance.create({
+        #                 "date" : self.date ,
+        #                 "end_date" : self.date ,
+        #                 "vehicle_id" : he_id ,
+        #         }).action_reload( )
+        #     else:
+        #         for x in he_performances :
+        #             x.update( {
+        #                 "date" : self.date ,
+        #                 "end_date" : self.date ,
+        #             } )
+        #             x.action_reload() 
+
+        # he_performances = HEPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "in", he_ids ) ] )
+        # self.update({
+        #     'he_ids': [( 6, 0, he_performances.ids )],
+        # })
+
+        # return True
+        
         # TODO : for cost analysis
         # counter_ids = []
         # for ritase_order in ritase_orders:
@@ -264,13 +271,14 @@ class ProductionOrder(models.Model):
             order.post_inventory()
             # order.action_reload()
             order.rit_ids.action_done()
-        self.state = 'done'
+            order.state = 'done'
 
     @api.multi
     def action_draft(self):
         # TODO : script to cancel move
-        self.action_cancel()
-        self.state = 'draft'
+        for order in self:
+            order.action_cancel()
+            order.state = 'draft'
 
     @api.multi
     def action_cancel(self):
@@ -281,7 +289,7 @@ class ProductionOrder(models.Model):
                     raise UserError(_('Unable to cancel order %s as some Stock have already Done.') % (order.name))
             moves = order.move_ids | order.move_ids.mapped('returned_move_ids')
             moves.filtered(lambda r: r.state != 'cancel').action_cancel()
-        self.state = 'cancel'
+            order.state = 'cancel'
 
     @api.multi
     def unlink(self):

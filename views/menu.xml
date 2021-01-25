@@ -56,6 +56,13 @@
         <field name="view_mode">tree,form</field>
     </record>
 
+    <record model="ir.actions.act_window" id="action_production_batch">
+        <field name="name">Production Batch</field>
+        <field name="res_model">production.batch</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
     <record model="ir.actions.act_window" id="action_production_cop_adjust">
         <field name="name">COP Adjustment</field>
         <field name="res_model">production.cop.adjust</field>
@@ -100,15 +107,21 @@
 
     <menuitem id="mining_production_top" name="Production" sequence="2" web_icon="mining_production,static/description/icon.png" />
         
-
         <menuitem id="production" name="Production" sequence="1" 
                 parent="mining_production_top"/>
+
+            <menuitem name="Production Batch"
+                id="production_batch"
+                parent="production" 
+                action="action_production_batch"
+                sequence= "1"
+                />
 
             <menuitem name="Production Order"
                 id="production_order"
                 parent="production" 
                 action="action_production_order"
-                sequence= "1"
+                sequence= "2"
                 />
             
             <menuitem name="Vehicles Logs"

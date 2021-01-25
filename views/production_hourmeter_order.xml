@@ -64,10 +64,8 @@
                                         <field name="name" invisible="1" />
                                         <field name="date" invisible="1" />
                                         <field name="amount" invisible="1" />
-                                        <!-- <field name="shift" /> -->
+                                        <field name="shift" />
                                         <field name="cost_code_id" />
-                                        <!-- <field name="cost_code_ids" /> -->
-                                        <!-- <field name="block_id" /> -->
                                         <field name="location_id" />
                                         <field name="vehicle_id" />
                                         <field name="driver_id" string="Operator" />

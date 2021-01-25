@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="production_order_list" model="ir.ui.view">
-        <field name="name">production.order.list</field>
-        <field name="model">production.order</field>
+    <record id="production_batch_list" model="ir.ui.view">
+        <field name="name">production.batch.list</field>
+        <field name="model">production.batch</field>
         <field name="type">tree</field>
         <field name="priority" eval="8"/>
         <field name="arch" type="xml">
@@ -11,18 +11,14 @@
                 <field name="name" />
                 <field name="date" />
                 <field name="pit_id" />
-                <field name="product_id" />
-                <field name="product_qty" />
-                <field name="product_uom_id" />
                 <field name="state" />
-                <field name="active" invisible="1" />
             </tree>
         </field>
     </record>
 
-    <record id="view_production_order_form" model="ir.ui.view">
-            <field name="name">production.order.form</field>
-            <field name="model">production.order</field>
+    <record id="view_production_batch_form" model="ir.ui.view">
+            <field name="name">production.batch.form</field>
+            <field name="model">production.batch</field>
             <field name="priority">1</field>
             <field name="arch" type="xml">
                 <form string="Production Order">
@@ -35,12 +31,6 @@
                         <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done"/>
                     </header>
                     <sheet>
-                        <div class="oe_button_box" name="button_box">
-                            <!-- <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
-                                <field name="active" widget="boolean_button" options='{"terminology": "archive"}'/>
-                            </button> -->
-                            <button name="%(action_production_order_moves)d" type="action" string="Inventory Moves" class="oe_stat_button" icon="fa-arrows-v" attrs="{'invisible': [('state', 'not in', ('confirm', 'done'))]}"/>
-                        </div>
                         <div class="oe_title">
                             <label for="name" class="oe_edit_only" string="Name" ></label>
                             <h1>
@@ -49,44 +39,29 @@
                         </div>
                         <group>
                             <group>
-                                <field name="active" invisible="1"/>
-                                <field name="has_moves" invisible="1"/>
-                                <field name="product_id" attrs="{'readonly': [('has_moves', '=', True)]}" />
-                                <field name="product_tmpl_id" invisible="1"/>
-                                <label for="product_qty"/>
-                                <div class="o_row">
-                                    <field name="product_qty" attrs="{'readonly': [('has_moves', '=', True)]}"/>
-                                    <field name="product_uom_id" options="{'no_open':True,'no_create':True}" attrs="{'readonly': [('has_moves', '=', True)]}"/>
-                                </div>
-                                <field name="shift" invisible="1" />
-                                <field name="cost_code_id" invisible="1" />
-                                <field name="picking_type_id" domain="[('code', '=', 'mining_production')]" attrs="{'readonly': [('has_moves', '=', True)]}"/>
                                 <field name="user_id" invisible="1" />
-                                <field name="production_config_id" invisible="1" />
-                            </group>
-                            <group>
                                 <field name="date" />
                                 <field name="employee_id" />
+                                <field name="product_ids" widget="many2many_tags" />
                                 <field name="pit_id" />
                                 <field name="location_id" />
                             </group>
                         </group>
+                        <separator string="Production Orders"/>
+                        <field name="production_order_ids" readonly="1" edit="0" decoration-muted="state=='done'" >
+                            <tree string="Production Orders" >
+                                <field name="name" />
+                                <field name="date" />
+                                <field name="pit_id" />
+                                <field name="product_id" />
+                                <field name="product_qty" />
+                                <field name="product_uom_id" />
+                                <field name="state" />
+                            </tree>
+                        </field>
+                        <separator string="Performance"/>
                         <notebook>
-                            <page string="Ritase Orders" >
-                                <field name="rit_ids" readonly="1" edit="0" decoration-muted="state=='done'" >
-                                    <tree string="Ritase Orders" >
-                                        <field name="name" />
-                                        <field name="date" />
-                                        <field name="location_id" />
-                                        <field name="location_dest_id" />
-                                        <field name="product_id" />
-                                        <field name="ritase_count" />
-                                        <field name="product_uom" />
-                                        <field name="state" />
-                                    </tree>
-                                </field>
-                            </page>
-                            <!-- <page string="Dump Truck Performance" >
+                            <page string="Dump Truck Performance" >
                                 <field name="dumptruck_ids" readonly="1" edit="0" decoration-muted="state=='done'" >
                                     <tree string="Dump Truck Performance" >
                                         <field name="date" />
@@ -111,27 +86,9 @@
                                         <field name="state" invisible="1" />
                                     </tree>
                                 </field>
-                            </page> -->
-                            <page string="Finished Products">
-                                <field name="move_ids" options="{'reload_on_button': True}" >
-                                    <tree editable="bottom" delete="0" default_order="is_done desc,sequence" decoration-muted="is_done" decoration-warning="quantity_done&gt;product_uom_qty" decoration-success="quantity_done==product_uom_qty" create="0" edit="0">
-                                        <field name="product_id" required="1"/>
-                                        <field name="product_uom" groups="product.group_uom"/>
-                                        <field name="is_done" invisible="1"/>
-                                        <field name="sequence" invisible="1"/>
-                                        <field name="has_tracking" invisible="1"/>
-                                        <field name="location_id" domain="[('id', 'child_of', parent.location_id)]" invisible="1"/>
-                                        <field name="location_dest_id" domain="[('id', 'child_of', parent.location_dest_id)]" invisible="1"/>
-                                        <field name="state" invisible="1"/>
-                                        <field name="product_uom_qty" readonly="1" attrs="{'required': [('product_id', '!=', False)]}" string="To Produce"/>
-                                        <field name="quantity_done" attrs="{'readonly': ['|', ('is_done', '=', True), ('has_tracking', 'in', ['lot','serial'])]}" string="Produced"/>
-                                        <button name="mining_split_move_lot" string="Register lots" type="object" icon="fa-list"
-                                            attrs="{'invisible': [('has_tracking', 'not in', ['lot','serial'])]}"/>
-                                    </tree>
-                                </field>
                             </page>
                         </notebook>
-                        <!-- <separator string="Cost Analisys"/>
+                        <separator string="Cost Analisys"/>
                         <group>
                             <field name="total_amount" />
                         </group>
@@ -142,6 +99,8 @@
                                         <field name="date" />
                                         <field name="vehicle_id" />
                                         <field name="cost_subtype_id" />
+                                        <field name="product_uom_qty" />
+                                        <field name="price_unit" />
                                         <field name="amount" />
                                         <field name="state" />
                                     </tree>
@@ -166,6 +125,7 @@
                                     <tree string="HE Hourmeter" >
                                         <field name="date" />
                                         <field name="location_id" />
+                                        <field name="cost_code_id" />
                                         <field name="vehicle_id" />
                                         <field name="driver_id" />
                                         <field name="hours" />
@@ -175,7 +135,7 @@
                                     </tree>
                                 </field>
                             </page>
-                        </notebook> -->
+                        </notebook>
                     </sheet>
                     <div class="oe_chatter">
                         <field name="message_follower_ids" widget="mail_followers"/>
