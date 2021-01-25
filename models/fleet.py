@@ -31,6 +31,7 @@ class FleetServiceType(models.Model):
         
 class FleetVehicleLogServices(models.Model):
     _inherit = 'fleet.vehicle.log.services'
+    _order = 'date desc'
     
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
     product_uom_qty = fields.Integer( related='cost_id.product_uom_qty', string="Quantity", copy=True, default=1)
@@ -52,6 +53,7 @@ class FleetVehicleLogServices(models.Model):
 
 class FleetVehicleCost(models.Model):
     _inherit = 'fleet.vehicle.cost'
+    _order = 'date desc'
 
     @api.model
     def _default_config(self):
@@ -135,6 +137,7 @@ class FleetVehicleLosstime(models.Model):
 
 class FleetVehicleLogFuel(models.Model):
     _inherit = 'fleet.vehicle.log.fuel'
+    _order = 'date desc'
 
     @api.model
     def _default_config(self):
