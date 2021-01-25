@@ -27,7 +27,7 @@
                         <button name="action_reload" string="Reload" type="object" class="btn-primary" groups="mining_production.production_group_manager" attrs="{'invisible': [('state', 'in', ('done', 'confirm', 'cancel'))]}" />
                         <button name="action_confirm" string="Confirm" type="object" states="draft" class="btn-primary" groups="mining_production.production_group_manager" />
                         <button name="action_settle" string="Settle" type="object" states="confirm" class="btn-primary" groups="mining_production.production_group_manager" />
-                        <button name="action_cancel" states="draft,confirm,done" string="Cancel" type="object" groups="mining_production.production_group_manager" />
+                        <button name="action_cancel" states="draft,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" />
                         <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done" readonly="1"  />
                     </header>
                     <sheet>
@@ -60,6 +60,8 @@
                                         <field name="date" />
                                         <field name="vehicle_id" />
                                         <field name="cost_subtype_id" />
+                                        <field name="product_uom_qty" />
+                                        <field name="price_unit" />
                                         <field name="amount" />
                                         <field name="state" />
                                     </tree>
@@ -148,6 +150,8 @@
                                 <field name="date" />
                                 <field name="location_id" />
                                 <field name="tag_id" />
+                                <field name="product_uom_qty" />
+                                <field name="price_unit" />
                                 <field name="amount" />
                                 <field name="remarks" />
                                 <field name="state" />

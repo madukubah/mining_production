@@ -86,6 +86,7 @@ class ProductionHourmeterOrder(models.Model):
                     'vehicle_id' : hourmeter_log.vehicle_id.id,
                     'start' : hourmeter_log.start,
                     'end' : hourmeter_log.end,
+                    'remarks' : hourmeter_log.cost_code_id.name if hourmeter_log.cost_code_id else " " ,
                 })
                 hourmeter_log.write({ 'hourmeter_id' : hourmeter.id })
                 # hourmeter_log.post()

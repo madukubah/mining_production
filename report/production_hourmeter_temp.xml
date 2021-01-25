@@ -2,7 +2,7 @@
 <odoo>
     <template id="production_hourmeter_temp">
         <t t-call="report.external_layout">
-            <div class="page">
+            <div class="page" style="font-size: 8px !important;" >
                 <div class="oe_structure">
                     <t t-if="type == 'detail'" >
                         <div class="row">
@@ -30,6 +30,11 @@
                                         <th class="text-center">Date</th>
                                         <th class="text-center">Operator</th>
                                         <th class="text-center">Heavy Equipment</th>
+                                        <th class="text-center">Cost Code</th>
+                                        <th class="text-center">Start Time</th>
+                                        <th class="text-center">End Time</th>
+                                        <th class="text-center">Start Hourmeter</th>
+                                        <th class="text-center">End Hourmeter</th>
                                         <th class="text-center">Hourmeter</th>
                                         <!-- <th class="text-center">Amount</th> -->
                                     </tr>
@@ -47,6 +52,21 @@
                                         </td>
                                         <td class="text-center">
                                             <span t-esc="line['vehicle_name']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['cost_code']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['start_datetime']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['end_datetime']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['start']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['end']"/>
                                         </td>
                                         <td class="text-center">
                                             <span t-esc="'{:,}'.format(line['hourmeter_value'])"/>
@@ -108,6 +128,11 @@
                                             <th class="text-center">Date</th>
                                             <th class="text-center">Driver</th>
                                             <th class="text-center">Heavy Equipment</th>
+                                            <th class="text-center">Cost Code</th>
+                                            <th class="text-center">Start Time</th>
+                                            <th class="text-center">End Time</th>
+                                            <th class="text-center">Start Hourmeter</th>
+                                            <th class="text-center">End Hourmeter</th>
                                             <th class="text-center">Hourmeter</th>
                                             <!-- <th class="text-center">Amount</th> -->
                                         </tr>
@@ -125,6 +150,21 @@
                                             </td>
                                             <td class="text-center">
                                                 <span t-esc="line['vehicle_name']"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <span t-esc="line['cost_code']"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <span t-esc="line['start_datetime']"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <span t-esc="line['end_datetime']"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <span t-esc="line['start']"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <span t-esc="line['end']"/>
                                             </td>
                                             <td class="text-center">
                                                 <span t-esc="'{:,}'.format(line['hourmeter_value'])"/>
@@ -188,6 +228,11 @@
                                         <th class="text-center">Document</th>
                                         <th class="text-center">Date</th>
                                         <th class="text-center">Heavy Equipment</th>
+                                        <th class="text-center">Cost Code</th>
+                                        <th class="text-center">Start Time</th>
+                                        <th class="text-center">End Time</th>
+                                        <th class="text-center">Start Hourmeter</th>
+                                        <th class="text-center">End Hourmeter</th>
                                         <th class="text-center">Hourmeter</th>
                                         <!-- <th class="text-center">Amount</th> -->
                                     </tr>
@@ -202,6 +247,21 @@
                                         </td>
                                         <td class="text-center">
                                             <span t-esc="line['vehicle_name']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['cost_code']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['start_datetime']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['end_datetime']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['start']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="line['end']"/>
                                         </td>
                                         <td class="text-center">
                                             <span t-esc="'{:,}'.format(line['hourmeter_value'])"/>

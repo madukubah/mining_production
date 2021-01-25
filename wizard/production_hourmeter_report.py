@@ -18,19 +18,29 @@ class ProductionHourmeterReport(models.TransientModel):
 
     @api.multi
     def action_print(self):
-        hourmeter_logs = self.env['production.vehicle.hourmeter.log'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "posted" ) ])
+        hourmeter_logs = self.env['production.vehicle.hourmeter.log'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "posted" ) ], order="start_datetime asc")
         rows = []
         for hourmeter_log in hourmeter_logs:
             temp = {}
             temp["doc_name"] = hourmeter_log.hourmeter_order_id.name
             temp["name"] = hourmeter_log.name
+            temp["cost_code"] = hourmeter_log.cost_code_id.name if hourmeter_log.cost_code_id else " "
             temp["date"] = hourmeter_log.date
             temp["location_name"] = hourmeter_log.location_id.name
             temp["vehicle_name"] = hourmeter_log.vehicle_id.name
             temp["driver_name"] = hourmeter_log.driver_id.name
+
+            temp["start_datetime"] = hourmeter_log.start_datetime
+            temp["end_datetime"] = hourmeter_log.end_datetime
+            temp["hours"] = hourmeter_log.hours
+
+            temp["start"] = hourmeter_log.start
+            temp["end"] = hourmeter_log.end
             temp["hourmeter_value"] = hourmeter_log.value
+
             temp["amount"] = hourmeter_log.amount
             rows.append(temp)
+
         final_dict = {}
         if self.type == 'detail' :
             final_dict["rows"] = rows

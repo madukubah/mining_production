@@ -100,6 +100,7 @@ class FleetVehicleCost(models.Model):
         for record in self:
             self.env['fleet.vehicle.log.fuel'].sudo().create({
                     'cost_id' : record.id,
+                    'date' : record.date,
                     'vehicle_id' : record.vehicle_id.id,
                     'cost_subtype_id' : record.cost_subtype_id.id,
                     'liter' : record.product_uom_qty,
