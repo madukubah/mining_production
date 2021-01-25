@@ -53,6 +53,7 @@ class ProductionCopTag(models.Model):
 class ProductionCopTagLog(models.Model):
     _name = "production.cop.tag.log"
     _inherit = ['mail.thread', 'ir.needaction_mixin']
+    _order = 'date desc'
     
     READONLY_STATES = {
         'draft': [('readonly', False)],
