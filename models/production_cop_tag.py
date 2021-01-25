@@ -70,6 +70,8 @@ class ProductionCopTagLog(models.Model):
     product_uom_qty = fields.Integer( string="Quantity", required=True, default=1)
     price_unit = fields.Float( string="Price Unit", required=True, default=1)
     amount = fields.Float( string='Amount', compute="_compute_amount", required=True,states=READONLY_STATES )
+    remarks = fields.Char( string='Remarks', states=READONLY_STATES )
+
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
 
