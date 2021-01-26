@@ -7,11 +7,11 @@
         <field name="type">tree</field>
         <field name="priority" eval="8"/>
         <field name="arch" type="xml">
-            <tree string="Operation Template List">
+            <tree string="Cop Tag List">
                 <field name="date" />
                 <field name="location_id" />
                 <field name="tag_id" />
-                <field name="amount" />
+                <field name="amount" sum="Total Amount"/>
                 <field name="remarks" />
                 <field name="state" />
             </tree>
@@ -23,7 +23,7 @@
             <field name="model">production.cop.tag.log</field>
             <field name="priority">1</field>
             <field name="arch" type="xml">
-                <form string="Operation Template">
+                <form string="Cop Tag">
                     <header>
                         <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
                     </header>

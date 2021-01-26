@@ -54,6 +54,13 @@ class ProductionHourmeterOrder(models.Model):
         ('done', 'Done'),
         ], string='Status', readonly=True, copy=False, index=True, track_visibility='onchange', default='draft')
 
+    @api.multi
+    def unlink(self):
+        for order in self:
+            if order.state in ['confirm', "done"] :
+                raise UserError(_('Cannot delete  order which is in state \'%s\'.') %(order.state,))
+        return super(ProductionHourmeterOrder, self).unlink()
+
     @api.depends('start', 'end')
     def _compute_value(self):
         for record in self:
@@ -80,6 +87,7 @@ class ProductionHourmeterOrder(models.Model):
     def action_done(self):
         for order in self:
             for hourmeter_log in order.vehicle_hourmeter_log_ids:
+                hourmeter_log._compute_amount()
                 Hourmeter = self.env['fleet.vehicle.hourmeter'].sudo()
                 hourmeter = Hourmeter.create({
                     'date' : hourmeter_log.date,
@@ -123,7 +131,7 @@ class ProductionVehicleHourmeterLog(models.Model):
     name = fields.Char(compute='_compute_name', store=True)
     production_config_id = fields.Many2one('production.config', string='Config', default=_default_config)
 
-    hourmeter_order_id = fields.Many2one("production.hourmeter.order", string="Hourmeter Order", ondelete="restrict" )
+    hourmeter_order_id = fields.Many2one("production.hourmeter.order", string="Hourmeter Order", ondelete="cascade" )
     hourmeter_id = fields.Many2one('fleet.vehicle.hourmeter', 'Hourmeter', help='Odometer measure of the vehicle at the moment of this log')
     date = fields.Date('Date', help='', related="hourmeter_order_id.date", readonly=True, default=fields.Datetime.now, store=True )
     shift = fields.Selection( [
@@ -219,7 +227,8 @@ class ProductionVehicleHourmeterLog(models.Model):
     def _compute_amount(self):
         for record in self:
             # for employee commisions we using world clock house
-            record.amount = record.hours * record.production_config_id.hm_price_unit
+            # record.amount = record.hours * record.production_config_id.hm_price_unit
+            record.amount = record.value * record.production_config_id.hm_price_unit
 
     @api.multi
     def post(self):
@@ -241,3 +250,5 @@ class ProductionVehicleHourmeterLog(models.Model):
                         'state' : 'posted',
                     })
                 record.write({'state' : 'posted' })
+            else :
+                raise UserError(_('Hourmeter Error') )

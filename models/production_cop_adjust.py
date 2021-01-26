@@ -36,7 +36,8 @@ class ProductionCopAdjust(models.Model):
     date = fields.Date('Date', help='', default=fields.Datetime.now, states=READONLY_STATES )
     end_date = fields.Date('Date', help='', default=fields.Datetime.now, states=READONLY_STATES )
     employee_id	= fields.Many2one('hr.employee', string='Responsible', states=READONLY_STATES )
-    production_config_id	= fields.Many2one('production.config', string='Production Config', default=_default_config, states=READONLY_STATES )
+    production_config_id = fields.Many2one('production.config', string='Production Config', default=_default_config, required=True, states=READONLY_STATES )
+
     cost_ids = fields.One2many('fleet.vehicle.cost', 'cop_adjust_id', 'Vehicle Costs', states=READONLY_STATES )
     rit_ids = fields.One2many('production.ritase.counter', 'cop_adjust_id', 'Ritase Costs', states=READONLY_STATES )
     hourmeter_ids = fields.One2many('production.vehicle.hourmeter.log', 'cop_adjust_id', 'Hourmeter Costs', states=READONLY_STATES )
@@ -149,12 +150,8 @@ class ProductionCopAdjust(models.Model):
         return True
     
     def get_produced_item(self):
-        ProductionConfig = self.env['production.config'].sudo()
-        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
-        if not production_config :
-            raise UserError(_('Please Set Configuration file') )
-        product_ids = [ x.id for x in production_config[0].product_ids ]
-        _logger.warning( product_ids )
+        self.ensure_one()
+        product_ids = [ x.id for x in self.production_config_id.product_ids ]
         product_ids = self.env['product.product'].sudo(  ).search( [ ("id", "in", product_ids ) ] )
 
         ProductionOrder = self.env['production.order'].sudo()
@@ -403,6 +400,7 @@ class ProductionCopAdjust(models.Model):
         for move_line in move_lines:
             debit_amount += move_line[2]["credit"]
 
+        #ORE
         product = production_config.lot_id.product_id
         debit_line_vals = {
             'name': self.name,
@@ -422,18 +420,27 @@ class ProductionCopAdjust(models.Model):
             new_account_move = AccountMove.create({
                 'journal_id': journal_id,
                 'line_ids': move_lines,
-                'date': date,
+                'date': self.date,
                 'ref': self.name})
             new_account_move.post()
 
+        self._account_move_accrued()
+
         product_qty = product.qty_available
-        # product_qty += self.get_qty_by_rit_product( except_prduct_id=product.id )
         # avoid division by zero
         if product_qty > 0 :
             amount_unit = product.standard_price
             not_consumable_cost = self._compute_not_consumable_cost()
             new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty + self.get_qty_by_rit_product( except_prduct_id=product.id ) )
+            # new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty )
+            # set standart price
+            counterpart_account_id = product.property_account_expense_id or product.categ_id.property_account_expense_categ_id
+            if not counterpart_account_id :
+                raise UserError(_('Please Set Expenses Account for \'%s\'.') %(product.name,))
+            # product.do_change_standard_price( new_std_price , counterpart_account_id.id )
             product.with_context(force_company=self.company_id.id).sudo().write({ 'standard_price': new_std_price })
+
+            # return True
             #TODO : adjust stock ore account value with inventory value
             inventory_value = product.standard_price * product_qty
             tables = 'account_move_line'
@@ -448,13 +455,12 @@ class ProductionCopAdjust(models.Model):
 
             if diff != 0 :
                 move_lines = []
-                credit_account_id = production_config.cop_cost_credit_account_id.id
                 move_lines += [(0, 0, {
                         'name': self.name,
                         'ref': self.name,
                         'credit': abs(diff) if diff > 0 else 0,
                         'debit':  abs(diff) if diff < 0 else 0,
-                        'account_id': credit_account_id,
+                        'account_id': counterpart_account_id.id,
                     })]
                 move_lines += [(0, 0, {
                         'name': self.name,
@@ -471,7 +477,7 @@ class ProductionCopAdjust(models.Model):
                 new_account_move = AccountMove.create({
                     'journal_id': journal_id,
                     'line_ids': move_lines,
-                    'date': date,
+                    'date': self.date,
                     'ref': self.name})
                 new_account_move.post()
 
@@ -492,38 +498,76 @@ class ProductionCopAdjust(models.Model):
 
     def get_qty_by_rit_product( self, except_prduct_id ):
         self.ensure_one()
-        product_dict = {}
         qty = 0
-        for rit in self.rit_ids:
-            product = rit.ritase_order_id.product_id
-            # _logger.warning( product )
-            # _logger.warning( product.qty_available )
-            if except_prduct_id == product.id :
-                continue
-            if product_dict.get( product.id , False):
-                continue
-                    # product_dict[ product.id ]['qty'] = product.qty_available
-            else : 
-                product_dict[ product.id ] = product.qty_available
-                #  {
-                #     'qty' : product.qty_available,
-                # }
-                # _logger.warning( product.qty_available )
-                qty += product.qty_available
+        qty = sum( [ x.qty_available for x in self.production_config_id.product_ids if x.id != except_prduct_id ] )
         return qty
             
-    def _compute_not_consumable_cost(self):
+    def _account_move_accrued(self):
+        self.ensure_one()
+        production_config = self.production_config_id
+        if not production_config :
+            raise UserError(_('Please Set Default Configuration file') )
+        if not production_config.lot_id :
+            raise UserError(_('Please Set Default Lot Product Configuration file') )
+        if not production_config.cop_cost_credit_account_id :
+            raise UserError(_('Please Set COP Cost Credit Account in Configuration file') )
+        
+        #ORE
+        product = production_config.lot_id.product_id
+
+        # sum_rit_hm_wt_loss = self._compute_rit_hm_wt_loss_cost( )
+        sum_rit_hm_wt_loss = self._compute_not_consumable_cost( )
+        move_lines = []
+
+        journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation( production_config.lot_id.product_id )
+        # accrued gaji
+        credit_account_id = production_config.cop_cost_credit_account_id.id
+
+        AccountMove = self.env['account.move'].sudo()
+        move_lines += [(0, 0, {
+                'name': self.name,
+                'ref': self.name,
+                'credit': abs(sum_rit_hm_wt_loss) if sum_rit_hm_wt_loss > 0 else 0,
+                'debit':  abs(sum_rit_hm_wt_loss) if sum_rit_hm_wt_loss < 0 else 0,
+                'account_id': credit_account_id,
+            })]
+        move_lines += [(0, 0, {
+                'name': self.name,
+                'product_id': product.id,
+                'quantity': 0,
+                'product_uom_id': product.uom_id.id,
+                'ref': self.name,
+                'partner_id': False,
+                'credit': abs(sum_rit_hm_wt_loss) if sum_rit_hm_wt_loss < 0 else 0,
+                'debit':  abs(sum_rit_hm_wt_loss) if sum_rit_hm_wt_loss > 0 else 0,
+                'account_id': acc_valuation,
+            })]
+        new_account_move = AccountMove.create({
+            'journal_id': journal_id,
+            'line_ids': move_lines,
+            'date': self.date,
+            'ref': self.name})
+        new_account_move.post()
+        
+
+    def _compute_rit_hm_wt_loss_cost(self):
+        self.ensure_one()
         sum_rit = sum( [ rit.amount for rit in self.rit_ids ] )
         sum_hm = sum( [ hourmeter.amount for hourmeter in self.hourmeter_ids ] )
         sum_watertruck = sum( [ watertruck.amount for watertruck in self.watertruck_ids ] )
 
         sum_losstime_accumulation = sum( [ losstime_accumulation_id.amount for losstime_accumulation_id in self.losstime_accumulation_ids ] )
+        return sum_hm + sum_rit + sum_watertruck + sum_losstime_accumulation
+
+    def _compute_not_consumable_cost(self):
+        self.ensure_one()
+        sum_rit_hm_wt_loss = self._compute_rit_hm_wt_loss_cost( )
         # except VEHICLE COST and COP TAG COST that have comsumable products
         # because it already compute in stock move ( stock interim cost )
         sum_cop_tag = sum( [ tag_log.amount for tag_log in self.tag_log_ids if not ( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) ] )
         sum_vehicle_cost = sum( [ cost.amount for cost in self.cost_ids if not ( cost.cost_subtype_id.is_consumable and cost.cost_subtype_id.product_id ) ] )
 
-        return sum_hm + sum_rit + sum_watertruck + sum_cop_tag + sum_vehicle_cost + sum_losstime_accumulation
+        return sum_cop_tag + sum_vehicle_cost + sum_rit_hm_wt_loss
 
     @api.multi
     def _get_accounting_data_for_valuation(self, product_id):

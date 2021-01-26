@@ -53,6 +53,13 @@
                             </tree>
                         </field>
                         <separator string="Summary"/>
+                        <group>
+                            <field name="sum_vehicle_cost" />
+                            <field name="sum_rit" />
+                            <field name="sum_hm" />
+                            <field name="sum_watertruck" />
+                            <field name="sum_losstime_accumulation" />
+                        </group>
                         <notebook>
                             <page string="Vehicle Costs">
                                 <field name="cost_ids" >
@@ -66,7 +73,6 @@
                                         <field name="state" />
                                     </tree>
                                 </field>
-                                <!-- <field name="sum_vehicle_cost" string="Total" /> -->
                             </page>
                             <page string="DT Ritase">
                                 <field name="rit_ids" >
@@ -82,7 +88,6 @@
                                         <field name="state" />
                                     </tree>
                                 </field>
-                                <!-- <field name="sum_rit" string="Total" /> -->
                             </page>
                             <page string="HE Hourmeter">
                                 <field name="hourmeter_ids" >
@@ -98,7 +103,6 @@
                                         <field name="state" />
                                     </tree>
                                 </field>
-                                <!-- <field name="sum_hm" string="Total" /> -->
                             </page>
                             <page string="Water Truck Ritase">
                                 <field name="watertruck_ids" >
@@ -113,7 +117,6 @@
                                         <field name="state" />
                                     </tree>
                                 </field>
-                                <!-- <field name="sum_hm" string="Total" /> -->
                             </page>
                             <page string="Vehicle Losstime">
                                 <field name="vehicle_losstime_ids" >
@@ -140,7 +143,6 @@
                                         <field name="state" />
                                     </tree>
                                 </field>
-                                <!-- <field name="sum_losstime_accumulation" string="Total" /> -->
                             </page>
                         </notebook>
                         <separator string="COP Tagging"/>

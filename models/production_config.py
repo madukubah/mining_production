@@ -63,3 +63,7 @@ class ProductionConfig( models.Model ):
 
         res = super(ProductionConfig, self ).create(values)
         return res
+    
+    @api.multi
+    def unlink(self):
+        raise UserError(_("Cannot Delete Data, Please Archive It ") )

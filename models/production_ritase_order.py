@@ -124,13 +124,6 @@ class ProductionRitaseOrder(models.Model):
         (_check_ritase_count, 'Ritase by Lot and Ritase by DT Must Be Same!', ['counter_ids','lot_move_ids'] ) 
         ]
 	
-	# @api.multi
-	# def write(self, values):
-	# 	for order in self:
-	# 		if order._check_ritase_count() :
-	# 			raise UserError(_('Ritase by Lot and Ritase by DT Must Be Same!.'))
-	# 	return super(ProductionRitaseOrder, self).write(values)
-
 	@api.multi
 	def unlink(self):
 		for order in self:
@@ -339,7 +332,7 @@ class RitaseCounter(models.Model):
 	_inherits = {'production.operation.template': 'operation_template_id'}
 	_order = 'driver_id asc ,date asc'
 
-	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="restrict" )
+	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="cascade" )
 	product_id = fields.Many2one("product.product", string="Material", related="ritase_order_id.product_id", ondelete="restrict" )
 	location_id = fields.Many2one(
             'stock.location', 'Location',
@@ -394,10 +387,6 @@ class RitaseCounter(models.Model):
 			start = datetime.datetime.strptime(record.start_datetime , '%Y-%m-%d %H:%M:%S')
 			end = datetime.datetime.strptime(record.end_datetime , '%Y-%m-%d %H:%M:%S')
 			for i in range( record.ritase_count - 1 ) :
-				_logger.warning( record.vehicle_id.name )
-				_logger.warning( start )
-				_logger.warning( interval )
-				_logger.warning( start + datetime.timedelta( 0, interval ) )
 				self.env['production.ritase.log'].create({
 					"counter_id" : record.id ,
 					"datetime" : start  ,
@@ -444,6 +433,8 @@ class RitaseCounter(models.Model):
 						'state' : 'posted',
 					})
 				record.write({'state' : 'posted' })
+			else :
+				raise UserError(_('Ritase Error') )
 
 class RitaseLog(models.Model):
 	_name = "production.ritase.log"
@@ -457,7 +448,7 @@ class RitaseLog(models.Model):
 class RitaseLotMove(models.Model):
 	_name = "production.ritase.lot.move"
 
-	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="restrict" )
+	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="cascade" )
 	lot_id = fields.Many2one(
         'stock.production.lot', 'Lot',
 		required=True,
