@@ -82,8 +82,8 @@
                             <field name="cost_code_id" />
                             <field name="product_id" />
                             <field name="product_uom" />
-                            <field name="shift" />
-                            <field name="buckets" />
+                            <field name="shift" invisible="1" />
+                            <field name="buckets" invisible="1" />
                             <field name="load_vehicle_ids" widget="many2many_tags" />
                             <field name="pile_vehicle_ids" widget="many2many_tags" />
                             <field name="ritase_count" />
@@ -94,6 +94,7 @@
                             <page string="Dump Truck Activity">
                                 <field name="counter_ids" >
                                     <tree string="Dump Truck Activity" >
+                                        <field name="shift" />
                                         <field name="vehicle_id" />
                                         <field name="driver_id" />
                                         <field name="ritase_count" />

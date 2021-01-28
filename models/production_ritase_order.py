@@ -82,7 +82,7 @@ class ProductionRitaseOrder(models.Model):
 	shift = fields.Selection([
         ( "1" , '1'),
         ( "2" , '2'),
-        ], string='Shift', index=True, required=True, states=READONLY_STATES )
+        ], string='Shift', index=True, states=READONLY_STATES, default="1" )
 	buckets = fields.Integer( string="Buckets", default=0, digits=0, states=READONLY_STATES)
 	product_id = fields.Many2one('product.product', 'Material', domain=[ ('type','=','product' ) ], required=True, states=READONLY_STATES )
 	product_uom = fields.Many2one(
@@ -158,7 +158,7 @@ class ProductionRitaseOrder(models.Model):
 		PackOperationLot = self.env['stock.pack.operation.lot'].sudo()
 		for order in self:
 			order._create_picking()
-			_logger.warning( "generate_logs" )
+			# _logger.warning( "generate_logs" )
 			order.counter_ids.generate_logs()
 			picking_ids = order.picking_ids.filtered(lambda r: r.state != 'cancel')
 			if len( picking_ids ) != 1 :
@@ -336,21 +336,25 @@ class RitaseCounter(models.Model):
 	product_id = fields.Many2one("product.product", string="Material", related="ritase_order_id.product_id", ondelete="restrict" )
 	location_id = fields.Many2one(
             'stock.location', 'Location',
-			related="ritase_order_id.location_id",
+			# related="ritase_order_id.location_id",
 			domain=[ ('usage','=',"internal")  ],
+			store=True,
             ondelete="restrict" )
 	location_dest_id = fields.Many2one(
             'stock.location', 'Location',
-			related="ritase_order_id.location_dest_id",
+			# related="ritase_order_id.location_dest_id",
 			domain=[ ('usage','=',"internal")  ],
+			store=True,
             ondelete="restrict" )
-	date = fields.Date('Date', help='', related="ritase_order_id.date", readonly=True, default=fields.Datetime.now )
+	date = fields.Date('Date', help='', related="ritase_order_id.date", readonly=True, default=fields.Datetime.now, store=True )
 	cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', related="ritase_order_id.cost_code_id", ondelete="restrict", store=True )
 
 	shift = fields.Selection([
         ( "1" , '1'),
         ( "2" , '2'),
-        ] , string='Shift', index=True, related="ritase_order_id.shift" )
+        ] , string='Shift', index=True, 
+		# related="ritase_order_id.shift", 
+		store=True )
 
 	log_ids = fields.One2many(
         'production.ritase.log',
@@ -363,6 +367,13 @@ class RitaseCounter(models.Model):
 	minutes = fields.Float('Minutes', readonly=True, compute="_compute_minutes" )
 	amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 	
+	@api.onchange( 'ritase_order_id' )
+	def _change_hourmeter_order_id(self):
+		for record in self:
+			record.shift = record.ritase_order_id.shift
+			record.location_id = record.ritase_order_id.location_id
+			record.location_dest_id = record.ritase_order_id.location_dest_id
+
 	@api.onchange( 'date' )
 	def _set_date(self):
 		for record in self:
@@ -380,7 +391,7 @@ class RitaseCounter(models.Model):
 
 	def generate_logs(self):
 		for record in self:
-			_logger.warning( "generate_logs" )
+			# _logger.warning( "generate_logs" )
 			record.log_ids.unlink()
 			seconds = record.minutes * 60
 			interval = seconds / record.ritase_count
