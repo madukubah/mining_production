@@ -92,8 +92,6 @@ class ProductionRitaseOrder(models.Model):
             default=lambda self: self._context.get('product_uom', False),
 			states=READONLY_STATES
 			)
-	# load_vehicle_id = fields.Many2one('fleet.vehicle', 'Load Unit', required=True, states=READONLY_STATES )
-	# pile_vehicle_id = fields.Many2one('fleet.vehicle', 'Pile Unit', required=True, states=READONLY_STATES )
 
 	load_vehicle_ids = fields.Many2many('fleet.vehicle', 'ritase_order_load_vehicle_rel', 'ritase_order_id', 'vehicle_id', 'Load Unit', copy=False, states=READONLY_STATES)
 	pile_vehicle_ids = fields.Many2many('fleet.vehicle', 'ritase_order_pile_vehicle_rel', 'ritase_order_id', 'vehicle_id', 'Pile Unit', copy=False, states=READONLY_STATES)
