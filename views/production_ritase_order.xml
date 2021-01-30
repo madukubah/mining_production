@@ -138,13 +138,12 @@
                     <attribute name="string">Dump Truck Activity</attribute>
                 </form>
                 <field name="driver_id" position="after">
-                    <field name="ritase_order_id" invisible="1"/>
-                    <field name="product_id" invisible="1"/>
-                    <field name="ritase_count"/>
+                    <field name="ritase_order_id" invisible="1" />
+                    <field name="product_id" invisible="1" />
+                    <field name="ritase_count" />
                     <field name="start_datetime" />
                     <field name="end_datetime" />
                     <field name="minutes" />
-
                     <!-- <field name="operation_template_id" class="oe_inline" readonly="1" invisible="1" /> -->
                 </field>
                 <sheet position="inside">

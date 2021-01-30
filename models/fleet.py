@@ -35,7 +35,7 @@ class FleetVehicleLogServices(models.Model):
     
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
     product_uom_qty = fields.Integer( related='cost_id.product_uom_qty', string="Quantity", copy=True, default=1)
-    price_unit = fields.Float(related='cost_id.price_unit', string='Price Unit', copy=True, default=0 )
+    price_unit = fields.Float( related='cost_id.price_unit', string='Price Unit', copy=True, default=0 )
     # cost_amount = fields.Float(related='cost_id.amount', string='Amount' )
 
     @api.onchange("product_uom_qty", "cost_subtype_id", "price_unit" )

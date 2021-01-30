@@ -28,6 +28,18 @@
                     <field name="product_uom_qty" />
                     <field name="price_unit" />
                 </field>
+                <field name="cost_ids" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+                <field name="purchaser_id" position="attributes">
+                    <attribute name="string">Driver</attribute>
+                </field>
+                <field name="vendor_id" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+                <field name="inv_ref" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
             </field>
     </record>
 
