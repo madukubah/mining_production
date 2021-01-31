@@ -150,6 +150,7 @@ class ProductionWatertruckCounter(models.Model):
                         'price_unit' : ProductionWatertruckCounter.WATERTRUCK_PRICE[ record.capacity ], # TODO : change it programable
                         'amount' : record.amount,
                         'state' : 'posted',
+                        'from_cop_adjust' : True,
                     })
                 record.write({'state' : 'posted' })
 

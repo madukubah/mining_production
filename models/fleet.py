@@ -82,7 +82,7 @@ class FleetVehicleCost(models.Model):
         for record in self:
             if record.cost_subtype_id.tag_id and record.state != 'posted' :
                 self.env['production.cop.tag.log'].sudo().create({
-                    'cop_adjust_id' : record.cop_adjust_id.id,
+                    # 'cop_adjust_id' : record.cop_adjust_id.id,
                     'name' : record.vehicle_id.name + ' / ' + record.cost_subtype_id.tag_id.name + ' / ' + record.date,
                     'date' : record.date,
                     'tag_id' : record.cost_subtype_id.tag_id.id,
@@ -90,6 +90,7 @@ class FleetVehicleCost(models.Model):
                     'price_unit' : record.price_unit,
                     'amount' : record.amount,
                     'state' : 'posted',
+                    'from_cop_adjust' : True,
                 })
             if record.cost_subtype_id in record.production_config_id.refuel_service_type_ids:
                 record.create_fueling_log( )

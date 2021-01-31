@@ -23,6 +23,7 @@ class ProductionCopTag(models.Model):
         domain=[('deprecated', '=', False)], 
         )
     
+    
     @api.depends("product_id" )
     def _onset_product_id(self):
         for rec in self:
@@ -73,6 +74,8 @@ class ProductionCopTagLog(models.Model):
     amount = fields.Float( string='Amount', compute="_compute_amount", required=True,states=READONLY_STATES )
     remarks = fields.Char( string='Remarks', states=READONLY_STATES )
 
+    from_cop_adjust	=  fields.Boolean(string="Is From COP Adjust" ,default=False )
+
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
 
@@ -112,7 +115,8 @@ class ProductionCopTagLog(models.Model):
     @api.model
     def create(self, values):
         service_type = self.env['fleet.service.type'].search( [ ( 'tag_id', '=', values['tag_id'] ) ] )
-        if service_type and not values.get( 'cop_adjust_id' , False) :
+        # if service_type and not values.get( 'cop_adjust_id' , False) :
+        if service_type and not values.get( 'from_cop_adjust' , False) :
             raise UserError(_('Cannot Create Log From This Form, Please Create It In Vehicle Service Log'))
             
         res = super(ProductionCopTagLog, self ).create(values)

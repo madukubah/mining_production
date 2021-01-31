@@ -39,7 +39,7 @@ class ProductionLosstimeAccumulation(models.Model):
         for record in self:
             if record.state != 'posted' :
                 self.env['production.cop.tag.log'].sudo().create({
-                        'cop_adjust_id' : record.cop_adjust_id.id,
+                        # 'cop_adjust_id' : record.cop_adjust_id.id,
                         'name' : record.date,
                         'date' : record.date,
                         # 'location_id' : record.location_id.id,
@@ -49,5 +49,6 @@ class ProductionLosstimeAccumulation(models.Model):
                         'price_unit' : record.amount, # TODO : change it programable
                         'amount' : record.amount,
                         'state' : 'posted',
+                        'from_cop_adjust' : True,
                     })
                 record.write({'state' : 'posted' })

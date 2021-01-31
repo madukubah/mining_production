@@ -59,6 +59,7 @@
                             <field name="sum_hm" />
                             <field name="sum_watertruck" />
                             <field name="sum_losstime_accumulation" />
+                            <field name="sum_cop_tag" />
                         </group>
                         <notebook>
                             <page string="Vehicle Costs">

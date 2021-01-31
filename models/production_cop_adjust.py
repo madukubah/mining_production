@@ -53,6 +53,7 @@ class ProductionCopAdjust(models.Model):
     sum_watertruck = fields.Float(string='Water Truck Amount', compute="_compute_amount" )
     sum_losstime_accumulation = fields.Float(string='Lostime Amount', compute="_compute_amount" )
     sum_vehicle_cost = fields.Float(string='Vehicle Cost Amount', compute="_compute_amount" )
+    sum_cop_tag = fields.Float(string='COP Tagging Amount', compute="_compute_amount" )
 
     production_order_ids = fields.Many2many('production.order', 'production_cop_adjust_production_order_rel', 'cop_adjust_id', 'production_order_id', 'Production Order', copy=False, states=READONLY_STATES)
     produced_items = fields.One2many('production.product', 'cop_adjust_id', 'Produced Item', states=READONLY_STATES )
@@ -105,6 +106,8 @@ class ProductionCopAdjust(models.Model):
     @api.multi
     def _reload(self):
         self.ensure_one()
+        if ( self.state in ('confirm', 'done' ) ) :
+            return True
         VehicleCost = self.env['fleet.vehicle.cost'].sudo()
         vehicle_costs = VehicleCost.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
         vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs if vehicle_cost.cost_subtype_id.is_consumable ]
@@ -279,18 +282,21 @@ class ProductionCopAdjust(models.Model):
             record.sum_losstime_accumulation = sum( [ losstime_accumulation_id.amount for losstime_accumulation_id in record.losstime_accumulation_ids ] )
             record.sum_vehicle_cost = sum( [ cost.amount for cost in record.cost_ids ] )
 
-            if record.state != 'done' :
-                sum_rit = sum( [ rit.amount for rit in record.rit_ids.filtered(lambda r: r.state != 'posted') ] )
-                sum_hm = sum( [ hourmeter.amount for hourmeter in record.hourmeter_ids.filtered(lambda r: r.state != 'posted') ] )
-                sum_watertruck = sum( [ watertruck.amount for watertruck in record.watertruck_ids.filtered(lambda r: r.state != 'posted') ] )
+            record.sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids ] )
 
-                sum_losstime_accumulation = sum( [ losstime_accumulation_id.amount for losstime_accumulation_id in record.losstime_accumulation_ids.filtered(lambda r: r.state != 'posted') ] )
-                sum_vehicle_cost = sum( [ cost.amount for cost in record.cost_ids.filtered(lambda r: r.state != 'posted') ] )
-                sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids.filtered(lambda r: r.state != 'posted') ] )
-                record.amount = sum_hm + sum_rit + sum_watertruck + sum_cop_tag + sum_vehicle_cost + sum_losstime_accumulation
-            else:
-                sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids.filtered(lambda r: r.state == 'posted') ] )
-                record.amount = sum_cop_tag
+            record.amount = record.sum_hm + record.sum_rit + record.sum_watertruck + record.sum_cop_tag + record.sum_vehicle_cost + record.sum_losstime_accumulation
+            # if record.state != 'done' :
+            #     sum_rit = sum( [ rit.amount for rit in record.rit_ids.filtered(lambda r: r.state != 'posted') ] )
+            #     sum_hm = sum( [ hourmeter.amount for hourmeter in record.hourmeter_ids.filtered(lambda r: r.state != 'posted') ] )
+            #     sum_watertruck = sum( [ watertruck.amount for watertruck in record.watertruck_ids.filtered(lambda r: r.state != 'posted') ] )
+
+            #     sum_losstime_accumulation = sum( [ losstime_accumulation_id.amount for losstime_accumulation_id in record.losstime_accumulation_ids.filtered(lambda r: r.state != 'posted') ] )
+            #     sum_vehicle_cost = sum( [ cost.amount for cost in record.cost_ids.filtered(lambda r: r.state != 'posted') ] )
+            #     sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids.filtered(lambda r: r.state != 'posted') ] )
+            #     record.amount = sum_hm + sum_rit + sum_watertruck + sum_cop_tag + sum_vehicle_cost + sum_losstime_accumulation
+            # else:
+            #     sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids.filtered(lambda r: r.state == 'posted') ] )
+            #     record.amount = sum_cop_tag
 
     @api.multi
     def _settle_cost(self):
@@ -368,7 +374,8 @@ class ProductionCopAdjust(models.Model):
 
         move = self.env['stock.move'].create({
             'name': self.name,
-            'date': self.date,
+            # 'date': self.date,
+            'date': self.end_date,
             'product_id': product[0].id,
             'product_uom': product[0].uom_id.id,
             'product_uom_qty': qty,
@@ -416,11 +423,12 @@ class ProductionCopAdjust(models.Model):
         
         if move_lines:
             move_lines.append((0, 0, debit_line_vals))
-            date = self._context.get('force_period_date', fields.Date.context_today(self))
+            # date = self._context.get('force_period_date', fields.Date.context_today(self))
             new_account_move = AccountMove.create({
                 'journal_id': journal_id,
                 'line_ids': move_lines,
-                'date': self.date,
+                # 'date': self.date,
+                'date': self.end_date,
                 'ref': self.name})
             new_account_move.post()
 
@@ -457,7 +465,7 @@ class ProductionCopAdjust(models.Model):
                 move_lines = []
                 move_lines += [(0, 0, {
                         'name': self.name,
-                        'ref': self.name,
+                        'ref': "Account Adjust",
                         'credit': abs(diff) if diff > 0 else 0,
                         'debit':  abs(diff) if diff < 0 else 0,
                         'account_id': counterpart_account_id.id,
@@ -467,17 +475,18 @@ class ProductionCopAdjust(models.Model):
                         'product_id': product.id,
                         'quantity': 0,
                         'product_uom_id': product.uom_id.id,
-                        'ref': self.name,
+                        'ref': "Account Adjust",
                         'partner_id': False,
                         'credit': abs(diff) if diff < 0 else 0,
                         'debit':  abs(diff) if diff > 0 else 0,
                         'account_id': acc_valuation,
                     })]
-                date = self._context.get('force_period_date', fields.Date.context_today(self))
+                # date = self._context.get('force_period_date', fields.Date.context_today(self))
                 new_account_move = AccountMove.create({
                     'journal_id': journal_id,
                     'line_ids': move_lines,
-                    'date': self.date,
+                    # 'date': self.date,
+                    'date': self.end_date,
                     'ref': self.name})
                 new_account_move.post()
 
@@ -545,7 +554,8 @@ class ProductionCopAdjust(models.Model):
         new_account_move = AccountMove.create({
             'journal_id': journal_id,
             'line_ids': move_lines,
-            'date': self.date,
+            # 'date': self.date,
+            'date': self.end_date,
             'ref': self.name})
         new_account_move.post()
         
