@@ -112,6 +112,7 @@ class ProductionCopTagLog(models.Model):
                 record.price_unit = product.standard_price
             elif( record.tag_id.product_id ):
                 product = record.tag_id.product_id
+                record.product_id = product
                 record.price_unit = product.standard_price
 
             
