@@ -26,10 +26,10 @@ class ProductionCopTag(models.Model):
     
     @api.depends("product_id" )
     def _onset_product_id(self):
-        for rec in self:
-            if( rec.product_id.categ_id ):
-                category = rec.product_id.categ_id
-                rec.inventory_account_id = category.property_stock_valuation_account_id
+        for record in self:
+            if( record.product_id.categ_id ):
+                category = record.product_id.categ_id
+                record.inventory_account_id = category.property_stock_valuation_account_id
     
     @api.multi
     def _get_accounting_data(self):
@@ -69,6 +69,11 @@ class ProductionCopTagLog(models.Model):
             ondelete="restrict", states=READONLY_STATES )
     date = fields.Date('Date', help='',default=fields.Datetime.now,required=True, states=READONLY_STATES )
     tag_id	= fields.Many2one('production.cop.tag', string='Tag',required=True, states=READONLY_STATES )
+
+    product_id = fields.Many2one(
+        'product.product', 'Product',
+        domain=[('type', 'in', ['product', 'consu'])], )
+
     product_uom_qty = fields.Integer( string="Quantity", required=True, default=1)
     price_unit = fields.Float( string="Price Unit", required=True, default=1)
     amount = fields.Float( string='Amount', compute="_compute_amount", required=True,states=READONLY_STATES )
@@ -79,16 +84,41 @@ class ProductionCopTagLog(models.Model):
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
 
+    @api.onchange('tag_id')	
+    def _domain_product(self):
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+        categ_ids = [ x.id for x in production_config[0].categ_ids ]
+        product_ids = self.env['product.product'].sudo(  ).search( [ ("categ_id", "in", categ_ids ) ] )
+        return {
+                'domain':{
+                    'product_id':[('id','in', product_ids.ids )] ,
+                    }
+                }
+
+    @api.onchange( "product_id" )
+    def _onchange_product(self):
+        for record in self:
+            if record.product_id :
+                record.price_unit = record.product_id.standard_price
+
     @api.onchange("tag_id" )
     def _onchange_tag_id(self):
-        for rec in self:
-            product = rec.tag_id.product_id
-            rec.price_unit = product.standard_price
+        for record in self:
+            if( record.product_id ):
+                product = record.product_id
+                record.price_unit = product.standard_price
+            elif( record.tag_id.product_id ):
+                product = record.tag_id.product_id
+                record.price_unit = product.standard_price
+
             
     @api.depends("product_uom_qty", "price_unit" )
     def _compute_amount(self):
-        for rec in self:
-            rec.amount = rec.price_unit * rec.product_uom_qty
+        for record in self:
+            record.amount = record.price_unit * record.product_uom_qty
 
     @api.depends('tag_id', 'date')
     def _compute_name(self):

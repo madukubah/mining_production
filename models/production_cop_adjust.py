@@ -110,7 +110,8 @@ class ProductionCopAdjust(models.Model):
             return True
         VehicleCost = self.env['fleet.vehicle.cost'].sudo()
         vehicle_costs = VehicleCost.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
-        vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs if vehicle_cost.cost_subtype_id.is_consumable ]
+        # vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs if vehicle_cost.cost_subtype_id.is_consumable ]
+        vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs ]
         self.update({
             'cost_ids': [( 6, 0, vehicle_costs_ids )],
         })
@@ -303,25 +304,29 @@ class ProductionCopAdjust(models.Model):
         self.ensure_one()
         product_n_qty_list = {}
         #VEHICLE COST that have stockable products, 
-        for cost_id in self.cost_ids:
-            if( cost_id.cost_subtype_id.is_consumable and cost_id.cost_subtype_id.product_id ) :
-                product = cost_id.cost_subtype_id.product_id
+        for cost_id in self.cost_ids :
+            # if( cost_id.cost_subtype_id.is_consumable and cost_id.cost_subtype_id.product_id ) :
+                # product = cost_id.cost_subtype_id.product_id
+            if( cost_id.product_id ) :
+                product = cost_id.product_id
                 if product_n_qty_list.get( product.id , False):
                     product_n_qty_list[ product.id ]['qty'] += cost_id.product_uom_qty
                 else : 
                     product_n_qty_list[ product.id ] = {
-                        'product_id' : cost_id.cost_subtype_id.product_id,
+                        'product_id' : product,
                         'qty' : cost_id.product_uom_qty,
                     }
         #COP TAG LOG That have stockable products
         for tag_log in self.tag_log_ids:
-            if( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) :
-                product = tag_log.tag_id.product_id
+            # if( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) :
+            #     product = tag_log.tag_id.product_id
+            if( tag_log.product_id ) :
+                product = tag_log.product_id
                 if product_n_qty_list.get( product.id , False):
                     product_n_qty_list[ product.id ]['qty'] += tag_log.product_uom_qty
                 else : 
                     product_n_qty_list[ product.id ] = {
-                        'product_id' : tag_log.tag_id.product_id,
+                        'product_id' : product,
                         'qty' : tag_log.product_uom_qty,
                     }
 
@@ -355,7 +360,6 @@ class ProductionCopAdjust(models.Model):
         self.vehicle_losstime_ids.post()
         self.losstime_accumulation_ids.post()
         self.write({ 'state' : 'done' })
-        
     
     def _generate_moves(self, product_id, qty):
         self.ensure_one()
@@ -495,7 +499,7 @@ class ProductionCopAdjust(models.Model):
         Generate the account.move.line values to post to track the stock valuation difference due to the
         processing of the given quant.
         """
-        self.ensure_one()
+        self.ensure_one() 
         valuation_amount = cost
         if self._context.get('force_valuation_amount'):
             valuation_amount = self._context.get('force_valuation_amount')
@@ -524,8 +528,8 @@ class ProductionCopAdjust(models.Model):
         #ORE
         product = production_config.lot_id.product_id
 
-        # sum_rit_hm_wt_loss = self._compute_rit_hm_wt_loss_cost( )
-        sum_rit_hm_wt_loss = self._compute_not_consumable_cost( )
+        sum_rit_hm_wt_loss = self._compute_rit_hm_wt_loss_cost( )
+        # sum_rit_hm_wt_loss = self._compute_not_consumable_cost( )
         move_lines = []
 
         journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation( production_config.lot_id.product_id )
@@ -574,9 +578,10 @@ class ProductionCopAdjust(models.Model):
         sum_rit_hm_wt_loss = self._compute_rit_hm_wt_loss_cost( )
         # except VEHICLE COST and COP TAG COST that have comsumable products
         # because it already compute in stock move ( stock interim cost )
-        sum_cop_tag = sum( [ tag_log.amount for tag_log in self.tag_log_ids if not ( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) ] )
-        sum_vehicle_cost = sum( [ cost.amount for cost in self.cost_ids if not ( cost.cost_subtype_id.is_consumable and cost.cost_subtype_id.product_id ) ] )
-
+        # sum_cop_tag = sum( [ tag_log.amount for tag_log in self.tag_log_ids if not ( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) ] )
+        # sum_vehicle_cost = sum( [ cost.amount for cost in self.cost_ids if not ( cost.cost_subtype_id.is_consumable and cost.cost_subtype_id.product_id ) ] )
+        sum_cop_tag = sum( [ tag_log.amount for tag_log in self.tag_log_ids if not ( tag_log.product_id ) ] )
+        sum_vehicle_cost = sum( [ cost.amount for cost in self.cost_ids if not ( cost.product_id ) ] )
         return sum_cop_tag + sum_vehicle_cost + sum_rit_hm_wt_loss
 
     @api.multi

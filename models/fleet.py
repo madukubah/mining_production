@@ -32,20 +32,50 @@ class FleetServiceType(models.Model):
 class FleetVehicleLogServices(models.Model):
     _inherit = 'fleet.vehicle.log.services'
     _order = 'date desc'
-    
+
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
     product_uom_qty = fields.Integer( related='cost_id.product_uom_qty', string="Quantity", copy=True, default=1)
     price_unit = fields.Float( related='cost_id.price_unit', string='Price Unit', copy=True, default=0 )
-    # cost_amount = fields.Float(related='cost_id.amount', string='Amount' )
+    product_id = fields.Many2one(
+        'product.product', 'Product',
+        related='cost_id.product_id',
+        domain=[('type', 'in', ['product', 'consu'])], )
+
+    @api.onchange('cost_subtype_id')	
+    def _domain_product(self):
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+        categ_ids = [ x.id for x in production_config[0].categ_ids ]
+        product_ids = self.env['product.product'].sudo(  ).search( [ ("categ_id", "in", categ_ids ) ] )
+        return {
+                'domain':{
+                    'product_id':[('id','in', product_ids.ids )] ,
+                    }
+                }
+
+    @api.onchange( "product_id" )
+    def _onchange_product(self):
+        for record in self:
+            if record.product_id :
+                record.price_unit = record.product_id.standard_price
 
     @api.onchange("product_uom_qty", "cost_subtype_id", "price_unit" )
     def _compute_amount(self):
         for record in self:
-            if( record.cost_subtype_id.product_id ):
-                product = record.cost_subtype_id.product_id
-                # _logger.warning( product )
+            if( record.product_id ):
+                record.amount = record.price_unit * record.product_uom_qty
+            elif( record.cost_subtype_id.product_id ):
+                record.product_id = record.cost_subtype_id.product_id
+                product = record.product_id
                 record.price_unit = product.standard_price
                 record.amount = record.price_unit * record.product_uom_qty
+            return {
+				'domain':{
+					'purchaser_id':[] ,
+					} 
+				}
                 
     @api.multi
     def post(self):
@@ -66,12 +96,38 @@ class FleetVehicleCost(models.Model):
     production_config_id	= fields.Many2one('production.config', string='Production Config', default=_default_config )
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
     cost_subtype_id = fields.Many2one('fleet.service.type', 'Type', required=True, help='Cost type purchased with this cost')
+
+    product_id = fields.Many2one(
+        'product.product', 'Product',
+        domain=[('type', 'in', ['product', 'consu'])], )
+
     product_uom_qty = fields.Integer( string="Quantity", default=1)
     price_unit = fields.Float( string='Price Unit', default=0 )
     amount = fields.Float('Total Price', compute="_compute_amount")
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
     
+    @api.onchange('cost_subtype_id')	
+    def _domain_product(self):
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+        categ_ids = [ x.id for x in production_config[0].categ_ids ]
+        product_ids = self.env['product.product'].sudo(  ).search( [ ("categ_id", "in", categ_ids ) ] )
+        return {
+                'domain':{
+                    'product_id':[('id','in', product_ids.ids )] ,
+                    }
+                }
+
+    @api.onchange( "product_id" )
+    def _onchange_product(self):
+        for record in self:
+            if record.product_id :
+                record.price_unit = record.product_id.standard_price
+
+
     @api.depends("product_uom_qty", "price_unit" )
     def _compute_amount(self):
         for record in self:
@@ -111,8 +167,8 @@ class FleetVehicleCost(models.Model):
     @api.model
     def create(self, values):
         service_type = self.env['fleet.service.type'].search( [ ( 'id', '=', values['cost_subtype_id'] ) ] )
-        if not service_type.is_consumable :
-            values["state"] = 'posted'
+        # if not service_type.is_consumable :
+        #     values["state"] = 'posted'
         res = super(FleetVehicleCost, self ).create(values)
         return res
 

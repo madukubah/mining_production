@@ -129,14 +129,14 @@ class ProductionRitaseOrder(models.Model):
 				raise UserError(_('Cannot delete  order which is in state \'%s\'.') %(order.state,))
 		return super(ProductionRitaseOrder, self).unlink()
 
-	@api.onchange('warehouse_id', "warehouse_dest_id")	
+	@api.onchange('warehouse_id', "warehouse_dest_id")
 	def _change_wh(self):
 		for order in self:
 			return {
 				'domain':{
 					'location_id':[('location_id','=',order.warehouse_id.view_location_id.id )] ,
 					'location_dest_id':[('location_id','=',order.warehouse_dest_id.view_location_id.id )]
-					} 
+					}
 				}
 		
 	@api.model
@@ -442,7 +442,7 @@ class RitaseCounter(models.Model):
 						'state' : 'posted',
                     	'from_cop_adjust' : True,
 					})
-				record.write({'state' : 'posted' })
+				record.write({ 'state' : 'posted' })
 			else :
 				raise UserError(_('Ritase Error') )
 

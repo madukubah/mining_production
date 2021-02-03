@@ -52,6 +52,11 @@
                                 <field name="name" />
                             </tree>
                         </field >
+                        <field name="categ_ids" >
+                            <tree string="Item Service Category" editable="bottom" >
+                                <field name="name" />
+                            </tree>
+                        </field >
                     </group>
                 </sheet>
             </form>

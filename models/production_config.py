@@ -29,26 +29,28 @@ class ProductionConfig( models.Model ):
     cop_journal_id = fields.Many2one('account.journal', string='COP Journal', default=_default_journal, required=True )
     cop_cost_credit_account_id = fields.Many2one('account.account', string='COP Cost Credit Account', required=True )
     journal_type = fields.Selection(related='cop_journal_id.type', help="Technical field used for usability purposes" )
-
+    # rit
     rit_tag_id	= fields.Many2one('production.cop.tag', string='Ritase COP Tag', required=True )
     rit_losstime_tag_id	= fields.Many2one('production.cop.tag', string='Losstime COP Tag', required=True )
     rit_price_unit = fields.Float('Price Per Ritase', required=True, default=0 )
     rit_minimal_cash = fields.Float('Minimal Cash For Losstime', required=True, default=0 )
     rit_vehicle_tag_id = fields.Many2one('fleet.vehicle.tag', 'Ritase Vehicle Tag', required=True )
-
+    # hm
     hm_tag_id	= fields.Many2one('production.cop.tag', string='Hourmeter COP Tag', required=True )
     hm_losstime_tag_id	= fields.Many2one('production.cop.tag', string='Losstime COP Tag', required=True )
     hm_price_unit = fields.Float('Price Per Hourmeter', required=True, default=0 )
     hm_minimal_cash = fields.Float('Minimal Cash For Losstime', required=True, default=0 )
     hm_vehicle_tag_id = fields.Many2one('fleet.vehicle.tag', 'Hourmeter Vehicle Tag', required=True )
-    
+    # wt
     wt_tag_id	= fields.Many2one('production.cop.tag', string='Water Truck COP Tag', required=True )
     wt_losstime_tag_id	= fields.Many2one('production.cop.tag', string='Losstime COP Tag', required=True )
     wt_price_unit = fields.Float('Price Per Ritase', required=True, default=0 )
     wt_minimal_cash = fields.Float('Minimal Cash For Losstime', required=True, default=0 )
     wt_vehicle_tag_id = fields.Many2one('fleet.vehicle.tag', 'Water Truck Vehicle Tag', required=True )
 
+    # vehicle
     refuel_service_type_ids = fields.Many2many('fleet.service.type', 'config_service_type_rel', 'config_id', 'service_type_id', string='Refuel Service Types' )
+    categ_ids = fields.Many2many('product.category', 'config_product_category_rel', 'config_id', 'categ_id', string='Item Service Category' )
 
     active = fields.Boolean(
         'Active', default=True,
