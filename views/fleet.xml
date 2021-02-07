@@ -49,6 +49,18 @@
                 </field>
             </field>
     </record>
+    <!-- FILTER -->
+
+    <record id="view_fleet_vehicle_log_services_filter0" model="ir.ui.view">
+        <field name="name">fleet.vehicle.log.services.filter0</field>
+        <field name="model">fleet.vehicle.log.services</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_log_services_view_search"/>
+        <field name="arch" type="xml">
+            <search string="Services Logs" >
+                    <field name="product_id"/>
+            </search>
+        </field>
+    </record>
 
     <record id='fleet_production_vehicle_cost_view_tree' model='ir.ui.view'>
         <field name="name">fleet.vehicle.cost.tree</field>

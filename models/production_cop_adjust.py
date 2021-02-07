@@ -122,6 +122,7 @@ class ProductionCopAdjust(models.Model):
         RitaseCounter = self.env['production.ritase.counter'].sudo()
         ritase_counter = RitaseCounter.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ), ( "ritase_order_id.state", "=", "done" ) ] )
         # ritase_counter = RitaseCounter.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
+        ritase_counter._compute_amount()
         self.update({
             'rit_ids': [( 6, 0, ritase_counter.ids )],
         })
@@ -129,6 +130,7 @@ class ProductionCopAdjust(models.Model):
         HourmeterLog = self.env['production.vehicle.hourmeter.log'].sudo()
         hourmeter_log = HourmeterLog.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ), ( "hourmeter_order_id.state", "=", "done" ) ] )
         # hourmeter_log = HourmeterLog.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
+        hourmeter_log._compute_amount()
         self.update({
             'hourmeter_ids': [( 6, 0, hourmeter_log.ids )],
         })
@@ -365,7 +367,7 @@ class ProductionCopAdjust(models.Model):
                 break
 
         if not location_id :
-            raise UserError(_('No enough Quantity for product %s in any location to remove') % (product.name))
+            raise UserError(_('No enough Quantity for product %s in any location to be move with qty %s ') % (product.name, qty))
 
         move = self.env['stock.move'].create({
             'name': self.name,

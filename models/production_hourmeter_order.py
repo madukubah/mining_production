@@ -18,7 +18,7 @@ class ProductionHourmeterOrder(models.Model):
     READONLY_STATES = {
         'draft': [('readonly', False)] ,
         'confirm': [('readonly', True)] ,
-        'done': [('readonly', True)] ,
+        # 'done': [('readonly', True)] ,
         'cancel': [('readonly', True)] ,
     }
 
