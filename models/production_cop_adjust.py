@@ -111,6 +111,9 @@ class ProductionCopAdjust(models.Model):
         VehicleCost = self.env['fleet.vehicle.cost'].sudo()
         vehicle_costs = VehicleCost.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
         # vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs if vehicle_cost.cost_subtype_id.is_consumable ]
+        #Refresh Price
+        vehicle_costs._onchange_product()
+        vehicle_costs._compute_amount()
         vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs ]
         self.update({
             'cost_ids': [( 6, 0, vehicle_costs_ids )],
@@ -286,18 +289,6 @@ class ProductionCopAdjust(models.Model):
             record.sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids ] )
 
             record.amount = record.sum_hm + record.sum_rit + record.sum_watertruck + record.sum_cop_tag + record.sum_vehicle_cost + record.sum_losstime_accumulation
-            # if record.state != 'done' :
-            #     sum_rit = sum( [ rit.amount for rit in record.rit_ids.filtered(lambda r: r.state != 'posted') ] )
-            #     sum_hm = sum( [ hourmeter.amount for hourmeter in record.hourmeter_ids.filtered(lambda r: r.state != 'posted') ] )
-            #     sum_watertruck = sum( [ watertruck.amount for watertruck in record.watertruck_ids.filtered(lambda r: r.state != 'posted') ] )
-
-            #     sum_losstime_accumulation = sum( [ losstime_accumulation_id.amount for losstime_accumulation_id in record.losstime_accumulation_ids.filtered(lambda r: r.state != 'posted') ] )
-            #     sum_vehicle_cost = sum( [ cost.amount for cost in record.cost_ids.filtered(lambda r: r.state != 'posted') ] )
-            #     sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids.filtered(lambda r: r.state != 'posted') ] )
-            #     record.amount = sum_hm + sum_rit + sum_watertruck + sum_cop_tag + sum_vehicle_cost + sum_losstime_accumulation
-            # else:
-            #     sum_cop_tag = sum( [ tag_log.amount for tag_log in record.tag_log_ids.filtered(lambda r: r.state == 'posted') ] )
-            #     record.amount = sum_cop_tag
 
     @api.multi
     def _settle_cost(self):
@@ -378,7 +369,6 @@ class ProductionCopAdjust(models.Model):
 
         move = self.env['stock.move'].create({
             'name': self.name,
-            # 'date': self.date,
             'date': self.end_date,
             'product_id': product[0].id,
             'product_uom': product[0].uom_id.id,
@@ -411,7 +401,7 @@ class ProductionCopAdjust(models.Model):
         for move_line in move_lines:
             debit_amount += move_line[2]["credit"]
 
-        #ORE
+        #ORE valuation
         product = production_config.lot_id.product_id
         debit_line_vals = {
             'name': self.name,
@@ -427,11 +417,9 @@ class ProductionCopAdjust(models.Model):
         
         if move_lines:
             move_lines.append((0, 0, debit_line_vals))
-            # date = self._context.get('force_period_date', fields.Date.context_today(self))
             new_account_move = AccountMove.create({
                 'journal_id': journal_id,
                 'line_ids': move_lines,
-                # 'date': self.date,
                 'date': self.end_date,
                 'ref': self.name})
             new_account_move.post()
@@ -443,7 +431,7 @@ class ProductionCopAdjust(models.Model):
         if product_qty > 0 :
             amount_unit = product.standard_price
             not_consumable_cost = self._compute_not_consumable_cost()
-            new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty + self.get_qty_by_rit_product( except_prduct_id=product.id ) )
+            new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty + self.get_material_qty( except_prduct_id=product.id ) )
             # new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty )
             # set standart price
             counterpart_account_id = product.property_account_expense_id or product.categ_id.property_account_expense_categ_id
@@ -485,11 +473,9 @@ class ProductionCopAdjust(models.Model):
                         'debit':  abs(diff) if diff > 0 else 0,
                         'account_id': acc_valuation,
                     })]
-                # date = self._context.get('force_period_date', fields.Date.context_today(self))
                 new_account_move = AccountMove.create({
                     'journal_id': journal_id,
                     'line_ids': move_lines,
-                    # 'date': self.date,
                     'date': self.end_date,
                     'ref': self.name})
                 new_account_move.post()
@@ -509,7 +495,7 @@ class ProductionCopAdjust(models.Model):
         credit_value = self.company_id.currency_id.round(valuation_amount * qty)
         return credit_value
 
-    def get_qty_by_rit_product( self, except_prduct_id ):
+    def get_material_qty( self, except_prduct_id ):
         self.ensure_one()
         qty = 0
         qty = sum( [ x.qty_available for x in self.production_config_id.product_ids if x.id != except_prduct_id ] )
@@ -558,7 +544,6 @@ class ProductionCopAdjust(models.Model):
         new_account_move = AccountMove.create({
             'journal_id': journal_id,
             'line_ids': move_lines,
-            # 'date': self.date,
             'date': self.end_date,
             'ref': self.name})
         new_account_move.post()
@@ -578,8 +563,6 @@ class ProductionCopAdjust(models.Model):
         sum_rit_hm_wt_loss = self._compute_rit_hm_wt_loss_cost( )
         # except VEHICLE COST and COP TAG COST that have comsumable products
         # because it already compute in stock move ( stock interim cost )
-        # sum_cop_tag = sum( [ tag_log.amount for tag_log in self.tag_log_ids if not ( tag_log.tag_id.is_consumable and tag_log.tag_id.product_id ) ] )
-        # sum_vehicle_cost = sum( [ cost.amount for cost in self.cost_ids if not ( cost.cost_subtype_id.is_consumable and cost.cost_subtype_id.product_id ) ] )
         sum_cop_tag = sum( [ tag_log.amount for tag_log in self.tag_log_ids if not ( tag_log.product_id ) ] )
         sum_vehicle_cost = sum( [ cost.amount for cost in self.cost_ids if not ( cost.product_id ) ] )
         return sum_cop_tag + sum_vehicle_cost + sum_rit_hm_wt_loss

@@ -71,6 +71,7 @@ class ProductionOrder(models.Model):
         'product.product', 'Product',
         domain=[('type', 'in', ['product', 'consu'])],
         readonly=True, required=True,
+        ondelete="cascade",
         states= READONLY_STATES )
     product_tmpl_id = fields.Many2one('product.template', 'Product Template', related='product_id.product_tmpl_id', readonly=True)
     product_qty = fields.Float(

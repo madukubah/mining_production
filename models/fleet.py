@@ -39,6 +39,7 @@ class FleetVehicleLogServices(models.Model):
     product_id = fields.Many2one(
         'product.product', 'Product',
         related='cost_id.product_id',
+        ondelete="cascade",
         domain=[('type', 'in', ['product', 'consu'])], )
 
     @api.onchange('cost_subtype_id')	
@@ -99,7 +100,9 @@ class FleetVehicleCost(models.Model):
 
     product_id = fields.Many2one(
         'product.product', 'Product',
-        domain=[('type', 'in', ['product', 'consu'])], )
+        domain=[('type', 'in', ['product', 'consu'])], 
+        ondelete="cascade",
+        )
 
     product_uom_qty = fields.Integer( string="Quantity", default=1)
     price_unit = fields.Float( string='Price Unit', default=0 )
@@ -126,7 +129,6 @@ class FleetVehicleCost(models.Model):
         for record in self:
             if record.product_id :
                 record.price_unit = record.product_id.standard_price
-
 
     @api.depends("product_uom_qty", "price_unit" )
     def _compute_amount(self):

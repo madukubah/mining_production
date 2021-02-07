@@ -33,7 +33,7 @@ class ProductionBatch(models.Model):
     name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
     date = fields.Date('Date', help='',  default=fields.Datetime.now , states=READONLY_STATES  )
     product_ids = fields.Many2many('product.product', 'production_batch_product_rel', 'production_batch_id', 'product_id', string='Materials', default=_default_product, states=READONLY_STATES )
-    employee_id	= fields.Many2one('hr.employee', string='Grade Control', states=READONLY_STATES, required=True )
+    employee_id	= fields.Many2one('hr.employee', string='Grade Control', states=READONLY_STATES )
     user_id = fields.Many2one('res.users', string='User', index=True, track_visibility='onchange', default=lambda self: self.env.user)
     pit_id = fields.Many2one('production.pit', string='Pit', states=READONLY_STATES, domain=[ ('active','=',True)], required=True, change_default=True, index=True, track_visibility='always' )
     location_id = fields.Many2one(

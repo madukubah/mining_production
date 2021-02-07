@@ -72,7 +72,9 @@ class ProductionCopTagLog(models.Model):
 
     product_id = fields.Many2one(
         'product.product', 'Product',
-        domain=[('type', 'in', ['product', 'consu'])], )
+        domain=[('type', 'in', ['product', 'consu'])], 
+        ondelete="cascade",
+        )
 
     product_uom_qty = fields.Integer( string="Quantity", required=True, default=1)
     price_unit = fields.Float( string="Price Unit", required=True, default=1)
