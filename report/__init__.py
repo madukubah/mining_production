@@ -23,3 +23,6 @@ from . import production_cop_temp
 from . import production_ritase_temp
 from . import production_hourmeter_temp
 from . import production_watertruck_temp
+
+from . import production_he_hourmeter_temp
+from . import production_dt_timesheet_temp

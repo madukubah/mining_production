@@ -48,6 +48,8 @@
         "wizard/production_ritase_report.xml",
         "wizard/production_hourmeter_report.xml",
         "wizard/production_watertruck_report.xml",
+        "wizard/production_he_hourmeter_report.xml",
+        "wizard/production_dt_timesheet_report.xml",
 
         "report/production_cop_report.xml",
         "report/production_cop_temp.xml",
@@ -57,6 +59,11 @@
         "report/production_hourmeter_temp.xml",
         "report/production_watertruck_report.xml",
         "report/production_watertruck_temp.xml",
+
+        "report/production_he_hourmeter_report.xml",
+        "report/production_he_hourmeter_temp.xml",
+        "report/production_dt_timesheet_report.xml",
+        "report/production_dt_timesheet_temp.xml",
 
         "data/production_data.xml",
 

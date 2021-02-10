@@ -144,6 +144,9 @@ class ProductionCopAdjust(models.Model):
 
         CopTagLog = self.env['production.cop.tag.log'].sudo()
         tag_log = CopTagLog.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
+        #Refresh Price
+        tag_log._onchange_product()
+        tag_log._compute_amount()
         self.update({
             'tag_log_ids': [( 6, 0, tag_log.ids )],
         })
@@ -308,6 +311,7 @@ class ProductionCopAdjust(models.Model):
                     product_n_qty_list[ product.id ] = {
                         'product_id' : product,
                         'qty' : cost_id.product_uom_qty,
+                        'price_unit' : cost_id.price_unit,
                     }
         #COP TAG LOG That have stockable products
         for tag_log in self.tag_log_ids:
@@ -321,6 +325,7 @@ class ProductionCopAdjust(models.Model):
                     product_n_qty_list[ product.id ] = {
                         'product_id' : product,
                         'qty' : tag_log.product_uom_qty,
+                        'price_unit' : tag_log.price_unit,
                     }
 
         move_lines = []
@@ -328,12 +333,15 @@ class ProductionCopAdjust(models.Model):
         for product_id, obj in product_n_qty_list.items():
             self._generate_moves( product_id, obj['qty'] )
             product= obj['product_id']
+
             journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation( product )
+            credit_value = self._prepare_credit_product_cost( product, obj['qty'], product.standard_price)
+            cost = obj['price_unit'] * obj['qty']
+            if( credit_value != cost ) :
+                raise UserError(_('Cost Amount Didn`t match [%s]. on servise %s but cost is %s ') % (product.name, str( cost ), str( credit_value ) ) )
             if move_lines_dict.get( acc_src , False):
-                credit_value = self._prepare_credit_product_cost( product, obj['qty'], product.standard_price)
                 move_lines_dict[ acc_src ][2]['credit'] += credit_value
             else : 
-                credit_value = self._prepare_credit_product_cost( product, obj['qty'], product.standard_price)
                 move_lines_dict[ acc_src ] = (0, 0, {
                     'name': self.name,
                     'ref': self.name,
@@ -487,6 +495,7 @@ class ProductionCopAdjust(models.Model):
         Generate the account.move.line values to post to track the stock valuation difference due to the
         processing of the given quant.
         """
+
         self.ensure_one() 
         valuation_amount = cost
         if self._context.get('force_valuation_amount'):

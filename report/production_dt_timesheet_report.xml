@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <report
+                id="action_production_dt_timesheet_report_wise"
+                string="DT Timesheet Report"
+                model="production.dt.timesheet.report"
+                report_type="qweb-pdf"
+                file="mining_production.production_dt_timesheet_temp"
+                name="mining_production.production_dt_timesheet_temp"
+        />
+    </data>
+</odoo>

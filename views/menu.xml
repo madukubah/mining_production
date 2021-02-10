@@ -203,6 +203,7 @@
                 parent="mining_production_top"
                 groups="production_group_manager"
                 />
+                <menuitem id="report_production_heading" name="Production" parent="mining_production_report" sequence="2"/>
 
         <menuitem id="production_config" name="Configuration" sequence="99" 
                 parent="mining_production_top"

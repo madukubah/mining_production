@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 ##############################################################################
 #
 #    This module uses OpenERP, Open Source Management Solution Framework.
@@ -25,8 +24,8 @@ from odoo import api, fields, models
 
 _logger = logging.getLogger(__name__)
 
-class ReportProductionHourmeterTemp(models.AbstractModel):
-    _name = 'report.mining_production.production_hourmeter_temp'
+class ReportProductionHEHourmeterTemp(models.AbstractModel):
+    _name = 'report.mining_production.production_he_hourmeter_temp'
 
     @api.model
     def render_html(self, docids, data=None):
@@ -34,10 +33,10 @@ class ReportProductionHourmeterTemp(models.AbstractModel):
             'doc_ids': data.get('ids'),
             'doc_model': data.get('model'),
             'data': data['form'],
-            'type': data['type'],
             'start_date': data['start_date'],
             'end_date': data['end_date'],
+            'dates': data['dates'],
         }
         # print "===================docargs",docargs
         # _logger.warning( docargs )
-        return self.env['report'].render('mining_production.production_hourmeter_temp', docargs)
+        return self.env['report'].render('mining_production.production_he_hourmeter_temp', docargs)
