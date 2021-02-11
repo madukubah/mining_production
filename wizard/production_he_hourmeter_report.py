@@ -78,16 +78,12 @@ class ProductionHEHourmeterReport(models.TransientModel):
             
             vehicle_date_dict[ vehicle.name ]["dates"] = dates
 
-        # _logger.warning( vehicle_date_dict )
-        hourmeter_logs = self.env['production.vehicle.hourmeter.log'].sudo().search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "posted" ), ( 'vehicle_id', 'in', self.vehicle_ids.ids ) ], order="vehicle_id asc, start_datetime asc")
+        # hourmeter_logs
+        hourmeter_logs = self.env['production.vehicle.hourmeter.log'].sudo().search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'vehicle_id', 'in', self.vehicle_ids.ids ) ], order="vehicle_id asc, start_datetime asc")
         for hourmeter_log in hourmeter_logs: 
             vehicle_name = hourmeter_log.vehicle_id.name
-            # _logger.warning( vehicle_name )
             if vehicle_date_dict.get( vehicle_name , False):
-                # _logger.warning( "vehicle_name" )
                 date = hourmeter_log.date
-                # _logger.warning( date )
-                # _logger.warning( vehicle_date_dict[ vehicle_name ][date] )
                 if vehicle_date_dict[ vehicle_name ].get( date , False):
                     if hourmeter_log.shift == "1" :
                         vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_start" ] += hourmeter_log.start
@@ -99,7 +95,6 @@ class ProductionHEHourmeterReport(models.TransientModel):
                         vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_end" ] += hourmeter_log.end
                         vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_value" ] += hourmeter_log.value
                         vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_operator" ] = hourmeter_log.driver_id.name
-                    # _logger.warning( "vehicle_name" )
                     vehicle_date_dict[ vehicle_name ][ date ][ "hm_total" ] += hourmeter_log.value
 
         vehicle_losstimes = self.env['fleet.vehicle.losstime'].sudo().search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'vehicle_id', 'in', self.vehicle_ids.ids ) ], order="vehicle_id asc, start_datetime asc")
@@ -139,6 +134,12 @@ class ProductionHEHourmeterReport(models.TransientModel):
                 if vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_start" ] !=0 :
                     vehicle_date_dict[ vehicle_name ]["shift_2_start"] = vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_start" ]
                 if vehicle_date_dict[ vehicle_name ]["shift_1_start"] or vehicle_date_dict[ vehicle_name ]["shift_2_start"] :
+                    if vehicle_date_dict[ vehicle_name ]["shift_1_start"] == 0:
+                        vehicle_date_dict[ vehicle_name ]["start"] = vehicle_date_dict[ vehicle_name ]["shift_2_start"]
+                        break
+                    if vehicle_date_dict[ vehicle_name ]["shift_2_start"] == 0:
+                        vehicle_date_dict[ vehicle_name ]["start"] = vehicle_date_dict[ vehicle_name ]["shift_1_start"]
+                        break
                     vehicle_date_dict[ vehicle_name ]["start"] = min( vehicle_date_dict[ vehicle_name ]["shift_1_start"] , vehicle_date_dict[ vehicle_name ]["shift_2_start"] )
                     break
                 vehicle_date_dict[ vehicle_name ]["start"] = min( vehicle_date_dict[ vehicle_name ]["shift_1_start"] , vehicle_date_dict[ vehicle_name ]["shift_2_start"] )
@@ -154,8 +155,6 @@ class ProductionHEHourmeterReport(models.TransientModel):
                     vehicle_date_dict[ vehicle_name ]["end"] = max( vehicle_date_dict[ vehicle_name ]["shift_1_end"] , vehicle_date_dict[ vehicle_name ]["shift_2_end"] )
                     break
                 vehicle_date_dict[ vehicle_name ]["end"] = max( vehicle_date_dict[ vehicle_name ]["shift_1_end"] , vehicle_date_dict[ vehicle_name ]["shift_2_end"] )
-
-
 
         datas = {
             'ids': self.ids,

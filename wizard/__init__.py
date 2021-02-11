@@ -6,3 +6,4 @@ from . import production_watertruck_report
 
 from . import production_he_hourmeter_report
 from . import production_dt_timesheet_report
+from . import production_production_report

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <record id="production_he_hourmeter_report_form_view" model="ir.ui.view">
-            <field name="name">sr.production.he.hourmeter.report.form.view</field>
-            <field name="model">production.he.hourmeter.report</field>
+        <record id="production_production_report_form_view" model="ir.ui.view">
+            <field name="name">sr.production.production.report.form.view</field>
+            <field name="model">production.production.report</field>
             <field name="arch" type="xml">
                 <form string="Hourmeter Report">
                     <group>
@@ -15,10 +15,10 @@
                         </group>
                     </group>
                     <group>
-                        <field name="tag_id"/>
-                        <field name="vehicle_state_id"/>
-                        <field name="is_all"/>
-                        <field name="vehicle_ids" widget="many2many_tags" />
+                        <field name="pit_ids" widget="many2many_tags" />
+                        <field name="product_id" readonly="1"/>
+                        <field name="waste_ids" widget="many2many_tags"/>
+                        <field name="product_ids" widget="many2many_tags" />
                     </group>
 
                     <footer>
@@ -31,18 +31,18 @@
             </field>
         </record>
 
-        <record id="action_production_he_hourmeter_report_wizard" model="ir.actions.act_window">
-            <field name="name">HE Report</field>
-            <field name="res_model">production.he.hourmeter.report</field>
+        <record id="action_production_production_report_wizard" model="ir.actions.act_window">
+            <field name="name">Production Report</field>
+            <field name="res_model">production.production.report</field>
             <field name="view_type">form</field>
             <field name="view_mode">form</field>
             <field name="target">new</field>
         </record>
 
-        <menuitem id="menu_production_he_hourmeter_report_wizard"
-                  name="HE Report"
-                  action="action_production_he_hourmeter_report_wizard"
+        <menuitem id="menu_production_production_report_wizard"
+                  name="Production Report"
+                  action="action_production_production_report_wizard"
                   parent="report_production_heading"
-                  sequence="2"/>
+                  sequence="3"/>
     </data>
 </odoo>
