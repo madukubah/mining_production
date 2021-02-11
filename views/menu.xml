@@ -185,12 +185,12 @@
         <menuitem id="production_losstime_menu" name="Losstime" sequence="5" 
                 parent="mining_production_top"/>
 
-            <!-- <menuitem name="Production Losstime"
+            <menuitem name="Production Losstime"
                     id="production_losstime"
                     parent="production_losstime_menu" 
                     action="action_production_losstime"
                     sequence= "1"
-                    /> -->
+                    />
             
             <menuitem name="Vehicle Losstime"
                 parent="production_losstime_menu" 

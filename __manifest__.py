@@ -30,7 +30,7 @@
         "views/stock_views.xml",
         "views/cost_code.xml",
         "views/production_block.xml",
-        # "views/production_losstime.xml",
+        "views/production_losstime.xml",
         "views/production_pit.xml",
 
         "views/production_batch.xml",

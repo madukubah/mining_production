@@ -28,6 +28,7 @@
                                             </th>
                                         </t>
                                         <th rowspan="3" class="text-center">SR</th>
+                                        <th rowspan="2" colspan="2" class="text-center">Losstime</th>
                                     </tr>
                                     <tr>
                                         <t t-foreach="pit_product_dict.keys()" t-as="pit_name" >
@@ -51,6 +52,12 @@
                                                 <span t-esc="product_uom"/>
                                             </th>
                                         </t>
+                                        <th class="text-center" >
+                                            <span t-esc="'Rainy'"/>
+                                        </th>
+                                        <th class="text-center" >
+                                            <span t-esc="'Slippery'"/>
+                                        </th>
                                     </tr>
 
                                     <tr t-foreach="dates" t-as="date" >
@@ -72,6 +79,12 @@
                                         <td class="text-center">
                                             <span t-esc="data[date]['stripping_ratio']"/>
                                         </td>
+                                        <td class="text-center">
+                                            <span t-esc="data[date]['losstime']['rainy']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="data[date]['losstime']['slippery']"/>
+                                        </td>
                                     </tr>
                                     <tr style="font-weight: bold;background-color: yellow;" >
                                         <td></td>
@@ -89,6 +102,12 @@
                                         </t>
                                         <td class="text-center">
                                             <span t-esc="data['stripping_ratio']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="data['losstime']['rainy']"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-esc="data['losstime']['slippery']"/>
                                         </td>
                                     </tr>
                                 </tbody>

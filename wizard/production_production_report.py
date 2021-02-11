@@ -83,6 +83,15 @@ class ProductionProductionReport(models.TransientModel):
             dates += [ date ]
             date_production_dict[ date ] = {}
             date_production_dict[ date ][ "stripping_ratio" ] = 0
+            date_production_dict[ date ]["losstime"] = {
+                "rainy" : 0,
+                "slippery" : 0,
+            }
+            # compute total losstime
+            date_production_dict["losstime"] = {
+                "rainy" : 0,
+                "slippery" : 0,
+            }
             for pit_id in self.pit_ids :
                 date_production_dict[ date ][ pit_id.location_id.name ] = {}
                 for product_id in self.product_ids :
@@ -138,6 +147,12 @@ class ProductionProductionReport(models.TransientModel):
 
                         product_uom_dict[ product_name ]["wmt"] += ritase_order.product_uom._compute_quantity( ritase_order.ritase_count, ritase_order.product_id.uom_id )
                         product_uom_dict[ product_name ]["rit"] += ritase_order.ritase_count
+
+        # ritase_orders
+        losstimes = self.env['production.losstime'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ) ] )
+        for losstime in losstimes:
+            date_production_dict[ date ]["losstime"][ losstime.losstime_type ] += losstime.hour
+            date_production_dict["losstime"][ losstime.losstime_type ] += losstime.hour
 
         # SR per day
         for date in dates :

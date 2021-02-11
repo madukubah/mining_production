@@ -26,7 +26,7 @@
                 <form string="Production Losstime">
                     <header>
                         <button name="action_draft" states="cancel" string="Set to Draft" type="object" groups="mining_production.production_group_manager" />
-                        <button name="action_reload" string="Reload" type="object" class="btn-primary" groups="mining_production.production_group_manager" attrs="{'invisible': [('state', 'in', ('done'))]}" />
+                        <!-- <button name="action_reload" string="Reload" type="object" class="btn-primary" groups="mining_production.production_group_manager" attrs="{'invisible': [('state', 'in', ('done'))]}" /> -->
                         <button name="action_confirm" string="Confirm" type="object" states="draft" class="btn-primary" groups="mining_production.production_group_manager" />
                         <button name="action_done" string="Done" type="object" states="confirm" class="btn-primary" groups="mining_production.production_group_manager" />
                         <button name="action_cancel" states="draft,confirm" string="Cancel" type="object" groups="mining_production.production_group_manager" />
@@ -48,10 +48,11 @@
                         </group>
                         <notebook>
                             <page string="Vehicles" >
-                                <field name="vehicle_ids" >
-                                    <tree string="Vehicles" >
-                                        <field name="name" />
-                                        <field name="tag_ids" widget="many2many_tags" />
+                                <field name="losstime_vehicle_ids"  >
+                                    <tree string="Vehicles" editable="bottom" >
+                                        <field name="losstime_id" invisible="1" />
+                                        <field name="vehicle_id" />
+                                        <field name="tag_ids" widget="many2many_tags" readonly="1" />
                                         <field name="driver_id" />
                                     </tree>
                                 </field>
