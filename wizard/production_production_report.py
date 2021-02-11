@@ -151,7 +151,7 @@ class ProductionProductionReport(models.TransientModel):
         # ritase_orders
         losstimes = self.env['production.losstime'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ) ] )
         for losstime in losstimes:
-            date_production_dict[ date ]["losstime"][ losstime.losstime_type ] += losstime.hour
+            date_production_dict[ losstime.date ]["losstime"][ losstime.losstime_type ] += losstime.hour
             date_production_dict["losstime"][ losstime.losstime_type ] += losstime.hour
 
         # SR per day
