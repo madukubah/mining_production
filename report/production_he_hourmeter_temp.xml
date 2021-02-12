@@ -251,7 +251,7 @@
                                         <td class="text-left" colspan="2">
                                             <t t-if="hm_total_sum != 0" >
                                                 <t t-set="fuel_consumption_sum" t-value="fuel_consumption_sum/hm_total_sum"/>
-                                                <span t-esc="fuel_consumption_sum"/> Litre/Hour
+                                                <span t-esc="'%.2f'% fuel_consumption_sum"/> Litre/Hour
                                             </t>
                                         </td>
                                     </tr>

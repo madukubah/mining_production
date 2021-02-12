@@ -12,12 +12,22 @@ class ProductionHEHourmeterReport(models.TransientModel):
     _name = 'production.he.hourmeter.report'
 
     @api.model
+    def _default_config(self):
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+        return production_config[0]
+
+    @api.model
     def _default_tag(self):
         ProductionConfig = self.env['production.config'].sudo()
         production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
         if not production_config :
             raise UserError(_('Please Set Configuration file') )
         return production_config[0].hm_vehicle_tag_id
+
+    production_config_id = fields.Many2one('production.config', string='Production Config', default=_default_config )
 
     start_date = fields.Date('Start Date', required=True)
     end_date = fields.Date(string="End Date", required=True)
@@ -86,15 +96,29 @@ class ProductionHEHourmeterReport(models.TransientModel):
                 date = hourmeter_log.date
                 if vehicle_date_dict[ vehicle_name ].get( date , False):
                     if hourmeter_log.shift == "1" :
-                        vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_start" ] += hourmeter_log.start
-                        vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_end" ] += hourmeter_log.end
+                        start = vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_start" ]
+                        end = vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_end" ]
+                        operator = vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_operator" ]
+
+                        vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_start" ] = min( start, hourmeter_log.start) if start !=0 else hourmeter_log.start
+                        vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_end" ] = max( end, hourmeter_log.end)
                         vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_value" ] += hourmeter_log.value
-                        vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_operator" ] = hourmeter_log.driver_id.name
+                        if hourmeter_log.driver_id.name not in operator :
+                            vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_operator" ] += str( hourmeter_log.driver_id.name ) + ", "
+                        else:
+                            vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_operator" ] = str( hourmeter_log.driver_id.name )
                     else :
-                        vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_start" ] += hourmeter_log.start
-                        vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_end" ] += hourmeter_log.end
+                        start = vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_start" ]
+                        end = vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_end" ]
+                        operator = vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_operator" ]
+
+                        vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_start" ] = min( start, hourmeter_log.start) if start !=0 else hourmeter_log.start
+                        vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_end" ] = max( end, hourmeter_log.end)
                         vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_value" ] += hourmeter_log.value
-                        vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_operator" ] = hourmeter_log.driver_id.name
+                        if hourmeter_log.driver_id.name not in operator :
+                            vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_operator" ] += str( hourmeter_log.driver_id.name ) + ", "
+                        else:
+                            vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_operator" ] = str( hourmeter_log.driver_id.name )
                     vehicle_date_dict[ vehicle_name ][ date ][ "hm_total" ] += hourmeter_log.value
 
         vehicle_losstimes = self.env['fleet.vehicle.losstime'].sudo().search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'vehicle_id', 'in', self.vehicle_ids.ids ) ], order="vehicle_id asc, start_datetime asc")
@@ -113,14 +137,23 @@ class ProductionHEHourmeterReport(models.TransientModel):
                         vehicle_date_dict[ vehicle_name ][ date ][ "no_operator" ] += vehicle_losstime.hours
                     vehicle_date_dict[ vehicle_name ][ date ][ "total_standby" ] += vehicle_losstime.hours
                     vehicle_date_dict[ vehicle_name ][ date ][ "remark_losstime" ] += str( vehicle_losstime.remarks ) + ", "
-        
-        vehicle_log_fuels = self.env['fleet.vehicle.log.fuel'].sudo().search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'vehicle_id', 'in', self.vehicle_ids.ids ) ], order="vehicle_id asc, date asc")
-        for vehicle_log_fuel in vehicle_log_fuels: 
-            vehicle_name = vehicle_log_fuel.vehicle_id.name
+        # fuels
+        # vehicle_log_fuels = self.env['fleet.vehicle.log.fuel'].sudo().search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'vehicle_id', 'in', self.vehicle_ids.ids ) ], order="vehicle_id asc, date asc")
+        # for vehicle_log_fuel in vehicle_log_fuels: 
+        #     vehicle_name = vehicle_log_fuel.vehicle_id.name
+        #     if vehicle_date_dict.get( vehicle_name , False):
+        #         date = vehicle_log_fuel.date
+        #         if vehicle_date_dict[ vehicle_name ].get( date , False):
+        #             vehicle_date_dict[ vehicle_name ][ date ][ "fuel_consumption" ] += vehicle_log_fuel.liter
+        _fuel_product_ids = set( [ x.product_id.id for x in self.production_config_id.refuel_service_type_ids  ] ) 
+        _fuel_product_ids = list(_fuel_product_ids) 
+        vehicle_costs = self.env['fleet.vehicle.cost'].sudo().search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'vehicle_id', 'in', self.vehicle_ids.ids ), ( 'product_id', 'in', _fuel_product_ids ) ], order="vehicle_id asc, date asc")
+        for vehicle_cost in vehicle_costs: 
+            vehicle_name = vehicle_cost.vehicle_id.name
             if vehicle_date_dict.get( vehicle_name , False):
-                date = vehicle_log_fuel.date
+                date = vehicle_cost.date
                 if vehicle_date_dict[ vehicle_name ].get( date , False):
-                    vehicle_date_dict[ vehicle_name ][ date ][ "fuel_consumption" ] += vehicle_log_fuel.liter
+                    vehicle_date_dict[ vehicle_name ][ date ][ "fuel_consumption" ] += vehicle_cost.product_uom_qty
 
         for vehicle in self.vehicle_ids: 
             vehicle_name = vehicle.name

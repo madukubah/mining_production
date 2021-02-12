@@ -107,7 +107,7 @@
                                             <td class="text-left" >
                                                 <t t-if="odometer_value_sum != 0" >
                                                     <t t-set="fuel_consumption_sum" t-value="fuel_consumption_sum/odometer_value_sum"/>
-                                                    <span t-esc="fuel_consumption_sum"/> L/KM
+                                                    <span t-esc="'%.2f'% fuel_consumption_sum"/> L/KM
                                                 </t>
                                             </td>
                                         </tr>

@@ -12,12 +12,22 @@ class ProductionDTTimesheetReport(models.TransientModel):
     _name = 'production.dt.timesheet.report'
 
     @api.model
+    def _default_config(self):
+        ProductionConfig = self.env['production.config'].sudo()
+        production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+        if not production_config :
+            raise UserError(_('Please Set Configuration file') )
+        return production_config[0]
+
+    @api.model
     def _default_tag(self):
         ProductionConfig = self.env['production.config'].sudo()
         production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
         if not production_config :
             raise UserError(_('Please Set Configuration file') )
         return production_config[0].rit_vehicle_tag_id
+
+    production_config_id = fields.Many2one('production.config', string='Production Config', default=_default_config )
 
     start_date = fields.Date('Start Date', required=True)
     end_date = fields.Date(string="End Date", required=True)
@@ -85,13 +95,23 @@ class ProductionDTTimesheetReport(models.TransientModel):
                 if vehicle_date_dict[ vehicle_name ].get( date , False):
                     vehicle_date_dict[ vehicle_name ][ date ][ "remarks" ] += str( vehicle_losstime.remarks ) + ", "
         
-        vehicle_log_fuels = self.env['fleet.vehicle.log.fuel'].sudo().search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'vehicle_id', 'in', self.vehicle_ids.ids ) ], order="vehicle_id asc, date asc")
-        for vehicle_log_fuel in vehicle_log_fuels: 
-            vehicle_name = vehicle_log_fuel.vehicle_id.name
+        # fuels
+        # vehicle_log_fuels = self.env['fleet.vehicle.log.fuel'].sudo().search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'vehicle_id', 'in', self.vehicle_ids.ids ) ], order="vehicle_id asc, date asc")
+        # for vehicle_log_fuel in vehicle_log_fuels: 
+        #     vehicle_name = vehicle_log_fuel.vehicle_id.name
+        #     if vehicle_date_dict.get( vehicle_name , False):
+        #         date = vehicle_log_fuel.date
+        #         if vehicle_date_dict[ vehicle_name ].get( date , False):
+        #             vehicle_date_dict[ vehicle_name ][ date ][ "fuel_consumption" ] += vehicle_log_fuel.liter
+        _fuel_product_ids = set( [ x.product_id.id for x in self.production_config_id.refuel_service_type_ids  ] ) 
+        _fuel_product_ids = list(_fuel_product_ids) 
+        vehicle_costs = self.env['fleet.vehicle.cost'].sudo().search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'vehicle_id', 'in', self.vehicle_ids.ids ), ( 'product_id', 'in', _fuel_product_ids ) ], order="vehicle_id asc, date asc")
+        for vehicle_cost in vehicle_costs: 
+            vehicle_name = vehicle_cost.vehicle_id.name
             if vehicle_date_dict.get( vehicle_name , False):
-                date = vehicle_log_fuel.date
+                date = vehicle_cost.date
                 if vehicle_date_dict[ vehicle_name ].get( date , False):
-                    vehicle_date_dict[ vehicle_name ][ date ][ "fuel_consumption" ] += vehicle_log_fuel.liter
+                    vehicle_date_dict[ vehicle_name ][ date ][ "fuel_consumption" ] += vehicle_cost.product_uom_qty
 
         for vehicle in self.vehicle_ids: 
             vehicle_name = vehicle.name

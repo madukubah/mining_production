@@ -15,6 +15,7 @@
                         </group>
                     </group>
                     <group>
+                        <field name="production_config_id" invisible="1" />
                         <field name="tag_id"/>
                         <field name="vehicle_state_id"/>
                         <field name="is_all"/>

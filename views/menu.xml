@@ -201,7 +201,7 @@
         
         <menuitem id="mining_production_report" name="Report" sequence="98" 
                 parent="mining_production_top"
-                groups="production_group_manager"
+                groups="production_group_manager,production_group_user"
                 />
                 <menuitem id="report_production_heading" name="Production" parent="mining_production_report" sequence="2"/>
 
