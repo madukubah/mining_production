@@ -38,7 +38,7 @@ class ProductionRitaseOrder(models.Model):
 				return True
 			rit_by_dt = sum( [ counter_id.ritase_count for counter_id in order.counter_ids ] )
 			rit_by_lot = sum( [ lot_move_id.ritase_count for lot_move_id in order.lot_move_ids ] )
-			if( rit_by_dt != rit_by_lot ):
+			if( round(rit_by_dt, 2) != round(rit_by_lot, 2) ):
 				return False	
 		return True
 
@@ -378,7 +378,6 @@ class ProductionRitaseOrder(models.Model):
 		template = {
 			'name': self.name or '',
 			'product_id': self.product_id.id,
-            'product_uom_qty': self.ritase_count ,
             'product_uom_qty': self.product_uom_qty ,
 			'product_uom': self.product_uom.id,
 			'date': self.date,
