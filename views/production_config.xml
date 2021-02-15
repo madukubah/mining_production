@@ -17,46 +17,82 @@
                             <field name="name" />
                         </h1>
                     </div>
-                    <group name="receipt" string="Configuration" >
+                    <group name="mining" string="Mining" >
                         <field name="company_id" invisible="1" />
                         <field name="journal_type" invisible="1" />
                         <field name="lot_id" />
+                        <field name="main_product_id" />
+                        <field name="enable_default_lot" />
                         <field name="product_ids" widget="many2many_tags" />
-                        <field name="cop_journal_id" />
-                        <field name="cop_cost_credit_account_id" />
                     </group>
-                    <group string="Ritase" >
-                        <field name="rit_tag_id" />
-                        <field name="rit_losstime_tag_id" />
-                        <field name="rit_price_unit" />
-                        <field name="rit_minimal_cash" />
-                        <field name="rit_vehicle_tag_id" />
+                    <group name="accounting" string="Accounting" >
+                        <field name="cop_journal_id" string="COP Journal" />
+                        <field name="cop_cost_credit_account_id" string="Labour Cost Account" />
+                        <field name="product_categ_id" />
+                        <field name="valuation_account_id" />
                     </group>
-                    <group string="Hourmeter" >
-                        <field name="hm_tag_id" />
-                        <field name="hm_losstime_tag_id" />
-                        <field name="hm_price_unit" />
-                        <field name="hm_minimal_cash" />
-                        <field name="hm_vehicle_tag_id" />
+                    <group name="uom" string="Unit Of Measure" >
+                        <field name="main_uom_id" />
+                        <field name="rit_count_uom_ids" >
+                            <tree string="Ritase Count UoMs" editable="bottom" >
+                                <field name="name" />
+                                <field name="factor_inv" />
+                            </tree>
+                        </field >
+                        <field name="bucket_count_uom_ids" >
+                            <tree string="Bucket Count UoMs" editable="bottom" >
+                                <field name="name" />
+                                <field name="factor_inv" />
+                            </tree>
+                        </field >
                     </group>
-                    <group string="Water Truck" >
-                        <field name="wt_tag_id" />
-                        <field name="wt_losstime_tag_id" />
-                        <field name="wt_price_unit" />
-                        <field name="wt_minimal_cash" />
-                        <field name="wt_vehicle_tag_id" />
+                    <group string="Factors" class="row" >
+                        <field name="factor_density_ids" editable="bottom" >
+                            <tree string="Densities" editable="bottom" >
+                                <field name="product_id" />
+                                <field name="density_id" />
+                                <field name="density" string="Density (Ton/m^3)" />
+                                <field name="density_factor" />
+                            </tree>
+                        </field >
                     </group>
                     <group string="Vehicle" >
+                        <field name="vehicle_model_ids" >
+                            <tree string="Mining Unit Models" editable="bottom" >
+                                <field name="brand_id" />
+                                <field name="name" />
+                            </tree>
+                        </field >
                         <field name="refuel_service_type_ids" >
                             <tree string="Refuel Service Types" editable="bottom" >
                                 <field name="name" />
+                                <field name="product_id" />
                             </tree>
                         </field >
-                        <field name="categ_ids" >
-                            <tree string="Item Service Category" editable="bottom" >
-                                <field name="name" />
-                            </tree>
-                        </field >
+                        <field name="categ_ids" widget="many2many_tags" />
+                    </group>
+                    <group string="Labour" class="row" >
+                        <group string="Ritase" class="col-4" >
+                            <field name="rit_tag_id" />
+                            <field name="rit_losstime_tag_id" />
+                            <field name="rit_price_unit" />
+                            <field name="rit_minimal_cash" />
+                            <field name="rit_vehicle_tag_id" />
+                        </group>
+                        <group string="Hourmeter" class="col-4" >
+                            <field name="hm_tag_id" />
+                            <field name="hm_losstime_tag_id" />
+                            <field name="hm_price_unit" />
+                            <field name="hm_minimal_cash" />
+                            <field name="hm_vehicle_tag_id" />
+                        </group>
+                        <group string="Water Truck" class="col-4" >
+                            <field name="wt_tag_id" />
+                            <field name="wt_losstime_tag_id" />
+                            <field name="wt_price_unit" />
+                            <field name="wt_minimal_cash" />
+                            <field name="wt_vehicle_tag_id" />
+                        </group>
                     </group>
                 </sheet>
             </form>
@@ -114,6 +150,21 @@
             </p><p>
                 Configure at least one.
             </p>
+        </field>
+    </record>
+
+    <record id="config_factor_density_list" model="ir.ui.view">
+        <field name="name">production.config.factor.density.list</field>
+        <field name="model">production.config.factor.density</field>
+        <field name="type">tree</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="Density Factor">
+                <field name="product_id" />
+                <field name="density_id" />
+                <field name="density" />
+                <field name="density_factor" />
+            </tree>
         </field>
     </record>
 

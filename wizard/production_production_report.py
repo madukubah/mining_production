@@ -136,16 +136,16 @@ class ProductionProductionReport(models.TransientModel):
             if date_production_dict.get( date , False):
                 if date_production_dict[ date ].get( location_name , False):
                     if date_production_dict[ date ][location_name].get( product_name , False):
-                        date_production_dict[ date ][location_name][ product_name ]["wmt"] += ritase_order.product_uom._compute_quantity( ritase_order.ritase_count, ritase_order.product_id.uom_id )
+                        date_production_dict[ date ][location_name][ product_name ]["wmt"] += ritase_order.product_uom._compute_quantity( ritase_order.product_uom_qty, ritase_order.product_id.uom_id )
                         date_production_dict[ date ][location_name][ product_name ]["rit"] += ritase_order.ritase_count
 
-                        pit_product_dict[location_name]["products"][ product_name ]["wmt"] += ritase_order.product_uom._compute_quantity( ritase_order.ritase_count, ritase_order.product_id.uom_id )
+                        pit_product_dict[location_name]["products"][ product_name ]["wmt"] += ritase_order.product_uom._compute_quantity( ritase_order.product_uom_qty, ritase_order.product_id.uom_id )
                         pit_product_dict[location_name]["products"][ product_name ]["rit"] += ritase_order.ritase_count
 
-                        date_production_dict[ date ][ product_name ]["wmt"] += ritase_order.product_uom._compute_quantity( ritase_order.ritase_count, ritase_order.product_id.uom_id )
+                        date_production_dict[ date ][ product_name ]["wmt"] += ritase_order.product_uom._compute_quantity( ritase_order.product_uom_qty, ritase_order.product_id.uom_id )
                         date_production_dict[ date ][ product_name ]["rit"] += ritase_order.ritase_count
 
-                        product_uom_dict[ product_name ]["wmt"] += ritase_order.product_uom._compute_quantity( ritase_order.ritase_count, ritase_order.product_id.uom_id )
+                        product_uom_dict[ product_name ]["wmt"] += ritase_order.product_uom._compute_quantity( ritase_order.product_uom_qty, ritase_order.product_id.uom_id )
                         product_uom_dict[ product_name ]["rit"] += ritase_order.ritase_count
 
         # ritase_orders

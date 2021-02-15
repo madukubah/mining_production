@@ -76,7 +76,7 @@ class ProductionOrder(models.Model):
     product_tmpl_id = fields.Many2one('product.template', 'Product Template', related='product_id.product_tmpl_id', readonly=True)
     product_qty = fields.Float(
         'Quantity To Produce',
-        compute='_compute_ritase',
+        compute='_compute_qty',
         default=1.0, digits=dp.get_precision('Product Unit of Measure'),
         readonly=True, required=True, store=True )
     product_uom_id = fields.Many2one(
@@ -102,7 +102,16 @@ class ProductionOrder(models.Model):
         'procurement.group', 'Procurement Group',
         copy=False)
     procurement_ids = fields.One2many('procurement.order', 'production_order_id', 'Related Procurements')
+    # ritase
     rit_ids = fields.One2many('production.ritase.order', 'production_order_id', 'Ritase Orders', states=READONLY_STATES )
+    lot_move_ids = fields.Many2many(
+        'production.ritase.lot.move',
+        'production_ritase_lot_rel',
+        "production_order_id",
+        'ritase_order_id',
+        string='Lot Movements',
+        copy=False, )
+
     state = fields.Selection([
         ('draft', 'Draft'), 
 		('cancel', 'Cancelled'),
@@ -156,14 +165,14 @@ class ProductionOrder(models.Model):
 
     @api.multi
     @api.depends('rit_ids')
-    def _compute_ritase(self):
+    def _compute_qty(self):
         for order in self:
-            order.product_qty = sum( [ rit_id.product_uom._compute_quantity( rit_id.ritase_count, order.product_uom_id ) for rit_id in order.rit_ids ] )
+            order.product_qty = sum( [ rit_id.product_uom._compute_quantity( rit_id.product_uom_qty, order.product_uom_id ) for rit_id in order.rit_ids ] )
 
     @api.onchange('product_uom_id' )
     def onchange_product_uom_id(self):
         for order in self:
-            order.product_qty = sum( [ rit_id.product_uom._compute_quantity( rit_id.ritase_count, order.product_uom_id ) for rit_id in order.rit_ids ] )
+            order.product_qty = sum( [ rit_id.product_uom._compute_quantity( rit_id.product_uom_qty, order.product_uom_id ) for rit_id in order.rit_ids ] )
 
     @api.multi
     def action_confirm(self):
@@ -179,92 +188,16 @@ class ProductionOrder(models.Model):
         self.update({
             'rit_ids': [( 6, 0, ritase_orders.ids )],
         })
+        lot_move_ids = []
+        for ritase_order in ritase_orders:
+            lot_move_ids += ritase_order.lot_move_ids.ids
+
+        self.update({
+            'lot_move_ids': [( 6, 0, lot_move_ids )],
+        })
+
+
         return True
-
-        # # get dump truck
-        # dumptruck_ids = []
-        # for ritase_order in ritase_orders:
-        #     for counter in ritase_order.counter_ids:
-        #         if counter.vehicle_id.id not in dumptruck_ids :
-        #             dumptruck_ids += [ counter.vehicle_id.id ]
-        
-        # DumptruckPerformance = self.env['production.dumptruck.performance'].sudo()
-        # for dumptruck_id in dumptruck_ids:
-        #     dumptruck_performances = DumptruckPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "=", dumptruck_id ) ] )
-        #     if not dumptruck_performances : 
-        #         DumptruckPerformance.create({
-        #                 "date" : self.date ,
-        #                 "end_date" : self.date ,
-        #                 "vehicle_id" : dumptruck_id ,
-        #         }).action_reload( )
-        #     else:
-        #         for x in dumptruck_performances :
-        #             x.update( {
-        #                 "date" : self.date ,
-        #                 "end_date" : self.date ,
-        #             } )
-        #             x.action_reload() 
-               
-        # dumptruck_performances = DumptruckPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "in", dumptruck_ids ) ] )
-        # self.update({
-        #     'dumptruck_ids': [( 6, 0, dumptruck_performances.ids )],
-        # })
-        # # ========================
-        # # get heavy equipment
-        # he_ids = []
-        # for ritase_order in ritase_orders:
-        #     for load_vehicle in ritase_order.load_vehicle_ids:
-        #         if load_vehicle.id not in he_ids :
-        #             he_ids += [ load_vehicle.id ]
-        #     for pile_vehicle in ritase_order.pile_vehicle_ids:
-        #         if pile_vehicle.id not in he_ids :
-        #             he_ids += [ pile_vehicle.id ]
-        
-        # HEPerformance = self.env['production.he.performance'].sudo()
-        # for he_id in he_ids:
-        #     he_performances = HEPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "=", he_id ) ] )
-        #     if not he_performances : 
-        #         HEPerformance.create({
-        #                 "date" : self.date ,
-        #                 "end_date" : self.date ,
-        #                 "vehicle_id" : he_id ,
-        #         }).action_reload( )
-        #     else:
-        #         for x in he_performances :
-        #             x.update( {
-        #                 "date" : self.date ,
-        #                 "end_date" : self.date ,
-        #             } )
-        #             x.action_reload() 
-
-        # he_performances = HEPerformance.search( [ ( "date", "=", self.date ), ( "vehicle_id", "in", he_ids ) ] )
-        # self.update({
-        #     'he_ids': [( 6, 0, he_performances.ids )],
-        # })
-
-        # return True
-        
-        # TODO : for cost analysis
-        # counter_ids = []
-        # for ritase_order in ritase_orders:
-        #     counter_ids += ritase_order.counter_ids.ids
-        # self.update({
-        #     'counter_ids': [( 6, 0, counter_ids )],
-        # })
-
-        # HourmeterLog = self.env['production.vehicle.hourmeter.log'].sudo()
-        # hourmeter_log = HourmeterLog.search( [ ( "vehicle_id", "in", he_ids ), ( "date", "=", self.date ) ] )
-        # self.update({
-        #     'hourmeter_ids': [( 6, 0, hourmeter_log.ids )],
-        # })
-
-        # he_ids += dumptruck_ids
-        # VehicleCost = self.env['fleet.vehicle.cost'].sudo()
-        # vehicle_costs = VehicleCost.search( [ ( "vehicle_id", "in", he_ids ), ( "date", "=", self.date ) ] )
-        # vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs if vehicle_cost.cost_subtype_id.is_consumable ]
-        # self.update({
-        #     'cost_ids': [( 6, 0, vehicle_costs_ids )],
-        # })
 
     @api.multi
     def action_done(self):
@@ -348,15 +281,31 @@ class ProductionOrder(models.Model):
 
 
         if self.product_id.tracking != 'none' :
-            vals = {
+            # vals = {
+            #         'move_id': move.id,
+            #         'product_id': move.product_id.id,
+            #         'production_order_id': move.production_order_id.id,
+            #         'quantity': self.product_qty,
+            #         'quantity_done': self.product_qty,
+            #         'lot_id': production_config.lot_id.id,
+            #     }
+            # lots.create( vals )
+            lot_qty_dict = {}
+            for lot_move_id in self.lot_move_ids:
+                lot_id = lot_move_id.lot_id.id
+                if lot_qty_dict.get( lot_id, False ):
+                    lot_qty_dict[ lot_id ] +=  lot_move_id.product_uom_qty
+                else :
+                    lot_qty_dict[ lot_id ] = lot_move_id.product_uom_qty
+            for lot_id, qty in lot_qty_dict.items():
+                lots.create({
                     'move_id': move.id,
                     'product_id': move.product_id.id,
                     'production_order_id': move.production_order_id.id,
-                    'quantity': self.product_qty,
-                    'quantity_done': self.product_qty,
-                    'lot_id': production_config.lot_id.id,
-                }
-            lots.create(vals)
+                    'lot_id' : lot_id,
+                    'quantity': qty,
+                    'quantity_done': qty,
+                })
         else :
             move.quantity_done = self.product_qty
         return move

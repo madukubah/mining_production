@@ -1,6 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <record id="view_production_fleet_vehicle_model_form" model="ir.ui.view">
+        <field name="name">fleet.vehicle.model.form</field>
+        <field name="model">fleet.vehicle.model</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_model_view_form"/>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="before">
+                <group>
+                    <field name="is_mining_fleet" string="Is Mining Fleet" />
+                </group>
+                <notebook>
+                    <page string="Productivity Factors" attrs="{'invisible': [ ('is_mining_fleet', '=', False) ] }" >
+                        <field name="factor_productivity_ids" editable="bottom" >
+                            <tree string="Productivity Factors" editable="bottom" >
+                                <field name="name" invisible="1" />
+                                <field name="vehicle_model_id" invisible="1" />
+                                <field name="activity_id" />
+                                <field name="capacity" string="Capacity (m^3)" />
+                                <field name="swell_factor" string="Swell Factor (Default)" />
+                                <field name="fill_factor" string="Fill Factor (Default)" />
+                            </tree>
+                        </field >
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+    <!-- FILTER -->
+    <!-- <record id="view_fleet_vehicle_model_services_filter0" model="ir.ui.view">
+        <field name="name">fleet.vehicle.model.filter0</field>
+        <field name="model">fleet.vehicle.model</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_model_view_search"/>
+        <field name="arch" type="xml">
+            <search string="Search Vehicle Model">
+                <field name="is_mining_fleet"/>
+                <filter string="Is Mining Fleet"
+                    name="is_mining_fleet" domain="[('is_mining_fleet','=',1)]" help="Is Mining Fleet"/>
+            </search>
+        </field>
+    </record> -->
+
     <record id='fleet_production_vehicle_log_services_view_tree' model='ir.ui.view'>
         <field name="name">fleet.vehicle.log.services.tree</field>
         <field name="model">fleet.vehicle.log.services</field>

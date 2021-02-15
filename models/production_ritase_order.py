@@ -13,20 +13,13 @@ class ProductionRitaseOrder(models.Model):
 	_inherit = ['mail.thread', 'ir.needaction_mixin']
 	_order = 'date desc'
 	
-	@api.onchange('warehouse_id', "warehouse_dest_id")	
-	def _default_product(self):
+	@api.model
+	def _default_config(self):
 		ProductionConfig = self.env['production.config'].sudo()
 		production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
 		if not production_config :
 			raise UserError(_('Please Set Configuration file') )
-		product_ids = [ x.id for x in production_config[0].product_ids ]
-		_logger.warning( product_ids )
-		product_ids = self.env['product.product'].sudo(  ).search( [ ("id", "in", product_ids ) ] )
-		return {
-				'domain':{
-					'product_id':[('id','in', product_ids.ids )] ,
-					} 
-				}
+		return production_config[0]
 		
 	@api.model
 	def _default_picking_type(self):
@@ -41,12 +34,14 @@ class ProductionRitaseOrder(models.Model):
 	def _check_ritase_count(self):
 		for order in self:
 			if order.product_id.tracking == 'none' :
+				order.lot_move_ids.unlink()
 				return True
 			rit_by_dt = sum( [ counter_id.ritase_count for counter_id in order.counter_ids ] )
 			rit_by_lot = sum( [ lot_move_id.ritase_count for lot_move_id in order.lot_move_ids ] )
 			if( rit_by_dt != rit_by_lot ):
 				return False	
 		return True
+	
 
 	READONLY_STATES = {
         'draft': [('readonly', False)] ,
@@ -54,6 +49,8 @@ class ProductionRitaseOrder(models.Model):
         'done': [('readonly', True)] ,
         'cancel': [('readonly', True)] ,
     }
+
+	production_config_id = fields.Many2one('production.config', string='Production Config', default=_default_config, store=True )
 
 	name = fields.Char(string="Name", size=100 , required=True, readonly=True, default="NEW")
 	production_order_id = fields.Many2one("production.order", 
@@ -63,6 +60,7 @@ class ProductionRitaseOrder(models.Model):
 	picking_type_id = fields.Many2one('stock.picking.type', 'Deliver To', required=True, default=_default_picking_type,\
 		help="This will determine picking type of internal shipment", states=READONLY_STATES)
 	company_id = fields.Many2one('res.company', 'Company', required=True, index=True, default=lambda self: self.env.user.company_id.id, states=READONLY_STATES)
+	# location
 	warehouse_id = fields.Many2one(
             'stock.warehouse', 'Origin Warehouse',
             ondelete="restrict", required=True, states=READONLY_STATES)
@@ -77,26 +75,47 @@ class ProductionRitaseOrder(models.Model):
             'stock.location', 'Destination Location',
 			domain=[ ('usage','=',"internal")  ],
             ondelete="restrict", required=True, states=READONLY_STATES)
+	# activity
 	cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict" )
-	
 	shift = fields.Selection([
         ( "1" , '1'),
         ( "2" , '2'),
         ], string='Shift', index=True, states=READONLY_STATES, default="1" )
-	buckets = fields.Integer( string="Buckets", default=0, digits=0, states=READONLY_STATES)
+	
 	product_id = fields.Many2one('product.product', 'Material', domain=[ ('type','=','product' ) ], required=True, states=READONLY_STATES )
 	product_uom = fields.Many2one(
             'product.uom', 'Product Unit of Measure', 
             required=True,
 			domain=[ ('category_id.name','=',"Mining")  ],
+			ondelete="restrict",
             default=lambda self: self._context.get('product_uom', False),
 			states=READONLY_STATES
 			)
-
+	old_product_uom = fields.Many2one(
+            'product.uom', 'Product Unit of Measure (Old)', 
+			domain=[ ('category_id.name','=',"Mining")  ],
+			ondelete="restrict",
+			states=READONLY_STATES
+			)
+	# fleet
+	load_vehicle_id = fields.Many2one('fleet.vehicle', string='Load Unit', copy=False, required=True, states=READONLY_STATES)
 	load_vehicle_ids = fields.Many2many('fleet.vehicle', 'ritase_order_load_vehicle_rel', 'ritase_order_id', 'vehicle_id', 'Load Unit', copy=False, states=READONLY_STATES)
 	pile_vehicle_ids = fields.Many2many('fleet.vehicle', 'ritase_order_pile_vehicle_rel', 'ritase_order_id', 'vehicle_id', 'Pile Unit', copy=False, states=READONLY_STATES)
+	bucket = fields.Integer( string="Buckets", default=0, digits=0, states=READONLY_STATES)
+	# factor
+	factor_productivity_id = fields.Many2one('production.fleet.factor.productivity', string='Productivity Factor', copy=False, readonly=True, states=READONLY_STATES)
+	fleet_model_capacity = fields.Float('Capacity', required=True, default=0, related="factor_productivity_id.capacity", readonly=True )
+	fleet_model_swell_factor = fields.Float('Swell Factor', required=True, default=0, related="factor_productivity_id.swell_factor", readonly=True )
+	fleet_model_fill_factor = fields.Float('Fill Factor', required=True, default=0, related="factor_productivity_id.fill_factor", readonly=True )
 
+	factor_density_ids = fields.Many2many('production.config.factor.density', 'ritase_density_rel', 'ritase_order_id', 'density_id', string='Densities', states=READONLY_STATES )
+	# calculation
+	ton_p_ct = fields.Float('Ton/CT', default=0, compute="_compute_ton_p_ct" )
 	ritase_count = fields.Integer( string="Ritase Total", required=True, default=0, digits=0, compute='_compute_ritase_count', readonly=True, store=True )
+	bucket_count = fields.Integer( string="Buckets Total", required=True, default=0, digits=0, compute='_compute_ritase_count', readonly=True, store=True )
+	product_uom_qty = fields.Float('QTY', default=0, compute="_compute_qty" )
+	
+	# ===================================================================
 	counter_ids = fields.One2many(
         'production.ritase.counter',
         'ritase_order_id',
@@ -119,8 +138,21 @@ class ProductionRitaseOrder(models.Model):
         ], string='Status', readonly=True, copy=False, index=True, track_visibility='onchange', default='draft')
 
 	_constraints = [ 
-        (_check_ritase_count, 'Ritase by Lot and Ritase by DT Must Be Same!', ['counter_ids','lot_move_ids'] ) 
+        (_check_ritase_count, 'Ritase by Lot and Ritase by DT Must Be Same!', ['counter_ids','lot_move_ids'] ) ,
         ]
+	
+	@api.multi
+	def syncronize(self):
+		for order in self:
+			order._change_product_id()
+			if order.load_vehicle_ids :
+				order.load_vehicle_id = order.load_vehicle_ids[0]
+				order._change_fleet()
+			order._compute_ritase_count()
+			if order.old_product_uom == False or order.product_uom != order.product_id.uom_id :
+				order.old_product_uom = order.product_uom
+				order.product_uom = order.product_id.uom_id
+			
 	
 	@api.multi
 	def unlink(self):
@@ -129,13 +161,42 @@ class ProductionRitaseOrder(models.Model):
 				raise UserError(_('Cannot delete  order which is in state \'%s\'.') %(order.state,))
 		return super(ProductionRitaseOrder, self).unlink()
 
+	@api.onchange('warehouse_id', "warehouse_dest_id", "load_vehicle_id")
+	def _change_fleet(self):
+		for order in self:
+			if order.load_vehicle_id :
+				vehicle_model_id = order.load_vehicle_id.model_id
+				activity_definition_id = self.env['production.activity.definition'].search([ ( "warehouse_id", "=", order.warehouse_id.id ), ( "warehouse_dest_id", "=", order.warehouse_dest_id.id ) ], limit=1)
+				if not activity_definition_id :
+					raise UserError(_('Cannot Define Mining Activity from %s to %s in %s') %( order.warehouse_id.name, order.warehouse_dest_id.name, order.name ) )
+				factor_productivity_id = self.env['production.fleet.factor.productivity'].search([ ( "activity_id", "=", activity_definition_id[0].id ), ( "vehicle_model_id", "=", vehicle_model_id.id ) ], limit=1)
+				if not factor_productivity_id :
+					raise UserError(_('Cannot Find Fleet [%s] Productivity Factor For Activity %s in %s') % ( vehicle_model_id.name, activity_definition_id[0].name, order.name ) )
+				order.factor_productivity_id = factor_productivity_id[0]
+		
+	@api.onchange('product_id')
+	def _change_product_id(self):
+		for order in self:
+			factor_density_ids = self.env['production.config.factor.density'].sudo().search([( "product_id", "=", order.product_id.id )])
+			order.update({
+				'factor_density_ids': [( 6, 0, factor_density_ids.ids )],
+			})
+
 	@api.onchange('warehouse_id', "warehouse_dest_id")
 	def _change_wh(self):
 		for order in self:
+			ProductionConfig = self.env['production.config'].sudo()
+			production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+			if not production_config :
+				raise UserError(_('Please Set Configuration file') )
+			product_ids = [ x.id for x in production_config[0].product_ids ]
+			product_ids = self.env['product.product'].sudo(  ).search( [ ("id", "in", product_ids ) ] )
+			
 			return {
 				'domain':{
 					'location_id':[('location_id','=',order.warehouse_id.view_location_id.id )] ,
-					'location_dest_id':[('location_id','=',order.warehouse_dest_id.view_location_id.id )]
+					'location_dest_id':[('location_id','=',order.warehouse_dest_id.view_location_id.id )],
+					'product_id':[('id','in', product_ids.ids )],
 					}
 				}
 		
@@ -145,18 +206,48 @@ class ProductionRitaseOrder(models.Model):
 		values["name"] = seq
 		res = super(ProductionRitaseOrder, self ).create(values)
 		return res
-		
+
+	@api.depends('factor_productivity_id', "factor_density_ids")	
+	def _compute_ton_p_ct(self):
+		for order in self:		
+			ton_p_ct = order.fleet_model_capacity * sum( [ x.density for x in order.factor_density_ids ] ) * order.fleet_model_swell_factor * order.fleet_model_fill_factor
+			order.ton_p_ct = round(ton_p_ct, 2)
+
+	@api.depends('ton_p_ct', "bucket_count")	
+	def _compute_qty(self):
+		for order in self:		
+			qty = order.ton_p_ct * order.bucket_count
+			# qty = order.product_uom._compute_quantity( qty, order.product_id.uom_id )
+			qty = sum( [ ( x.product_uom_qty  ) for x in order.counter_ids ] )
+			order.product_uom_qty = round( qty, 2)
+			
 	@api.depends('counter_ids')	
 	def _compute_ritase_count(self):
 		for order in self:
 			order.ritase_count = sum( [ x.ritase_count for x in order.counter_ids ] )
+			order.bucket_count = sum( [ ( x.ritase_count * x.bucket  ) for x in order.counter_ids ] )
 
+	@api.onchange('bucket')	
+	def _onchange_default_bucket(self):
+		for order in self: 
+			order.counter_ids.set_bucket( order.bucket )
+			order.lot_move_ids.set_bucket( order.bucket )
+	
+	
 	@api.multi
 	def action_confirm( self ):
 		PackOperationLot = self.env['stock.pack.operation.lot'].sudo()
 		for order in self:
+			# order._compute_tonnase()
+			# order.counter_ids._compute_tonnase()
+			# order.lot_move_ids._compute_tonnase()
+			if order.product_id.tracking != 'none' :
+				if not order.production_config_id.enable_default_lot :
+					lot_ids = [ lot_move_id.lot_id.id for lot_move_id in order.lot_move_ids ]
+					if order.production_config_id.lot_id.id in lot_ids :
+						raise UserError(_('Cannot Create Move With Default Lot, Please Create Unique Lot ( Generated By QAQC )') )
+
 			order._create_picking()
-			# _logger.warning( "generate_logs" )
 			order.counter_ids.generate_logs()
 			picking_ids = order.picking_ids.filtered(lambda r: r.state != 'cancel')
 			if len( picking_ids ) != 1 :
@@ -165,14 +256,24 @@ class ProductionRitaseOrder(models.Model):
 			if picking_id.pack_operation_product_ids:
 				pack_operation_product_id = picking_id.pack_operation_product_ids[0]
 				if order.product_id.tracking == 'none' :
-					pack_operation_product_id.qty_done = order.product_uom._compute_quantity( order.ritase_count , pack_operation_product_id.product_id.uom_id ) 
+					qty = order.ton_p_ct * order.bucket_count
+					pack_operation_product_id.qty_done = order.product_uom._compute_quantity( qty, order.product_id.uom_id )
 				else :
+					lot_qty_dict = {}
 					for lot_move_id in order.lot_move_ids:
+						lot_id = lot_move_id.lot_id.id
+						if lot_qty_dict.get( lot_id, False ):
+							lot_qty_dict[ lot_id ] +=  lot_move_id.product_uom_qty
+						else :
+							lot_qty_dict[ lot_id ] = lot_move_id.product_uom_qty
+
+					for lot_id, qty in lot_qty_dict.items():
 						PackOperationLot.create({
 							'operation_id' : pack_operation_product_id.id,
-							'lot_id' : lot_move_id.lot_id.id,
-							'qty' : order.product_uom._compute_quantity( lot_move_id.ritase_count, pack_operation_product_id.product_id.uom_id )
+							'lot_id' : lot_id,
+							'qty' : qty
 						})
+
 				pack_operation_product_id.save()
 			order.state = 'confirm'
 
@@ -183,6 +284,8 @@ class ProductionRitaseOrder(models.Model):
 			production_pits = ProductionPit.search([ ( "location_id", "=", order.location_id.id ) ])
 			if production_pits and ( not order.production_order_id ):
 					raise UserError(_('Unable to Done order %s with PIT origin. Please do this action in Production Order') % (order.name))
+			
+			order.lot_move_ids.check_qty()
 
 			picking_ids = order.picking_ids.filtered(lambda x: x.state not in ('done','cancel'))
 			picking_ids.do_new_transfer()
@@ -250,12 +353,15 @@ class ProductionRitaseOrder(models.Model):
 		qty = 0.0
 		for move in self.move_ids.filtered(lambda x: x.state != 'cancel'):
 			qty += move.product_qty
+		
 		template = {
 			'name': self.name or '',
 			'product_id': self.product_id.id,
             'product_uom_qty': self.ritase_count ,
+            'product_uom_qty': self.product_uom_qty ,
 			'product_uom': self.product_uom.id,
 			'date': self.date,
+			'date_expected': self.date,
 			'location_id': self.location_id.id,
 			'location_dest_id': self.location_dest_id.id,
 			'picking_id': picking.id,
@@ -331,16 +437,13 @@ class RitaseCounter(models.Model):
 	_order = 'driver_id asc ,date asc'
 
 	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="cascade" )
-	product_id = fields.Many2one("product.product", string="Material", related="ritase_order_id.product_id", ondelete="restrict" )
 	location_id = fields.Many2one(
             'stock.location', 'Location',
-			# related="ritase_order_id.location_id",
 			domain=[ ('usage','=',"internal")  ],
 			store=True,
             ondelete="restrict" )
 	location_dest_id = fields.Many2one(
             'stock.location', 'Location',
-			# related="ritase_order_id.location_dest_id",
 			domain=[ ('usage','=',"internal")  ],
 			store=True,
             ondelete="restrict" )
@@ -351,22 +454,41 @@ class RitaseCounter(models.Model):
         ( "1" , '1'),
         ( "2" , '2'),
         ] , string='Shift', index=True, 
-		# related="ritase_order_id.shift", 
 		store=True )
-
 	log_ids = fields.One2many(
         'production.ritase.log',
         'counter_id',
         string='Logs',
         copy=True )
+
+	#calculation
+	product_id = fields.Many2one("product.product", string="Material", related="ritase_order_id.product_id", ondelete="restrict" )
+	product_uom = fields.Many2one(
+            'product.uom', 'Product Unit of Measure', 
+            required=True,
+			domain=[ ('category_id.name','=',"Mining")  ],
+			related='ritase_order_id.product_uom'
+			)
 	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0 )
+	bucket = fields.Integer( string="Buckets", default=0, digits=0 )
+	ton_p_ct = fields.Float('Ton/CT', default=0, related='ritase_order_id.ton_p_ct' )
+	product_uom_qty = fields.Float('QTY', default=0, compute="_compute_qty" )
+
+	# logs
 	start_datetime = fields.Datetime('Start Date Time', help='',  default=fields.Datetime.now, store=True )
 	end_datetime = fields.Datetime('End Date Time', help='' , store=True)
 	minutes = fields.Float('Minutes', readonly=True, compute="_compute_minutes" )
 	amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 	
+	@api.depends('ton_p_ct', "bucket", "ritase_count")
+	def _compute_qty(self):
+		for record in self:		
+			qty = record.ton_p_ct * record.ritase_count * record.bucket
+			qty = record.product_uom._compute_quantity( qty, record.product_id.uom_id )
+			record.product_uom_qty = round( qty, 2)
+
 	@api.onchange( 'ritase_order_id' )
-	def _change_hourmeter_order_id(self):
+	def _change_ritase_order_id(self):
 		for record in self:
 			record.shift = record.ritase_order_id.shift
 			record.location_id = record.ritase_order_id.location_id
@@ -386,6 +508,10 @@ class RitaseCounter(models.Model):
 				ends = datetime.datetime.strptime(record.end_datetime, '%Y-%m-%d %H:%M:%S')
 				diff = relativedelta(ends, start)
 				record.minutes = diff.minutes + ( diff.hours * 60 )
+
+	def set_bucket(self, bucket):
+		for record in self:
+			record.bucket = bucket
 
 	def generate_logs(self):
 		for record in self:
@@ -463,4 +589,38 @@ class RitaseLotMove(models.Model):
         'stock.production.lot', 'Lot',
 		required=True,
         )
+	location_id = fields.Many2one(
+            'stock.location', 'Location',
+			domain=[ ('usage','=',"internal")  ],
+			related='ritase_order_id.location_id',
+            ondelete="restrict" )
+	#calculation
+	product_id = fields.Many2one("product.product", string="Material", related="ritase_order_id.product_id", ondelete="restrict" )
+	product_uom = fields.Many2one(
+            'product.uom', 'Product Unit of Measure', 
+            required=True,
+			domain=[ ('category_id.name','=',"Mining")  ],
+			related='ritase_order_id.product_uom'
+			)
 	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0 )
+	bucket = fields.Integer( string="Bucket", required=True, default=0, digits=0 )
+	ton_p_ct = fields.Float('Ton/CT', default=0, related='ritase_order_id.ton_p_ct' )
+	product_uom_qty = fields.Float('QTY', default=0, compute="_compute_qty" )
+
+	@api.multi
+	def check_qty( self ):
+		for record in self:		
+			product_qty = record.product_id.with_context({'location' : record.location_id.id, 'lot_id' : record.lot_id.id })
+			if record.product_uom_qty > product_qty.qty_available :
+					raise UserError(_('Not Enought %s quantities in %s .Please Adjust Quantities First or Maybe its On The Way') % (record.lot_id.name, record.location_id.name))
+
+	@api.depends('ton_p_ct', "bucket", "ritase_count")
+	def _compute_qty(self):
+		for record in self:		
+			qty = record.ton_p_ct * record.ritase_count * record.bucket
+			qty = record.product_uom._compute_quantity( qty, record.product_id.uom_id )
+			record.product_uom_qty = round( qty, 2)
+
+	def set_bucket(self, bucket):
+		for record in self:
+			record.bucket = bucket

@@ -86,32 +86,17 @@
                                     </tree>
                                 </field>
                             </page>
-                            <!-- <page string="Dump Truck Performance" >
-                                <field name="dumptruck_ids" readonly="1" edit="0" decoration-muted="state=='done'" >
-                                    <tree string="Dump Truck Performance" >
-                                        <field name="date" />
-                                        <field name="vehicle_id" />
-                                        <field name="physical_availability" />
-                                        <field name="used_availability" />
-                                        <field name="mechanical_availability" />
-                                        <field name="effective_utilization" />
-                                        <field name="state" invisible="1" />
-                                    </tree>
-                                </field>
+                            <page string="Lot Movements" >
+                                <field name="lot_move_ids" readonly="1" >
+                                    <tree string="Lot Movements">
+                                        <field name="lot_id" />
+                                        <field name="product_uom" />
+                                        <field name="bucket"/>
+                                        <field name="ritase_count"/>
+                                        <field name="product_uom_qty"/>
+									</tree>
+                                </field >
                             </page>
-                            <page string="Heavy Equipment Performance" >
-                                <field name="he_ids" readonly="1" edit="0" decoration-muted="state=='done'" >
-                                    <tree string="Heavy Equipment Performance" >
-                                        <field name="date" />
-                                        <field name="vehicle_id" />
-                                        <field name="physical_availability" />
-                                        <field name="used_availability" />
-                                        <field name="mechanical_availability" />
-                                        <field name="effective_utilization" />
-                                        <field name="state" invisible="1" />
-                                    </tree>
-                                </field>
-                            </page> -->
                             <page string="Finished Products">
                                 <field name="move_ids" options="{'reload_on_button': True}" >
                                     <tree editable="bottom" delete="0" default_order="is_done desc,sequence" decoration-muted="is_done" decoration-warning="quantity_done&gt;product_uom_qty" decoration-success="quantity_done==product_uom_qty" create="0" edit="0">

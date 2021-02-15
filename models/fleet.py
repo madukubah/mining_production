@@ -6,6 +6,18 @@ from odoo.exceptions import UserError
 import logging
 _logger = logging.getLogger(__name__)
 
+class FleetVehicleModel(models.Model):
+    _inherit = 'fleet.vehicle.model'
+
+    is_mining_fleet	=  fields.Boolean(string="Is Mining Fleet", store=True, default=False )
+    factor_productivity_ids = fields.One2many(
+        'production.fleet.factor.productivity',
+        'vehicle_model_id',
+        string='Productivity Factors',
+        copy=True )
+
+    
+
 class FleetServiceType(models.Model):
     _inherit = 'fleet.service.type'
 

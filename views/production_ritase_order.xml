@@ -55,6 +55,7 @@
                                 icon="fa-truck" attrs="{'invisible':[('state', 'in', ('draft')),('picking_ids','=',[])]}">
                                 <field name="picking_count" widget="statinfo" string="Shipment" help="Incoming Shipments"/>
                                 <field name="picking_ids" invisible="1"/>
+                                <field name="picking_type_id" invisible="1"/>
                             </button>
                         </div>
                         <div class="oe_title">
@@ -68,7 +69,7 @@
                             <field name="date" />
                             <field name="employee_id" />
                         </group>
-                        <group>
+                        <group name="location" string="Location"  >
                             <group>
                                 <field name="warehouse_id" widget="selection" />
                                 <field name="location_id" />
@@ -78,16 +79,37 @@
                                 <field name="location_dest_id" />
                             </group>
                         </group>
-                        <group>
+                        <group name="activity" string="Activity" >
+                            <field name="shift" invisible="1" />
                             <field name="cost_code_id" />
                             <field name="product_id" />
                             <field name="product_uom" />
-                            <field name="shift" invisible="1" />
-                            <field name="buckets" invisible="1" />
+                            <field name="old_product_uom" />
+                        </group>
+                        <group name="fleet" string="Fleets" >
+                            <field name="load_vehicle_id" />
+                            <field name="bucket" string="Default Buckets" />
                             <field name="load_vehicle_ids" widget="many2many_tags" />
                             <field name="pile_vehicle_ids" widget="many2many_tags" />
+                        </group>
+                        <group name="factor" string="Factors" >
+                            <field name="factor_productivity_id" />
+                            <field name="fleet_model_capacity" string="Capacity m^3" />
+                            <field name="fleet_model_swell_factor" />
+                            <field name="fleet_model_fill_factor" />
+
+                            <field name="factor_density_ids" editable="bottom" >
+                                <tree string="Densities" editable="bottom" >
+                                    <field name="product_id" />
+                                    <field name="density" string="Density (Ton/m^3)" />
+                                </tree>
+                            </field >
+                        </group>
+                        <group name="calculations" string="Calculations" >
+                            <field name="ton_p_ct" />
                             <field name="ritase_count" />
-                            <field name="picking_type_id" invisible="1"/>
+                            <field name="bucket_count" />
+                            <field name="product_uom_qty" string="Tonnase" />
                         </group>
                         
                         <notebook>
@@ -97,7 +119,10 @@
                                         <field name="shift" />
                                         <field name="vehicle_id" />
                                         <field name="driver_id" />
+                                        <field name="product_uom" />
+                                        <field name="bucket" />
                                         <field name="ritase_count" />
+                                        <field name="product_uom_qty" string="Tonnase" />
                                         <field name="start_datetime" />
                                         <field name="end_datetime"  />
                                         <field name="minutes" />
@@ -107,12 +132,15 @@
                             </page>
                         </notebook>
 
-                        <notebook  >
-                            <page string="Lot Movements">
+                        <notebook >
+                            <page string="Lot Movements"  >
                                 <field name="lot_move_ids" editable="bottom" >
                                     <tree string="Lot Movements" editable="bottom" >
                                         <field name="lot_id" />
+                                        <field name="product_uom" />
+                                        <field name="bucket"/>
                                         <field name="ritase_count"/>
+                                        <field name="product_uom_qty" string="Tonnase" />
 									</tree>
                                 </field >
                             </page>
@@ -140,6 +168,10 @@
                 <field name="driver_id" position="after">
                     <field name="ritase_order_id" invisible="1" />
                     <field name="product_id" invisible="1" />
+                    <field name="ton_p_ct" invisible="1" />
+                    <field name="product_uom" />
+                    <field name="bucket" />
+                    <field name="product_uom_qty" string="Tonnase" />
                     <field name="ritase_count" />
                     <field name="start_datetime" />
                     <field name="end_datetime" />

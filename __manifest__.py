@@ -11,12 +11,15 @@
         'stock',
         'account',
         'stock_account',
+        "mining_qaqc_chemical_element",
     ],
     'data': [
         "views/stock_warehouse_views.xml",
         "views/stock_move_views.xml",
+        "views/fleet.xml",
         'views/menu.xml',
         "views/production_config.xml",
+        "views/production_activity_definition.xml",
         "views/production_operation_template.xml",
 
         "views/production_hourmeter_order.xml",
@@ -39,7 +42,6 @@
         "views/procurement_views.xml",
         "views/production_cop_adjust.xml",
         "views/fleet_service_type.xml",
-        "views/fleet.xml",
         "views/production_cop_tag_log.xml",
         "views/production_cop_tag.xml",
         "views/production_losstime_accumulation.xml",
@@ -74,7 +76,7 @@
         "security/ir.model.access.csv",
 
         # "seed/production_ritase_seed.xml",
-        # "seed/production_houtmeter_seed.xml",
+        "seed/production_houtmeter_seed.xml",
     ],
     'qweb': [
         # 'static/src/xml/cashback_templates.xml',
