@@ -41,6 +41,18 @@ class ProductionRitaseOrder(models.Model):
 			if( rit_by_dt != rit_by_lot ):
 				return False	
 		return True
+
+	@api.multi
+	def _check_ritase_qty(self):
+		for order in self:
+			if order.product_id.tracking == 'none' :
+				order.lot_move_ids.unlink()
+				return True
+			qty_by_dt = sum( [ counter_id.product_uom_qty for counter_id in order.counter_ids ] )
+			qty_by_lot = sum( [ lot_move_id.product_uom_qty for lot_move_id in order.lot_move_ids ] )
+			if( qty_by_dt != qty_by_lot ):
+				return False	
+		return True
 	
 
 	READONLY_STATES = {
@@ -104,16 +116,16 @@ class ProductionRitaseOrder(models.Model):
 	bucket = fields.Integer( string="Buckets", default=0, digits=0, states=READONLY_STATES)
 	# factor
 	factor_productivity_id = fields.Many2one('production.fleet.factor.productivity', string='Productivity Factor', copy=False, readonly=True, states=READONLY_STATES)
-	fleet_model_capacity = fields.Float('Capacity', required=True, default=0, related="factor_productivity_id.capacity", readonly=True )
-	fleet_model_swell_factor = fields.Float('Swell Factor', required=True, default=0, related="factor_productivity_id.swell_factor", readonly=True )
-	fleet_model_fill_factor = fields.Float('Fill Factor', required=True, default=0, related="factor_productivity_id.fill_factor", readonly=True )
+	fleet_model_capacity = fields.Float('Capacity', required=True, default=0, compute='_compute_factors', readonly=True, store=True )
+	fleet_model_swell_factor = fields.Float('Swell Factor', required=True, default=0, compute='_compute_factors', readonly=True, store=True )
+	fleet_model_fill_factor = fields.Float('Fill Factor', required=True, default=0, compute='_compute_factors', readonly=True,  store=True )
 
 	factor_density_ids = fields.Many2many('production.config.factor.density', 'ritase_density_rel', 'ritase_order_id', 'density_id', string='Densities', states=READONLY_STATES )
 	# calculation
-	ton_p_ct = fields.Float('Ton/CT', default=0, compute="_compute_ton_p_ct" )
+	ton_p_ct = fields.Float('Ton/CT', default=0, compute="_compute_ton_p_ct", store=True )
 	ritase_count = fields.Integer( string="Ritase Total", required=True, default=0, digits=0, compute='_compute_ritase_count', readonly=True, store=True )
 	bucket_count = fields.Integer( string="Buckets Total", required=True, default=0, digits=0, compute='_compute_ritase_count', readonly=True, store=True )
-	product_uom_qty = fields.Float('QTY', default=0, compute="_compute_qty" )
+	product_uom_qty = fields.Float('QTY', default=0, compute="_compute_qty", store=True )
 	
 	# ===================================================================
 	counter_ids = fields.One2many(
@@ -139,6 +151,7 @@ class ProductionRitaseOrder(models.Model):
 
 	_constraints = [ 
         (_check_ritase_count, 'Ritase by Lot and Ritase by DT Must Be Same!', ['counter_ids','lot_move_ids'] ) ,
+        (_check_ritase_qty, 'Tonnase by Lot and Tonnase by DT Must Be Same!', ['counter_ids','lot_move_ids'] ) ,
         ]
 	
 	@api.multi
@@ -212,6 +225,14 @@ class ProductionRitaseOrder(models.Model):
 		for order in self:		
 			ton_p_ct = order.fleet_model_capacity * sum( [ x.density for x in order.factor_density_ids ] ) * order.fleet_model_swell_factor * order.fleet_model_fill_factor
 			order.ton_p_ct = round(ton_p_ct, 2)
+	
+	@api.depends('factor_productivity_id')
+	def _compute_factors(self):
+		for order in self:	
+			if order.factor_productivity_id	:
+				order.fleet_model_capacity = order.factor_productivity_id.capacity
+				order.fleet_model_swell_factor = order.factor_productivity_id.swell_factor
+				order.fleet_model_fill_factor = order.factor_productivity_id.fill_factor
 
 	@api.depends('ton_p_ct', "bucket_count")	
 	def _compute_qty(self):

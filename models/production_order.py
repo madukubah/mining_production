@@ -281,15 +281,6 @@ class ProductionOrder(models.Model):
 
 
         if self.product_id.tracking != 'none' :
-            # vals = {
-            #         'move_id': move.id,
-            #         'product_id': move.product_id.id,
-            #         'production_order_id': move.production_order_id.id,
-            #         'quantity': self.product_qty,
-            #         'quantity_done': self.product_qty,
-            #         'lot_id': production_config.lot_id.id,
-            #     }
-            # lots.create( vals )
             lot_qty_dict = {}
             for lot_move_id in self.lot_move_ids:
                 lot_id = lot_move_id.lot_id.id
