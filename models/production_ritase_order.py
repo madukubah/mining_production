@@ -237,7 +237,7 @@ class ProductionRitaseOrder(models.Model):
 	@api.depends('ton_p_ct', "bucket_count")	
 	def _compute_qty(self):
 		for order in self:		
-			qty = order.ton_p_ct * order.bucket_count
+			# qty = order.ton_p_ct * order.bucket_count
 			# qty = order.product_uom._compute_quantity( qty, order.product_id.uom_id )
 			qty = sum( [ ( x.product_uom_qty  ) for x in order.counter_ids ] )
 			order.product_uom_qty = round( qty, 2)
