@@ -234,7 +234,7 @@ class ProductionRitaseOrder(models.Model):
 				order.fleet_model_swell_factor = order.factor_productivity_id.swell_factor
 				order.fleet_model_fill_factor = order.factor_productivity_id.fill_factor
 
-	@api.depends('ton_p_ct', "bucket_count", 'counter_ids')	
+	@api.depends('ton_p_ct', "bucket", 'counter_ids')	
 	def _compute_qty(self):
 		for order in self:		
 			# qty = order.ton_p_ct * order.bucket_count
