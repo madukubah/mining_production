@@ -38,7 +38,7 @@ class ProductionRitaseOrder(models.Model):
 				return True
 			rit_by_dt = sum( [ counter_id.ritase_count for counter_id in order.counter_ids ] )
 			rit_by_lot = sum( [ lot_move_id.ritase_count for lot_move_id in order.lot_move_ids ] )
-			if( round(rit_by_dt, 2) != round(rit_by_lot, 2) ):
+			if( rit_by_dt != rit_by_lot ):
 				return False	
 		return True
 
@@ -50,7 +50,7 @@ class ProductionRitaseOrder(models.Model):
 				return True
 			qty_by_dt = sum( [ counter_id.product_uom_qty for counter_id in order.counter_ids ] )
 			qty_by_lot = sum( [ lot_move_id.product_uom_qty for lot_move_id in order.lot_move_ids ] )
-			if( qty_by_dt != qty_by_lot ):
+			if( round(qty_by_dt, 2) != round(qty_by_lot, 2) ):
 				return False	
 		return True
 	
@@ -234,7 +234,7 @@ class ProductionRitaseOrder(models.Model):
 				order.fleet_model_swell_factor = order.factor_productivity_id.swell_factor
 				order.fleet_model_fill_factor = order.factor_productivity_id.fill_factor
 
-	@api.depends('ton_p_ct', "bucket_count")	
+	@api.depends('ton_p_ct', "bucket_count", 'counter_ids')	
 	def _compute_qty(self):
 		for order in self:		
 			# qty = order.ton_p_ct * order.bucket_count
