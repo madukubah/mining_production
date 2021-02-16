@@ -4,6 +4,7 @@ from odoo.exceptions import UserError, ValidationError
 # import time
 import datetime
 from dateutil.relativedelta import relativedelta
+from odoo.addons import decimal_precision as dp
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ class ProductionRitaseOrder(models.Model):
 			rit_by_dt = sum( [ counter_id.ritase_count for counter_id in order.counter_ids ] )
 			rit_by_lot = sum( [ lot_move_id.ritase_count for lot_move_id in order.lot_move_ids ] )
 			if( rit_by_dt != rit_by_lot ):
-				return False	
+				return False
 		return True
 
 	@api.multi
@@ -50,7 +51,8 @@ class ProductionRitaseOrder(models.Model):
 				return True
 			qty_by_dt = sum( [ counter_id.product_uom_qty for counter_id in order.counter_ids ] )
 			qty_by_lot = sum( [ lot_move_id.product_uom_qty for lot_move_id in order.lot_move_ids ] )
-			if( round(qty_by_dt, 2) != round(qty_by_lot, 2) ):
+			# if( round(qty_by_dt, 2) != round(qty_by_lot, 2) ):
+			if( qty_by_dt != qty_by_dt ):
 				return False	
 		return True
 	
@@ -125,7 +127,10 @@ class ProductionRitaseOrder(models.Model):
 	ton_p_ct = fields.Float('Ton/CT', default=0, compute="_compute_ton_p_ct", store=True )
 	ritase_count = fields.Integer( string="Ritase Total", required=True, default=0, digits=0, compute='_compute_ritase_count', readonly=True, store=True )
 	bucket_count = fields.Integer( string="Buckets Total", required=True, default=0, digits=0, compute='_compute_ritase_count', readonly=True, store=True )
-	product_uom_qty = fields.Float('QTY', default=0, compute="_compute_qty", store=True )
+	product_uom_qty = fields.Float('QTY', 
+		default=0, 
+		digits=dp.get_precision('Product Unit of Measure'),
+		compute="_compute_qty", store=True )
 	
 	# ===================================================================
 	counter_ids = fields.One2many(
@@ -492,7 +497,10 @@ class RitaseCounter(models.Model):
 	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0 )
 	bucket = fields.Integer( string="Buckets", default=0, digits=0 )
 	ton_p_ct = fields.Float('Ton/CT', default=0, related='ritase_order_id.ton_p_ct' )
-	product_uom_qty = fields.Float('QTY', default=0, compute="_compute_qty" )
+	product_uom_qty = fields.Float('QTY', 
+		default=0, 
+		digits=dp.get_precision('Product Unit of Measure'),
+		compute="_compute_qty" )
 
 	# logs
 	start_datetime = fields.Datetime('Start Date Time', help='',  default=fields.Datetime.now, store=True )
@@ -625,7 +633,10 @@ class RitaseLotMove(models.Model):
 	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0 )
 	bucket = fields.Integer( string="Bucket", required=True, default=0, digits=0 )
 	ton_p_ct = fields.Float('Ton/CT', default=0, related='ritase_order_id.ton_p_ct' )
-	product_uom_qty = fields.Float('QTY', default=0, compute="_compute_qty" )
+	product_uom_qty = fields.Float('QTY', 
+		default=0, 
+		digits=dp.get_precision('Product Unit of Measure'),
+		compute="_compute_qty" )
 
 	@api.multi
 	def check_qty( self ):

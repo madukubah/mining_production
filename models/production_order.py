@@ -266,7 +266,6 @@ class ProductionOrder(models.Model):
             'name': self.name,
             'date': self.date,
             'product_id': self.product_id.id,
-            # 'price_unit': 0,
             'product_uom': self.product_uom_id.id,
             'product_uom_qty': self.product_qty,
             'location_id': self.product_id.property_stock_production.id,
@@ -278,7 +277,6 @@ class ProductionOrder(models.Model):
             'origin': self.name,
             'group_id': self.procurement_group_id.id,
         })
-
 
         if self.product_id.tracking != 'none' :
             lot_qty_dict = {}
