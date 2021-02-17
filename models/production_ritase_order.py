@@ -272,9 +272,9 @@ class ProductionRitaseOrder(models.Model):
 	def action_confirm( self ):
 		PackOperationLot = self.env['stock.pack.operation.lot'].sudo()
 		for order in self:
+			if not order.is_from_pit() :
+				order.check_qty()
 			if order.product_id.tracking != 'none' :
-				if not order.is_from_pit() :
-					order.check_qty()
 				if not order.production_config_id.enable_default_lot :
 					lot_ids = [ lot_move_id.lot_id.id for lot_move_id in order.lot_move_ids ]
 					if order.production_config_id.lot_id.id in lot_ids :
