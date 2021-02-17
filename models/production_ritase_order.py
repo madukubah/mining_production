@@ -259,15 +259,22 @@ class ProductionRitaseOrder(models.Model):
 			order.counter_ids.set_bucket( order.bucket )
 			order.lot_move_ids.set_bucket( order.bucket )
 	
-	
+	@api.multi
+	def is_from_pit( self ):
+		for order in self:
+			ProductionPit = self.env['production.pit'].sudo()
+			production_pits = ProductionPit.search([ ( "location_id", "=", order.location_id.id ) ])
+			if production_pits and ( not order.production_order_id ):
+				return True
+		return False
+
 	@api.multi
 	def action_confirm( self ):
 		PackOperationLot = self.env['stock.pack.operation.lot'].sudo()
 		for order in self:
-			# order._compute_tonnase()
-			# order.counter_ids._compute_tonnase()
-			# order.lot_move_ids._compute_tonnase()
 			if order.product_id.tracking != 'none' :
+				if not order.is_from_pit() :
+					order.check_qty()
 				if not order.production_config_id.enable_default_lot :
 					lot_ids = [ lot_move_id.lot_id.id for lot_move_id in order.lot_move_ids ]
 					if order.production_config_id.lot_id.id in lot_ids :
@@ -304,14 +311,33 @@ class ProductionRitaseOrder(models.Model):
 			order.state = 'confirm'
 
 	@api.multi
+	def check_qty( self ):
+		for order in self:
+			lot_qty_dict = {}
+			if order.product_id.tracking != 'none' :
+				for lot_move_id in order.lot_move_ids:
+					lot_id = lot_move_id.lot_id.id
+					if lot_qty_dict.get( lot_id, False ):
+						lot_qty_dict[ lot_id ] +=  lot_move_id.product_uom_qty
+					else :
+						lot_qty_dict[ lot_id ] = lot_move_id.product_uom_qty
+
+				for lot_id, qty in lot_qty_dict.items():
+					product_qty = order.product_id.with_context({'location' : order.location_id.id, 'lot_id' : lot_id })
+					if qty > product_qty.qty_available :
+						lot = self.env['stock.production.lot'].sudo().search([("id", "=", lot_id )])
+						raise UserError(_('Not Enought %s quantities in %s .Please Adjust Quantities First or Maybe its On The Way') % ( lot.name, order.location_id.name))
+			else :
+				product_qty = order.product_id.with_context({'location' : order.location_id.id })
+				if order.product_uom_qty > product_qty.qty_available :
+					raise UserError(_('Not Enought %s quantities in %s .Please Adjust Quantities First or Maybe its On The Way') % ( order.product_id.name , order.location_id.name))
+			
+	@api.multi
 	def action_done( self ):
 		for order in self:
-			ProductionPit = self.env['production.pit'].sudo()
-			production_pits = ProductionPit.search([ ( "location_id", "=", order.location_id.id ) ])
-			if production_pits and ( not order.production_order_id ):
-					raise UserError(_('Unable to Done order %s with PIT origin. Please do this action in Production Order') % (order.name))
-			
-			order.lot_move_ids.check_qty()
+			if order.is_from_pit() :
+				raise UserError(_('Unable to Done order %s with PIT origin. Please do this action in Production Order') % (order.name))
+			order.check_qty()
 
 			picking_ids = order.picking_ids.filtered(lambda x: x.state not in ('done','cancel'))
 			picking_ids.do_new_transfer()
@@ -521,6 +547,7 @@ class RitaseCounter(models.Model):
 			record.shift = record.ritase_order_id.shift
 			record.location_id = record.ritase_order_id.location_id
 			record.location_dest_id = record.ritase_order_id.location_dest_id
+			record.bucket = record.ritase_order_id.bucket
 
 	@api.onchange( 'date' )
 	def _set_date(self):
