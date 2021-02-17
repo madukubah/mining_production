@@ -12,7 +12,7 @@ _logger = logging.getLogger(__name__)
 class ProductionRitaseOrder(models.Model):
 	_name = "production.ritase.order"
 	_inherit = ['mail.thread', 'ir.needaction_mixin']
-	_order = 'date desc'
+	_order = 'date desc, id desc'
 	
 	@api.model
 	def _default_config(self):
@@ -239,7 +239,7 @@ class ProductionRitaseOrder(models.Model):
 				order.fleet_model_swell_factor = order.factor_productivity_id.swell_factor
 				order.fleet_model_fill_factor = order.factor_productivity_id.fill_factor
 
-	@api.depends('ton_p_ct', "bucket", 'counter_ids')	
+	@api.depends('ton_p_ct', "bucket", 'counter_ids', 'factor_productivity_id', "factor_density_ids")
 	def _compute_qty(self):
 		for order in self:		
 			# qty = order.ton_p_ct * order.bucket_count
@@ -534,7 +534,7 @@ class RitaseCounter(models.Model):
 	minutes = fields.Float('Minutes', readonly=True, compute="_compute_minutes" )
 	amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 	
-	@api.depends('ton_p_ct', "bucket", "ritase_count")
+	@api.depends('ton_p_ct', "bucket", "ritase_count", 'ritase_order_id.factor_productivity_id', "ritase_order_id.factor_density_ids")
 	def _compute_qty(self):
 		for record in self:		
 			qty = record.ton_p_ct * record.ritase_count * record.bucket
@@ -672,7 +672,7 @@ class RitaseLotMove(models.Model):
 			if record.product_uom_qty > product_qty.qty_available :
 					raise UserError(_('Not Enought %s quantities in %s .Please Adjust Quantities First or Maybe its On The Way') % (record.lot_id.name, record.location_id.name))
 
-	@api.depends('ton_p_ct', "bucket", "ritase_count")
+	@api.depends('ton_p_ct', "bucket", "ritase_count", 'ritase_order_id.factor_productivity_id', "ritase_order_id.factor_density_ids")
 	def _compute_qty(self):
 		for record in self:		
 			qty = record.ton_p_ct * record.ritase_count * record.bucket
