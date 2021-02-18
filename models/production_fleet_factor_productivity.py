@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
+from odoo.addons import decimal_precision as dp
 
 class ProductionFleetFactorProductivity( models.Model ):
     _name = 'production.fleet.factor.productivity'
@@ -12,8 +13,8 @@ class ProductionFleetFactorProductivity( models.Model ):
             'production.activity.definition', 'Activity',
             ondelete="restrict", required=True )
     capacity = fields.Float('Capacity (m^3)', required=True, default=1 )
-    swell_factor = fields.Float('Swell Factor', required=True, default=1 )
-    fill_factor = fields.Float('Fill Factor', required=True, default=1 )
+    swell_factor = fields.Float('Swell Factor', required=True, default=1, digits=dp.get_precision('Production') )
+    fill_factor = fields.Float('Fill Factor', required=True, default=1, digits=dp.get_precision('Production') )
 
     @api.model
     def create(self, values):
