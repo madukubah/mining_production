@@ -112,7 +112,7 @@ class ProductionRitaseOrder(models.Model):
 			states=READONLY_STATES
 			)
 	# fleet
-	load_vehicle_id = fields.Many2one('fleet.vehicle', string='Load Unit', copy=False, required=True, states=READONLY_STATES)
+	load_vehicle_id = fields.Many2one('fleet.vehicle', string='Load Unit', copy=True, required=True, states=READONLY_STATES)
 	load_vehicle_ids = fields.Many2many('fleet.vehicle', 'ritase_order_load_vehicle_rel', 'ritase_order_id', 'vehicle_id', 'Load Unit', copy=False, states=READONLY_STATES)
 	pile_vehicle_ids = fields.Many2many('fleet.vehicle', 'ritase_order_pile_vehicle_rel', 'ritase_order_id', 'vehicle_id', 'Pile Unit', copy=False, states=READONLY_STATES)
 	bucket = fields.Integer( string="Buckets", default=0, digits=0, states=READONLY_STATES)
@@ -196,9 +196,10 @@ class ProductionRitaseOrder(models.Model):
 	def _change_product_id(self):
 		for order in self:
 			factor_density_ids = self.env['production.config.factor.density'].sudo().search([( "product_id", "=", order.product_id.id )])
-			order.update({
-				'factor_density_ids': [( 6, 0, factor_density_ids.ids )],
-			})
+			order.factor_density_ids = factor_density_ids.ids
+			# order.write({
+			# 	'factor_density_ids': [( 6, 0, factor_density_ids.ids )],
+			# })
 
 	@api.onchange('warehouse_id', "warehouse_dest_id")
 	def _change_wh(self):
