@@ -196,10 +196,11 @@ class ProductionRitaseOrder(models.Model):
 	def _change_product_id(self):
 		for order in self:
 			factor_density_ids = self.env['production.config.factor.density'].sudo().search([( "product_id", "=", order.product_id.id )])
-			order.factor_density_ids = factor_density_ids.ids
-			# order.write({
-			# 	'factor_density_ids': [( 6, 0, factor_density_ids.ids )],
-			# })
+			order.factor_density_ids = factor_density_ids
+			# if factor_density_ids :
+			# 	order.write({
+			# 		'factor_density_ids': [( 0, 0, factor_density_ids.ids )],
+			# 	})
 
 	@api.onchange('warehouse_id', "warehouse_dest_id")
 	def _change_wh(self):
@@ -223,7 +224,9 @@ class ProductionRitaseOrder(models.Model):
 	def create(self, values):
 		seq = self.env['ir.sequence'].next_by_code('ritase')
 		values["name"] = seq
+
 		res = super(ProductionRitaseOrder, self ).create(values)
+		res.factor_density_ids = [ x[1] for x in values["factor_density_ids"] ]
 		return res
 
 	@api.depends('factor_productivity_id', "factor_density_ids")	
