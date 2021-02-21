@@ -3,6 +3,9 @@
 import logging
 from odoo import api, fields, models
 from calendar import monthrange
+
+import datetime
+from dateutil.relativedelta import relativedelta
 _logger = logging.getLogger(__name__)
 
 class ProductionRitaseReport(models.TransientModel):
@@ -11,10 +14,11 @@ class ProductionRitaseReport(models.TransientModel):
     start_date = fields.Date('Start Date', required=True)
     end_date = fields.Date(string="End Date", required=True)
     type = fields.Selection([
-        ( "detail" , 'Detail'),
-        ( "summary" , 'Summary'),
-        ( "per_employee" , 'Per Employee'),
-        ], default="detail", string='Type', index=True, required=True )
+        # ( "detail" , 'Detail'),
+        # ( "summary" , 'Summary'),
+        ( "per_employee" , 'Per Employee (Detailed)'),
+        ( "per_employee_summary" , 'Summary Employee'),
+        ], default="per_employee", string='Type', index=True, required=True )
 
     @api.multi
     def action_print(self):        
@@ -67,13 +71,21 @@ class ProductionRitaseReport(models.TransientModel):
                         } 
             final_dict = loc_dest_ritase_dict
         elif self.type == 'per_employee' :
-            ritase_counters = self.env['production.ritase.counter'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "posted" ) ])
+            # ritase_counters = self.env['production.ritase.counter'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'state', '=', "posted" ) ])
+            ritase_counters = self.env['production.ritase.counter'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ) ], order="date asc, shift asc")
             employee_ritase_dict = {}
+            ind = 0
             for ritase_counter in ritase_counters:
                 temp = {}
                 temp["doc_name"] = ritase_counter.ritase_order_id.name
+                driver_name = ritase_counter.driver_id.name
+                if driver_name.find("[") != -1:
+                    # _logger.warning( driver_name )
+                    # _logger.warning( driver_name.find("[") )
+                    driver_name = driver_name[0: int( driver_name.find("[") ) ]
                 temp["name"] = ritase_counter.name
                 temp["date"] = ritase_counter.date
+                temp["shift"] = ritase_counter.shift
                 if ritase_counter.location_id :
                     temp["location_name"] = ritase_counter.location_id.name
                 else:
@@ -83,16 +95,84 @@ class ProductionRitaseReport(models.TransientModel):
                 else:
                     temp["location_dest_name"] = "-"
                 temp["vehicle_name"] = ritase_counter.vehicle_id.name
-                temp["driver_name"] = ritase_counter.driver_id.name
+                temp["driver_name"] = driver_name
                 temp["ritase_count"] = ritase_counter.ritase_count
                 temp["amount"] = ritase_counter.amount
 
-                if employee_ritase_dict.get( ritase_counter.driver_id.name , False):
-                    employee_ritase_dict[ ritase_counter.driver_id.name ] += [ temp ]
+                if employee_ritase_dict.get( driver_name , False):
+                    employee_ritase_dict[ driver_name ]["all"] += [ temp ]
                 else:
-                    employee_ritase_dict[ ritase_counter.driver_id.name ] = [ temp ]
-                    
+                    employee_ritase_dict[ driver_name ] = {}
+                    employee_ritase_dict[ driver_name ]["col_1"] = []
+                    employee_ritase_dict[ driver_name ]["col_2"] = []
+                    employee_ritase_dict[ driver_name ]["shift_1"] = 0
+                    employee_ritase_dict[ driver_name ]["shift_2"] = 0
+                    employee_ritase_dict[ driver_name ]["all"] = [ temp ]
+            cols = ["col_1", "col_2"]
+            for employee, ritase in employee_ritase_dict.items():
+                for ind, rit in enumerate( ritase["all"] ):
+                    ritase[ cols[ ind % 2 ] ] += [ rit ]
+                    if rit["shift"] == "1" :
+                        ritase["shift_1"] += rit["ritase_count"]
+                    if rit["shift"] == "2" :
+                        ritase["shift_2"] += rit["ritase_count"]
             final_dict = employee_ritase_dict
+
+        elif self.type == 'per_employee_summary' :
+            ritase_counters = self.env['production.ritase.counter'].search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ) ], order="date asc, shift asc")
+            employee_ritase_dict = {}
+            ind = 0
+            for ritase_counter in ritase_counters:
+                temp = {}
+                temp["doc_name"] = ritase_counter.ritase_order_id.name
+                driver_name = ritase_counter.driver_id.name
+                if driver_name.find("[") != -1:
+                    driver_name = driver_name[0: int( driver_name.find("[") ) ]
+                temp["name"] = ritase_counter.name
+                temp["date"] = ritase_counter.date
+                temp["shift"] = ritase_counter.shift
+                if ritase_counter.location_id :
+                    temp["location_name"] = ritase_counter.location_id.name
+                else:
+                    temp["location_name"] = "-"
+                if ritase_counter.ritase_order_id.location_dest_id :
+                    temp["location_dest_name"] = ritase_counter.ritase_order_id.location_dest_id.name
+                else:
+                    temp["location_dest_name"] = "-"
+                temp["vehicle_name"] = ritase_counter.vehicle_id.name
+                temp["driver_name"] = driver_name
+                temp["ritase_count"] = ritase_counter.ritase_count
+                temp["amount"] = ritase_counter.amount
+
+                if employee_ritase_dict.get( driver_name , False):
+                    employee_ritase_dict[ driver_name ]["all"] += [ temp ]
+                else:
+                    employee_ritase_dict[ driver_name ] = {}
+                    employee_ritase_dict[ driver_name ]["col_1"] = []
+                    employee_ritase_dict[ driver_name ]["col_2"] = []
+                    employee_ritase_dict[ driver_name ]["shift_1"] = 0
+                    employee_ritase_dict[ driver_name ]["shift_2"] = 0
+                    employee_ritase_dict[ driver_name ]["total"] = 0
+                    employee_ritase_dict[ driver_name ]["summary"] = {}
+                    employee_ritase_dict[ driver_name ]["all"] = [ temp ]
+            
+            for employee, ritase in employee_ritase_dict.items():
+                ritase["summary"] = {
+                    "driver_name" : employee,
+                    "shift_1" : 0,
+                    "shift_2" : 0,
+                    "total" : 0,
+                }
+                for ind, rit in enumerate( ritase["all"] ):
+                    if rit["shift"] == "1" :
+                        ritase["shift_1"] += rit["ritase_count"]
+                        ritase["summary"]["shift_1"] += rit["ritase_count"]
+                    if rit["shift"] == "2" :
+                        ritase["shift_2"] += rit["ritase_count"]
+                        ritase["summary"]["shift_2"] += rit["ritase_count"]
+                    ritase["summary"]["total"] += rit["ritase_count"]
+            final_dict = employee_ritase_dict
+
         datas = {
             'ids': self.ids,
             'model': 'production.ritase.report',

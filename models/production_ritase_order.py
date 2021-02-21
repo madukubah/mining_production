@@ -53,7 +53,7 @@ class ProductionRitaseOrder(models.Model):
 			qty_by_lot = sum( [ lot_move_id.product_uom_qty for lot_move_id in order.lot_move_ids ] )
 			if( round(qty_by_dt, 2) != round(qty_by_lot, 2) ):
 			# if( qty_by_dt != qty_by_lot ):
-				return False	
+				return False
 		return True
 	
 

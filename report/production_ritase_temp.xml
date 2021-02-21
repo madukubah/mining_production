@@ -2,7 +2,7 @@
 <odoo>
     <template id="production_ritase_temp">
         <t t-call="report.external_layout">
-            <div class="page">
+            <div class="page" style="font-size: 8px !important;" >
                 <div class="oe_structure">
                     <t t-if="type == 'detail'" >
                         <div class="row">
@@ -185,60 +185,166 @@
                         </div>
                         <br/>
                         <t t-foreach="data.keys()" t-as="driver_name">
-                            <center>
-                                <b>
-                                    <h4><span t-esc="driver_name"/></h4>
-                                </b>
-                            </center>
-                            <t t-set="total_sum" t-value="0"/>
-                            <t t-set="total_rit" t-value="0"/>
-                            <table class="table table-condensed table-striped">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">Date</th>
-                                        <th class="text-center">Document</th>
-                                        <th class="text-center">Origin Location</th>
-                                        <th class="text-center">Destination Location</th>
-                                        <th class="text-center">Count</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr t-foreach="data[driver_name]" t-as="line">
-                                        <td class="text-center">
-                                            <span t-esc="line['date']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="line['doc_name']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="line['location_name']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="line['location_dest_name']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="'{:,}'.format(line['ritase_count'])"/>
-                                            <t t-set="total_rit" t-value="total_rit + line['ritase_count']"/>
-                                        </td>
-                                    </tr>            
-                                </tbody>
-                            </table>
-                            <div class="row">
-                                <div class="col-xs-4 pull-right">
-                                    <table class="table table-condensed">
-                                        <tr>
-                                            <td><strong>Total</strong></td>
-                                            <td class="text-right">
-                                                <span t-esc="'{:,}'.format(total_rit)"/>
-                                            </td>
-                                            <!-- <td class="text-right">
-                                                <span t-esc="'{:,}'.format(total_sum)"/>
-                                            </td> -->
-                                        </tr>
-                                    </table>
+                            <div style="page-break-before: always;" >
+                                <center>
+                                    <b>
+                                        <h4><span t-esc="driver_name"/></h4>
+                                        <!-- <span t-esc="driver_name"/> -->
+                                    </b>
+                                </center>
+                                <t t-set="total_sum" t-value="0"/>
+                                <t t-set="total_rit" t-value="0"/>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <table class="table table-condensed table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center">Date</th>
+                                                    <th class="text-center">Shift</th>
+                                                    <th class="text-center">Origin Location</th>
+                                                    <th class="text-center">Destination Location</th>
+                                                    <th class="text-center">Count</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="data[driver_name]['col_1']" t-as="line">
+                                                    <td class="text-center">
+                                                        <span t-esc="line['date']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['shift']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['location_name']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['location_dest_name']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="'{:,}'.format(line['ritase_count'])"/>
+                                                        <t t-set="total_rit" t-value="total_rit + line['ritase_count']"/>
+                                                    </td>
+                                                </tr>            
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <table class="table table-condensed table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center">Date</th>
+                                                    <th class="text-center">Shift</th>
+                                                    <th class="text-center">Origin Location</th>
+                                                    <th class="text-center">Destination Location</th>
+                                                    <th class="text-center">Count</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="data[driver_name]['col_2']" t-as="line">
+                                                    <td class="text-center">
+                                                        <span t-esc="line['date']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['shift']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['location_name']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['location_dest_name']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="'{:,}'.format(line['ritase_count'])"/>
+                                                        <t t-set="total_rit" t-value="total_rit + line['ritase_count']"/>
+                                                    </td>
+                                                </tr>            
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-xs-4 pull-right">
+                                        <table class="table table-condensed">
+                                            <tr>
+                                                <td><strong>Shift 1</strong></td>
+                                                <td class="text-right">
+                                                    <span t-esc="'{:,}'.format(data[driver_name]['shift_1'])"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Shift 2</strong></td>
+                                                <td class="text-right">
+                                                    <span t-esc="'{:,}'.format(data[driver_name]['shift_2'])"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Total</strong></td>
+                                                <td class="text-right">
+                                                    <span t-esc="'{:,}'.format(total_rit)"/>
+                                                </td>
+                                                <!-- <td class="text-right">
+                                                    <span t-esc="'{:,}'.format(total_sum)"/>
+                                                </td> -->
+                                            </tr>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </t>
+                    </t>
+                    <t t-if="type == 'per_employee_summary'" >
+                        <div class="row">
+                            <center>
+                                <b>
+                                    <h4>Ritase Report</h4>
+                                </b>
+                            </center>
+                            <center>
+                                <b>
+                                    <span t-esc="start_date"/>
+                                    To
+                                    <span t-esc="end_date"/>
+                                </b>
+                            </center>
+                        </div>
+                        <br/>
+                        <t t-set="_no" t-value="1"/>
+                        <table class="table table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">No</th>
+                                    <th class="text-center">Driver</th>
+                                    <th class="text-center">Shift 1</th>
+                                    <th class="text-center">Shift 2</th>
+                                    <th class="text-center">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="data.keys()" t-as="driver_name">
+                                    <td class="text-center">
+                                        <span t-esc="_no"/>
+                                        <t t-set="_no" t-value="_no + 1"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="data[driver_name]['summary']['driver_name']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="data[driver_name]['summary']['shift_1']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="data[driver_name]['summary']['shift_2']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="data[driver_name]['summary']['total']"/>
+                                    </td>
+                                    <!-- <td class="text-center">
+                                        <span t-esc="'{:,}'.format(line['ritase_count'])"/>
+                                        <t t-set="total_rit" t-value="total_rit + line['ritase_count']"/>
+                                    </td> -->
+                                </tr>            
+                            </tbody>
+                        </table>
                     </t>
                 </div>
             </div>
