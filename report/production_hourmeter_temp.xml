@@ -212,84 +212,275 @@
                         </div>
                         <br/>
                         <t t-foreach="data.keys()" t-as="driver_name">
-                            <div class="row">
-                                <center>
-                                    <b>
-                                        <h4><span t-esc="driver_name"/></h4>
-                                    </b>
-                                </center>
-                            </div>
-                            <br/>
-                            <t t-set="total_sum" t-value="0"/>
-                            <t t-set="total_hour" t-value="0"/>
-                            <table class="table table-condensed table-striped">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">Document</th>
-                                        <th class="text-center">Date</th>
-                                        <th class="text-center">Heavy Equipment</th>
-                                        <th class="text-center">Cost Code</th>
-                                        <th class="text-center">Start Time</th>
-                                        <th class="text-center">End Time</th>
-                                        <th class="text-center">Start Hourmeter</th>
-                                        <th class="text-center">End Hourmeter</th>
-                                        <th class="text-center">Hourmeter</th>
-                                        <!-- <th class="text-center">Amount</th> -->
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr t-foreach="data[driver_name]" t-as="line">
-                                        <td class="text-center">
-                                            <span t-esc="line['doc_name']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="line['date']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="line['vehicle_name']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="line['cost_code']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="line['start_datetime']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="line['end_datetime']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="line['start']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="line['end']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="'{:,}'.format(line['hourmeter_value'])"/>
-                                            <t t-set="total_hour" t-value="total_hour + line['hourmeter_value']"/>
-                                        </td>
-                                        <!-- <td class="text-right">
-                                            <span t-esc="'{:,}'.format(line['amount'])"/>
-                                            <t t-set="total_sum" t-value="total_sum + line['amount']"/>
-                                        </td> -->
-                                    </tr>            
-                                </tbody>
-                            </table>
-                            <div class="row">
-                                <div class="col-xs-4 pull-right">
-                                    <table class="table table-condensed">
-                                        <tr>
-                                            <td><strong>Total</strong></td>
-                                            <td class="text-right">
-                                                <span t-esc="'{:,}'.format(total_hour)"/>
-                                            </td>
-                                            <!-- <td class="text-right">
-                                                <span t-esc="'{:,}'.format(total_sum)"/>
-                                            </td> -->
-                                        </tr>
-                                    </table>
+                            <div style="page-break-before: always;" >
+                                <div class="row">
+                                    <center>
+                                        <b>
+                                            <h4><span t-esc="driver_name"/></h4>
+                                        </b>
+                                    </center>
+                                </div>
+                                <br/>
+                                <t t-set="total_sum" t-value="0"/>
+                                <t t-set="total_hour" t-value="0"/>
+                                <style>
+                                    table, th, td {
+                                        border: 1px solid black;
+                                    }
+                                    th {
+                                        background-color: #f2f2f2;
+                                    }
+                                </style>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <!-- <table class="table table-condensed table-striped"> -->
+                                        <table style="text-align: center; width: 100%; " >
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center">Date</th>
+                                                    <th class="text-center">Shift</th>
+                                                    <th class="text-center">Heavy Equipment</th>
+                                                    <th class="text-center">Cost Code</th>
+                                                    <th class="text-center">Start Hourmeter</th>
+                                                    <th class="text-center">End Hourmeter</th>
+                                                    <th class="text-center" width="10%" >Hourmeter</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="data[driver_name]['col_1']" t-as="line">
+                                                    <td class="text-center">
+                                                        <span t-esc="line['date']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['shift']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['vehicle_name']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['cost_code']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['start']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['end']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="'{:,}'.format(line['hourmeter_value'])"/>
+                                                        <t t-set="total_hour" t-value="total_hour + line['hourmeter_value']"/>
+                                                    </td>
+                                                    <!-- <td class="text-right">
+                                                        <span t-esc="'{:,}'.format(line['amount'])"/>
+                                                        <t t-set="total_sum" t-value="total_sum + line['amount']"/>
+                                                    </td> -->
+                                                </tr>            
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <!-- <table class="table table-condensed table-striped"> -->
+                                        <table style="text-align: center; width: 100%; " >
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center">Date</th>
+                                                    <th class="text-center">Shift</th>
+                                                    <th class="text-center">Heavy Equipment</th>
+                                                    <th class="text-center">Cost Code</th>
+                                                    <th class="text-center">Start Hourmeter</th>
+                                                    <th class="text-center">End Hourmeter</th>
+                                                    <th class="text-center" width="10%" >Hourmeter</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="data[driver_name]['col_2']" t-as="line">
+                                                    <td class="text-center">
+                                                        <span t-esc="line['date']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['shift']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['vehicle_name']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['cost_code']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['start']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="line['end']"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-esc="'{:,}'.format(line['hourmeter_value'])"/>
+                                                        <t t-set="total_hour" t-value="total_hour + line['hourmeter_value']"/>
+                                                    </td>
+                                                    <!-- <td class="text-right">
+                                                        <span t-esc="'{:,}'.format(line['amount'])"/>
+                                                        <t t-set="total_sum" t-value="total_sum + line['amount']"/>
+                                                    </td> -->
+                                                </tr>            
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <br/>
+                                <div class="row">
+                                    <div class="col-xs-4 pull-right">
+                                        <!-- <table class="table table-condensed"> -->
+                                        <table style="width: 100%; " >
+                                            <tr>
+                                                <td><strong>Shift 1</strong></td>
+                                                <td class="text-right">
+                                                    <span t-esc="'{:,}'.format(data[driver_name]['shift_1'])"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Shift 2</strong></td>
+                                                <td class="text-right">
+                                                    <span t-esc="'{:,}'.format(data[driver_name]['shift_2'])"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Total</strong></td>
+                                                <td class="text-right">
+                                                    <span t-esc="'{:,}'.format(total_hour)"/>
+                                                </td>
+                                                <!-- <td class="text-right">
+                                                    <span t-esc="'{:,}'.format(total_sum)"/>
+                                                </td> -->
+                                            </tr>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </t>
+                    </t>
+                    <t t-if="type == 'per_employee_summary'" >
+                        <div class="row">
+                            <center>
+                                <b>
+                                    <h4>Hourmeter Report</h4>
+                                </b>
+                            </center>
+                            <center>
+                                <b>
+                                    <span t-esc="start_date"/>
+                                    To
+                                    <span t-esc="end_date"/>
+                                </b>
+                            </center>
+                        </div>
+                        <br/>
+                        <style>
+                            table, th, td {
+                                border: 1px solid black;
+                            }
+                            th {
+                                background-color: #f2f2f2;
+                            }
+                        </style>
+                        <t t-set="_no" t-value="1"/>
+                        <!-- <table class="table table-condensed table-striped"> -->
+                        <table style="text-align: center; width: 100%; " >
+                            <thead>
+                                <tr>
+                                    <th class="text-center">No</th>
+                                    <th class="text-center">Operator</th>
+                                    <th class="text-center">Shift 1</th>
+                                    <th class="text-center">Shift 2</th>
+                                    <th class="text-center">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="data.keys()" t-as="driver_name">
+                                    <td class="text-center">
+                                        <span t-esc="_no"/>
+                                        <t t-set="_no" t-value="_no + 1"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="data[driver_name]['summary']['driver_name']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="data[driver_name]['summary']['shift_1']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="data[driver_name]['summary']['shift_2']"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="data[driver_name]['summary']['total']"/>
+                                    </td>
+                                    <!-- <td class="text-center">
+                                        <span t-esc="'{:,}'.format(line['ritase_count'])"/>
+                                        <t t-set="total_rit" t-value="total_rit + line['ritase_count']"/>
+                                    </td> -->
+                                </tr>            
+                            </tbody>
+                        </table>
+                        <br/><br/>
+                        <!-- <div class="row" style="font-size: 11px !important;" >
+                            <div class="col-xs-3">
+                                <table width="100%" style="border: 0px solid white;" >
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" >Disetujui Oleh</td>
+                                    </tr>
+                                    <tr height="50px" >
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > <u>Yoyok Arum</u> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > KTT/Site Manager</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-xs-3">
+                                <table width="100%" style="border: 0px solid white;" >
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" >Diperiksa Oleh</td>
+                                    </tr>
+                                    <tr height="50px" >
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > <u>Rolvindi Lumingkewas</u> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > HRGA Manager</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-xs-3">
+                                <table width="100%" style="border: 0px solid white;" >
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" >Diperiksa Oleh</td>
+                                    </tr>
+                                    <tr height="50px" >
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > <u>Heru Saeful Adha</u> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > HRD</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-xs-3">
+                                <table width="100%" style="border: 0px solid white;" >
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" >Dibuat Oleh</td>
+                                    </tr>
+                                    <tr height="50px" >
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > <u>Afrizal Ramadhan Nippi</u> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > Asst. HRD</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div> -->
                     </t>
                 </div>
             </div>

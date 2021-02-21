@@ -80,8 +80,6 @@ class ProductionRitaseReport(models.TransientModel):
                 temp["doc_name"] = ritase_counter.ritase_order_id.name
                 driver_name = ritase_counter.driver_id.name
                 if driver_name.find("[") != -1:
-                    # _logger.warning( driver_name )
-                    # _logger.warning( driver_name.find("[") )
                     driver_name = driver_name[0: int( driver_name.find("[") ) ]
                 temp["name"] = ritase_counter.name
                 temp["date"] = ritase_counter.date

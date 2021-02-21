@@ -194,9 +194,18 @@
                                 </center>
                                 <t t-set="total_sum" t-value="0"/>
                                 <t t-set="total_rit" t-value="0"/>
+                                <style>
+                                    table, th, td {
+                                        border: 1px solid black;
+                                    }
+                                    th {
+                                        background-color: #f2f2f2;
+                                    }
+                                </style>
                                 <div class="row">
                                     <div class="col-xs-6">
-                                        <table class="table table-condensed table-striped">
+                                        <!-- <table class="table table-condensed table-striped"> -->
+                                        <table style="text-align: center; width: 100%; " >
                                             <thead>
                                                 <tr>
                                                     <th class="text-center">Date</th>
@@ -229,7 +238,8 @@
                                         </table>
                                     </div>
                                     <div class="col-xs-6">
-                                        <table class="table table-condensed table-striped">
+                                        <!-- <table class="table table-condensed table-striped"> -->
+                                        <table style="text-align: center; width: 100%; " >
                                             <thead>
                                                 <tr>
                                                     <th class="text-center">Date</th>
@@ -262,10 +272,11 @@
                                         </table>
                                     </div>
                                 </div>
-                                
+                                <br/>
                                 <div class="row">
                                     <div class="col-xs-4 pull-right">
-                                        <table class="table table-condensed">
+                                        <!-- <table class="table table-condensed"> -->
+                                        <table style="width: 100%; " >
                                             <tr>
                                                 <td><strong>Shift 1</strong></td>
                                                 <td class="text-right">
@@ -309,8 +320,17 @@
                             </center>
                         </div>
                         <br/>
+                        <style>
+                            table, th, td {
+                                border: 1px solid black;
+                            }
+                            th {
+                                background-color: #f2f2f2;
+                            }
+                        </style>
                         <t t-set="_no" t-value="1"/>
-                        <table class="table table-condensed table-striped">
+                        <!-- <table class="table table-condensed table-striped"> -->
+                        <table style="text-align: center; width: 100%; " >
                             <thead>
                                 <tr>
                                     <th class="text-center">No</th>
@@ -345,6 +365,69 @@
                                 </tr>            
                             </tbody>
                         </table>
+                        <br/><br/>
+                        <!-- <div class="row" style="font-size: 11px !important;" >
+                            <div class="col-xs-3">
+                                <table width="100%" style="border: 0px solid white;" >
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" >Disetujui Oleh</td>
+                                    </tr>
+                                    <tr height="50px" >
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > <u>Yoyok Arum</u> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > KTT/Site Manager</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-xs-3">
+                                <table width="100%" style="border: 0px solid white;" >
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" >Diperiksa Oleh</td>
+                                    </tr>
+                                    <tr height="50px" >
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > <u>Rolvindi Lumingkewas</u> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > HRGA Manager</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-xs-3">
+                                <table width="100%" style="border: 0px solid white;" >
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" >Diperiksa Oleh</td>
+                                    </tr>
+                                    <tr height="50px" >
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > <u>Heru Saeful Adha</u> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > HRD</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-xs-3">
+                                <table width="100%" style="border: 0px solid white;" >
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" >Dibuat Oleh</td>
+                                    </tr>
+                                    <tr height="50px" >
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > <u>Afrizal Ramadhan Nippi</u> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center" style="font-weight: bold;border: 0px solid white" > Asst. HRD</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div> -->
                     </t>
                 </div>
             </div>
