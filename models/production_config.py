@@ -93,9 +93,9 @@ class ProductionConfigFactorDensity( models.Model ):
     _name = 'production.config.factor.density'
 
     config_id = fields.Many2one('production.config' )
-    product_id = fields.Many2one('product.product', string='Material')
-    density_id = fields.Many2one('qaqc.density', string='Material Density')
-    density = fields.Float('Density', related="density_id.density" )
+    product_id = fields.Many2one('product.product', string='Material', required=True)
+    density_id = fields.Many2one('qaqc.density', string='Material Density', required=True)
+    density = fields.Float('Density', related="density_id.density", required=True, default=0 )
     density_factor = fields.Float('Density Factor', required=True, default=1 )
 
 class ProductionActivityDefinition( models.Model ):

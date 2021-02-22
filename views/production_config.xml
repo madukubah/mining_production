@@ -159,7 +159,7 @@
         <field name="type">tree</field>
         <field name="priority" eval="8"/>
         <field name="arch" type="xml">
-            <tree string="Density Factor">
+            <tree string="Density Factor" editable="top" >
                 <field name="product_id" />
                 <field name="density_id" />
                 <field name="density" />
