@@ -195,8 +195,11 @@ class ProductionRitaseOrder(models.Model):
 	@api.onchange('product_id')
 	def _change_product_id(self):
 		for order in self:
-			factor_density_ids = self.env['production.config.factor.density'].sudo().search([( "product_id", "=", order.product_id.id )])
-			order.factor_density_ids = factor_density_ids
+			if order.product_id :
+				factor_density_ids = self.env['production.config.factor.density'].sudo().search([( "product_id", "=", order.product_id.id )])
+				order.factor_density_ids = factor_density_ids
+			else:
+				order.factor_density_ids = []
 			# if factor_density_ids :
 			# 	order.write({
 			# 		'factor_density_ids': [( 0, 0, factor_density_ids.ids )],
