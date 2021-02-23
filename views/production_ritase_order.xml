@@ -123,8 +123,8 @@
                                         <field name="driver_id" />
                                         <field name="product_uom" />
                                         <field name="bucket" />
-                                        <field name="ritase_count" />
-                                        <field name="product_uom_qty" string="Tonnase" />
+                                        <field name="ritase_count" sum="Total Rit" />
+                                        <field name="product_uom_qty" sum="Total Tonnase" string="Tonnase" />
                                         <field name="start_datetime" />
                                         <field name="end_datetime"  />
                                         <field name="minutes" />
@@ -141,8 +141,8 @@
                                         <field name="lot_id" />
                                         <field name="product_uom" />
                                         <field name="bucket"/>
-                                        <field name="ritase_count"/>
-                                        <field name="product_uom_qty" string="Tonnase" />
+                                        <field name="ritase_count" sum="Total Rit" />
+                                        <field name="product_uom_qty" sum="Total Tonnase" string="Tonnase" />
 									</tree>
                                 </field >
                             </page>

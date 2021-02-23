@@ -51,8 +51,8 @@ class ProductionRitaseOrder(models.Model):
 				return True
 			qty_by_dt = sum( [ counter_id.product_uom_qty for counter_id in order.counter_ids ] )
 			qty_by_lot = sum( [ lot_move_id.product_uom_qty for lot_move_id in order.lot_move_ids ] )
-			if( round(qty_by_dt, 2) != round(qty_by_lot, 2) ):
-			# if( qty_by_dt != qty_by_lot ):
+			# if( round(qty_by_dt, 2) != round(qty_by_lot, 2) ):
+			if( order.product_uom_qty != qty_by_lot ):
 				return False
 		return True
 	
@@ -122,7 +122,7 @@ class ProductionRitaseOrder(models.Model):
 	fleet_model_swell_factor = fields.Float('Swell Factor', required=True, default=0, compute='_compute_factors', readonly=True, store=True )
 	fleet_model_fill_factor = fields.Float('Fill Factor', required=True, default=0, compute='_compute_factors', readonly=True,  store=True )
 
-	factor_density_ids = fields.Many2many('production.config.factor.density', 'ritase_density_rel', 'ritase_order_id', 'density_id', string='Densities', states=READONLY_STATES )
+	factor_density_ids = fields.Many2many('production.config.factor.density', 'ritase_density_rel', 'ritase_order_id', 'density_id', string='Densities', copy=True,  states=READONLY_STATES )
 	# calculation
 	ton_p_ct = fields.Float('Ton/CT', default=0, compute="_compute_ton_p_ct", store=True )
 	ritase_count = fields.Integer( string="Ritase Total", required=True, default=0, digits=0, compute='_compute_ritase_count', readonly=True, store=True )
@@ -243,12 +243,14 @@ class ProductionRitaseOrder(models.Model):
 				order.fleet_model_swell_factor = order.factor_productivity_id.swell_factor
 				order.fleet_model_fill_factor = order.factor_productivity_id.fill_factor
 
-	@api.depends('ton_p_ct', "bucket", 'counter_ids', 'factor_productivity_id', "factor_density_ids")
+	@api.depends('ton_p_ct', "bucket", 'counter_ids','lot_move_ids', 'factor_productivity_id', "factor_density_ids")
 	def _compute_qty(self):
 		for order in self:		
-			# qty = order.ton_p_ct * order.bucket_count
-			# qty = order.product_uom._compute_quantity( qty, order.product_id.uom_id )
-			qty = sum( [ ( x.product_uom_qty  ) for x in order.counter_ids ] )
+			qty = 0
+			if order.product_id.tracking != 'none':
+				qty = sum( [ ( x.product_uom_qty  ) for x in order.lot_move_ids ] )
+			else:
+				qty = sum( [ ( x.product_uom_qty  ) for x in order.counter_ids ] )
 			order.product_uom_qty = round( qty, 2)
 			
 	@api.depends('counter_ids')	
