@@ -200,10 +200,6 @@ class ProductionRitaseOrder(models.Model):
 				order.factor_density_ids = factor_density_ids
 			else:
 				order.factor_density_ids = []
-			# if factor_density_ids :
-			# 	order.write({
-			# 		'factor_density_ids': [( 0, 0, factor_density_ids.ids )],
-			# 	})
 
 	@api.onchange('warehouse_id', "warehouse_dest_id")
 	def _change_wh(self):
@@ -222,14 +218,24 @@ class ProductionRitaseOrder(models.Model):
 					'product_id':[('id','in', product_ids.ids )],
 					}
 				}
-		
+
 	@api.model
 	def create(self, values):
 		seq = self.env['ir.sequence'].next_by_code('ritase')
 		values["name"] = seq
-
+		_logger.warning( values )
+		X = values["factor_density_ids"]
+		del values["factor_density_ids"]
 		res = super(ProductionRitaseOrder, self ).create(values)
-		res.factor_density_ids = [ x[1] for x in values["factor_density_ids"] ]
+		factor_density_ids = []
+		for x in X :
+			# create
+			if x[1] :
+				factor_density_ids += [ x[1] ]
+			# duplicate
+			else :
+				factor_density_ids += [ x[2][0] ]
+		res.factor_density_ids = factor_density_ids
 		return res
 
 	@api.depends('factor_productivity_id', "factor_density_ids")	
