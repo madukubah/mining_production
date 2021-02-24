@@ -328,6 +328,8 @@ class ProductionRitaseOrder(models.Model):
 	@api.multi
 	def check_qty( self ):
 		for order in self:
+			if order.product_uom_qty == 0 :
+				raise UserError(_('%s quantities is 0 Please check it, Something may wrong') % ( order.name ))
 			lot_qty_dict = {}
 			if order.product_id.tracking != 'none' :
 				for lot_move_id in order.lot_move_ids:
