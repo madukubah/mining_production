@@ -380,6 +380,7 @@ class ProductionCopAdjust(models.Model):
         move = self.env['stock.move'].create({
             'name': self.name,
             'date': self.end_date,
+            'date_expected': self.end_date,
             'product_id': product[0].id,
             'product_uom': product[0].uom_id.id,
             'product_uom_qty': qty,
