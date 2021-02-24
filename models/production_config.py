@@ -30,6 +30,7 @@ class ProductionConfig( models.Model ):
         'Enable Default Lot', default=True )
     main_product_id = fields.Many2one('product.product', string='Main Materials', related="lot_id.product_id" )
     product_ids = fields.Many2many('product.product', 'production_config_product_rel', 'config_id', 'product_id', string='Materials' )
+    other_product_ids = fields.Many2many('product.product', 'production_config_other_product_rel', 'config_id', 'product_id', string='Other Materials' )
     # accounting
     journal_type = fields.Selection(related='cop_journal_id.type', help="Technical field used for usability purposes" )
     cop_journal_id = fields.Many2one('account.journal', string='COP Journal', default=_default_journal, required=True )

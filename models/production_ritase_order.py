@@ -97,14 +97,15 @@ class ProductionRitaseOrder(models.Model):
         ], string='Shift', index=True, states=READONLY_STATES, default="1" )
 	
 	product_id = fields.Many2one('product.product', 'Material', domain=[ ('type','=','product' ) ], required=True, states=READONLY_STATES )
-	product_uom = fields.Many2one(
-            'product.uom', 'Product Unit of Measure', 
-            required=True,
-			domain=[ ('category_id.name','=',"Mining")  ],
-			ondelete="restrict",
-            default=lambda self: self._context.get('product_uom', False),
-			states=READONLY_STATES
-			)
+	product_uom = fields.Many2one('product.uom', string='Product Unit of Measure', related="product_id.uom_id", ondelete="restrict", readonly=True, store=True )
+	# product_uom = fields.Many2one(
+    #         'product.uom', 'Product Unit of Measure', 
+    #         required=True,
+	# 		domain=[ ('category_id.name','=',"Mining")  ],
+	# 		ondelete="restrict",
+    #         default=lambda self: self._context.get('product_uom', False),
+	# 		states=READONLY_STATES
+	# 		)
 	old_product_uom = fields.Many2one(
             'product.uom', 'Product Unit of Measure (Old)', 
 			domain=[ ('category_id.name','=',"Mining")  ],
@@ -209,6 +210,7 @@ class ProductionRitaseOrder(models.Model):
 			if not production_config :
 				raise UserError(_('Please Set Configuration file') )
 			product_ids = [ x.id for x in production_config[0].product_ids ]
+			product_ids += [ x.id for x in production_config[0].other_product_ids ]
 			product_ids = self.env['product.product'].sudo(  ).search( [ ("id", "in", product_ids ) ] )
 			
 			return {
