@@ -560,7 +560,7 @@ class RitaseCounter(models.Model):
 			qty = record.product_uom._compute_quantity( qty, record.product_id.uom_id )
 			record.product_uom_qty = round( qty, 2)
 
-	@api.onchange( 'ritase_order_id' )
+	@api.onchange( 'ritase_order_id', 'ritase_count' )
 	def _change_ritase_order_id(self):
 		for record in self:
 			record.shift = record.ritase_order_id.shift
