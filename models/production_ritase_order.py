@@ -97,7 +97,7 @@ class ProductionRitaseOrder(models.Model):
         ], string='Shift', index=True, states=READONLY_STATES, default="1" )
 	
 	product_id = fields.Many2one('product.product', 'Material', domain=[ ('type','=','product' ) ], required=True, states=READONLY_STATES )
-	product_uom = fields.Many2one('product.uom', string='Product Unit of Measure', related="product_id.uom_id", ondelete="restrict", readonly=True, store=True )
+	product_uom = fields.Many2one('product.uom', string='Product Unit of Measure', related="product_id.uom_id", ondelete="restrict", store=True,readonly=True )
 	# product_uom = fields.Many2one(
     #         'product.uom', 'Product Unit of Measure', 
     #         required=True,
@@ -672,7 +672,7 @@ class RitaseLotMove(models.Model):
 	product_id = fields.Many2one("product.product", string="Material", related="ritase_order_id.product_id", ondelete="restrict" )
 	product_uom = fields.Many2one(
             'product.uom', 'Product Unit of Measure', 
-            required=True,
+            # required=True,
 			domain=[ ('category_id.name','=',"Mining")  ],
 			related='ritase_order_id.product_uom'
 			)
