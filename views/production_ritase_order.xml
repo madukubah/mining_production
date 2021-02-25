@@ -167,6 +167,13 @@
                 <form position="attributes">
                     <attribute name="string">Dump Truck Activity</attribute>
                 </form>
+                <field name="cop_adjust_id" position="after">
+                    <field name="date" />
+                    <field name="shift" />
+                    <field name="location_id" />
+                    <field name="location_dest_id" invisible="1" />
+                    <field name="cost_code_id" />
+                </field>
                 <field name="driver_id" position="after">
                     <field name="ritase_order_id" invisible="1" />
                     <field name="product_id" invisible="1" />

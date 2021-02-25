@@ -31,7 +31,7 @@ class ProductionRitaseReport(models.TransientModel):
                 temp["doc_name"] = ritase_counter.ritase_order_id.name
                 temp["name"] = ritase_counter.name
                 temp["date"] = ritase_counter.date
-                if ritase_counter.location_id :
+                if ritase_counter.ritase_order_id.location_id :
                     temp["location_name"] = ritase_counter.location_id.name
                 else:
                     temp["location_name"] = "-"
@@ -84,7 +84,7 @@ class ProductionRitaseReport(models.TransientModel):
                 temp["name"] = ritase_counter.name
                 temp["date"] = ritase_counter.date
                 temp["shift"] = ritase_counter.shift
-                if ritase_counter.location_id :
+                if ritase_counter.ritase_order_id.location_id :
                     temp["location_name"] = ritase_counter.location_id.name
                 else:
                     temp["location_name"] = "-"
@@ -129,7 +129,7 @@ class ProductionRitaseReport(models.TransientModel):
                 temp["name"] = ritase_counter.name
                 temp["date"] = ritase_counter.date
                 temp["shift"] = ritase_counter.shift
-                if ritase_counter.location_id :
+                if ritase_counter.ritase_order_id.location_id :
                     temp["location_name"] = ritase_counter.location_id.name
                 else:
                     temp["location_name"] = "-"

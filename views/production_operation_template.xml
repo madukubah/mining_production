@@ -8,10 +8,10 @@
         <field name="priority" eval="8"/>
         <field name="arch" type="xml">
             <tree string="Operation Template List">
-                <field name="date" />
-                <field name="shift" />
-                <field name="location_id" />
-                <field name="cost_code_id" />
+                <!-- <field name="date" /> -->
+                <!-- <field name="shift" /> -->
+                <!-- <field name="location_id" /> -->
+                <!-- <field name="cost_code_id" /> -->
                 <field name="block_id" />
                 <field name="vehicle_id" />
             </tree>
@@ -32,10 +32,10 @@
                             <field name="production_config_id" invisible="1" />
                             <field name="name" invisible="1" />
                             <field name="cop_adjust_id" invisible="1" />
-                            <field name="date" />
-                            <field name="shift" />
-                            <field name="location_id" />
-                            <field name="cost_code_id" />
+                            <!-- <field name="date" /> -->
+                            <!-- <field name="shift" /> -->
+                            <!-- <field name="location_id" />
+                            <field name="cost_code_id" /> -->
                             <field name="block_id" />
                             <field name="vehicle_id" />
                             <field name="driver_id" />

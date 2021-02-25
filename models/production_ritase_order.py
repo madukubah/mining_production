@@ -510,11 +510,13 @@ class RitaseCounter(models.Model):
 	location_id = fields.Many2one(
             'stock.location', 'Location',
 			domain=[ ('usage','=',"internal")  ],
+			related="ritase_order_id.location_id",
 			store=True,
             ondelete="restrict" )
 	location_dest_id = fields.Many2one(
             'stock.location', 'Location',
 			domain=[ ('usage','=',"internal")  ],
+			related="ritase_order_id.location_dest_id",
 			store=True,
             ondelete="restrict" )
 	date = fields.Date('Date', help='', related="ritase_order_id.date", readonly=True, default=fields.Datetime.now, store=True )
@@ -560,13 +562,14 @@ class RitaseCounter(models.Model):
 			qty = record.product_uom._compute_quantity( qty, record.product_id.uom_id )
 			record.product_uom_qty = round( qty, 2)
 
-	@api.onchange( 'ritase_order_id', 'ritase_count' )
+	@api.onchange( 'ritase_order_id' )
 	def _change_ritase_order_id(self):
 		for record in self:
-			record.shift = record.ritase_order_id.shift
-			record.location_id = record.ritase_order_id.location_id
-			record.location_dest_id = record.ritase_order_id.location_dest_id
-			record.bucket = record.ritase_order_id.bucket
+			if record.ritase_order_id :
+				record.shift = record.ritase_order_id.shift
+				# record.location_id = record.ritase_order_id.location_id
+				# record.location_dest_id = record.ritase_order_id.location_dest_id
+				record.bucket = record.ritase_order_id.bucket
 
 	@api.onchange( 'date' )
 	def _set_date(self):

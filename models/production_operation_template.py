@@ -21,16 +21,16 @@ class ProductionOperationTemplate(models.Model):
 
     name = fields.Char(compute='_compute_name', store=True)
     production_config_id = fields.Many2one('production.config', string='Config', default=_default_config)
-    date = fields.Date('Date', help='' )
-    shift = fields.Selection([
-        ( "1" , '1'),
-        ( "2" , '2'),
-        ], string='Shift', index=True )
-    location_id = fields.Many2one(
-            'stock.location', 'Location',
-			domain=[ ('usage','=',"internal")  ],
-            ondelete="restrict" )
-    cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict" )
+    # date = fields.Date('Date', help='' )
+    # shift = fields.Selection([
+    #     ( "1" , '1'),
+    #     ( "2" , '2'),
+    #     ], string='Shift', index=True )
+    # location_id = fields.Many2one(
+    #         'stock.location', 'Location',
+	# 		domain=[ ('usage','=',"internal")  ],
+    #         ondelete="restrict" )
+    # cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', ondelete="restrict" )
     block_id = fields.Many2one('production.block', string='Block', ondelete="restrict")
     vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
     driver_id	= fields.Many2one('res.partner', string='Driver', required=True )
@@ -39,14 +39,10 @@ class ProductionOperationTemplate(models.Model):
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
 
-    @api.depends( 'vehicle_id', 'date' )
+    @api.depends( 'vehicle_id')
     def _compute_name(self):
         for record in self:
             name = record.vehicle_id.name
-            if not name:
-                name = record.date
-            elif record.date:
-                name += ' / ' + record.date
             record.name = name
 
     @api.multi
