@@ -56,7 +56,6 @@ class ProductionRitaseOrder(models.Model):
 				return False
 		return True
 	
-
 	READONLY_STATES = {
         'draft': [('readonly', False)] ,
         'confirm': [('readonly', True)] ,
@@ -506,6 +505,7 @@ class RitaseCounter(models.Model):
 	_inherits = {'production.operation.template': 'operation_template_id'}
 	_order = 'driver_id asc ,date asc'
 
+
 	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="cascade" )
 	location_id = fields.Many2one(
             'stock.location', 'Location',
@@ -555,6 +555,7 @@ class RitaseCounter(models.Model):
 	minutes = fields.Float('Minutes', readonly=True, compute="_compute_minutes" )
 	amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 	
+
 	@api.depends('ton_p_ct', "bucket", "ritase_count", 'ritase_order_id.factor_productivity_id', "ritase_order_id.factor_density_ids")
 	def _compute_qty(self):
 		for record in self:		
