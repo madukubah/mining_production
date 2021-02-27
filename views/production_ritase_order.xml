@@ -209,6 +209,9 @@
         <field name="priority">1</field>
         <field name="arch" type="xml">
             <form string="Dump Truck Activity">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                </header>
                 <sheet>
                     <group>
                         <field name="production_config_id" invisible="1" />
