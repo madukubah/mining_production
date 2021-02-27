@@ -103,10 +103,15 @@ class ProductionHEHourmeterReport(models.TransientModel):
                         vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_start" ] = min( start, hourmeter_log.start) if start !=0 else hourmeter_log.start
                         vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_end" ] = max( end, hourmeter_log.end)
                         vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_value" ] += hourmeter_log.value
-                        if hourmeter_log.driver_id.name not in operator :
-                            vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_operator" ] += str( hourmeter_log.driver_id.name ) + ", "
+
+                        driver_name = hourmeter_log.driver_id.name
+                        if driver_name.find("[") != -1:
+                            driver_name = driver_name[0: int( driver_name.find("[") ) ]
+
+                        if driver_name not in operator :
+                            vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_operator" ] += str( driver_name ) + ", "
                         else:
-                            vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_operator" ] = str( hourmeter_log.driver_id.name )
+                            vehicle_date_dict[ vehicle_name ][ date ][ "shift_1_operator" ] = str( driver_name )
                     else :
                         start = vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_start" ]
                         end = vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_end" ]
@@ -115,10 +120,15 @@ class ProductionHEHourmeterReport(models.TransientModel):
                         vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_start" ] = min( start, hourmeter_log.start) if start !=0 else hourmeter_log.start
                         vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_end" ] = max( end, hourmeter_log.end)
                         vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_value" ] += hourmeter_log.value
-                        if hourmeter_log.driver_id.name not in operator :
-                            vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_operator" ] += str( hourmeter_log.driver_id.name ) + ", "
+                        
+                        driver_name = hourmeter_log.driver_id.name
+                        if driver_name.find("[") != -1:
+                            driver_name = driver_name[0: int( driver_name.find("[") ) ]
+
+                        if driver_name not in operator :
+                            vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_operator" ] += str( driver_name ) + ", "
                         else:
-                            vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_operator" ] = str( hourmeter_log.driver_id.name )
+                            vehicle_date_dict[ vehicle_name ][ date ][ "shift_2_operator" ] = str( driver_name )
                     vehicle_date_dict[ vehicle_name ][ date ][ "hm_total" ] += hourmeter_log.value
 
         vehicle_losstimes = self.env['fleet.vehicle.losstime'].sudo().search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'vehicle_id', 'in', self.vehicle_ids.ids ) ], order="vehicle_id asc, start_datetime asc")
