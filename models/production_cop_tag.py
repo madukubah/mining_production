@@ -62,7 +62,7 @@ class ProductionCopTagLog(models.Model):
     }
 
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
-    name = fields.Char(compute='_compute_name', store=True ,required=True, states=READONLY_STATES)
+    name = fields.Char(compute='_compute_name', store=True , states=READONLY_STATES)
     location_id = fields.Many2one(
             'stock.location', 'Location',
             domain=[ ('usage','=',"internal") ],

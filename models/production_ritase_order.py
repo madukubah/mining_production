@@ -522,6 +522,9 @@ class RitaseCounter(models.Model):
 	date = fields.Date('Date', help='', related="ritase_order_id.date", readonly=True, default=fields.Datetime.now, store=True )
 	cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', related="ritase_order_id.cost_code_id", ondelete="restrict", store=True )
 
+	# vehicle n driver
+	
+
 	shift = fields.Selection([
         ( "1" , '1'),
         ( "2" , '2'),
