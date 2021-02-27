@@ -505,8 +505,19 @@ class RitaseCounter(models.Model):
 	_inherits = {'production.operation.template': 'operation_template_id'}
 	_order = 'driver_id asc ,date asc'
 
+	@api.model
+	def _default_config(self):
+		ProductionConfig = self.env['production.config'].sudo()
+		production_config = ProductionConfig.search([ ( "active", "=", True ) ]) 
+		if not production_config :
+			raise UserError(_('Please Set Configuration file') )
+		return production_config[0]
+
+	production_config_id = fields.Many2one('production.config', string='Config', default=_default_config)
 
 	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="cascade" )
+
+	name = fields.Char(compute='_compute_name', store=True)
 	location_id = fields.Many2one(
             'stock.location', 'Location',
 			domain=[ ('usage','=',"internal")  ],
@@ -523,7 +534,12 @@ class RitaseCounter(models.Model):
 	cost_code_id = fields.Many2one('production.cost.code', string='Cost Code', related="ritase_order_id.cost_code_id", ondelete="restrict", store=True )
 
 	# vehicle n driver
-	
+	vehicle_id = fields.Many2one('fleet.vehicle', string='Vehicle' )
+	driver_id	= fields.Many2one('res.partner', string='Driver' )
+
+	cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
+	state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
+		required=True, readonly=True, copy=False, default='draft' )
 
 	shift = fields.Selection([
         ( "1" , '1'),
@@ -558,7 +574,32 @@ class RitaseCounter(models.Model):
 	minutes = fields.Float('Minutes', readonly=True, compute="_compute_minutes" )
 	amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 	
+	@api.multi
+	def repair(self):
+		for record in self:	
+			operation = record.operation_template_id
+			_logger.warning( operation.vehicle_id.id )
+			record.update({
+				'vehicle_id' : operation.vehicle_id.id,
+				'driver_id' : operation.driver_id.id,
+			})
+			_logger.warning( record.vehicle_id )
 
+	@api.depends( 'vehicle_id', 'date' )
+	def _compute_name(self):
+		for record in self:
+			name = record.vehicle_id.name
+			if not name:
+				name = record.date
+			elif record.date:
+				name += ' / ' + record.date
+			record.name = name
+
+	@api.onchange('vehicle_id')	
+	def _change_vehicle_id(self):
+		for record in self:
+			record.driver_id = record.vehicle_id.driver_id
+				
 	@api.depends('ton_p_ct', "bucket", "ritase_count", 'ritase_order_id.factor_productivity_id', "ritase_order_id.factor_density_ids")
 	def _compute_qty(self):
 		for record in self:		

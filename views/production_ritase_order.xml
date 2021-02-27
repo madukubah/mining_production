@@ -157,7 +157,7 @@
     </record>
 
     <!-- counter -->
-    <record id="view_production_ritase_counter_form" model="ir.ui.view">
+    <!-- <record id="view_production_ritase_counter_form" model="ir.ui.view">
             <field name="name">production.ritase.counter.form</field>
             <field name="model">production.ritase.counter</field>
             <field name="mode">primary</field>
@@ -172,6 +172,8 @@
                     <field name="shift" />
                     <field name="location_id" />
                     <field name="location_dest_id" invisible="1" />
+                    <field name="vehicle_id" invisible="1" />
+                    <field name="driver_id" invisible="1" />
                     <field name="cost_code_id" />
                 </field>
                 <field name="driver_id" position="after">
@@ -185,7 +187,6 @@
                     <field name="start_datetime" />
                     <field name="end_datetime" />
                     <field name="minutes" />
-                    <!-- <field name="operation_template_id" class="oe_inline" readonly="1" invisible="1" /> -->
                 </field>
                 <sheet position="inside">
                     <notebook>
@@ -200,7 +201,55 @@
                     </notebook>
                 </sheet>
             </field>
+    </record> -->
+
+    <record id="view_production_ritase_counter_form1" model="ir.ui.view">
+        <field name="name">production.ritase.counter.form</field>
+        <field name="model">production.ritase.counter</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <form string="Dump Truck Activity">
+                <sheet>
+                    <group>
+                        <field name="production_config_id" invisible="1" />
+                        <field name="name" invisible="1" />
+                        <field name="cop_adjust_id" invisible="1" />
+                        <field name="ritase_order_id" invisible="1" />
+                        <field name="product_id" invisible="1" />
+                        <field name="ton_p_ct" invisible="1" />
+                        <field name="product_uom" invisible="1" />
+
+                        <field name="date" />
+                        <field name="shift" />
+                        <field name="location_id" />
+                        <field name="location_dest_id" invisible="1" />
+                        <field name="cost_code_id" />
+                        <field name="vehicle_id" />
+                        <field name="driver_id" />
+
+                        <field name="bucket" />
+                        <field name="product_uom_qty" string="Tonnase" />
+                        <field name="ritase_count" />
+                        <field name="start_datetime" />
+                        <field name="end_datetime" />
+                        <field name="minutes" />
+                    </group>
+                    <notebook>
+                        <page string="Logs"  >
+                            <field name="log_ids" >
+                                <tree string="Logs" >
+                                    <field name="datetime" />
+                                    <field name="cost_code_id" />
+                                </tree>
+                            </field >
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
     </record>
+
+    <!-- logs -->
     <record id="view_production_ritase_log_form" model="ir.ui.view">
             <field name="name">production.ritase.log.form</field>
             <field name="model">production.ritase.log</field>
