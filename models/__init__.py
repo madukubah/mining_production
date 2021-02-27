@@ -3,7 +3,7 @@
 from . import production_config
 from . import stock_warehouse
 from . import stock_picking
-from . import production_operation_template
+# from . import production_operation_template
 from . import production_ritase_order
 from . import production_hourmeter_order
 from . import production_watertruck_order

@@ -20,7 +20,7 @@
         'views/menu.xml',
         "views/production_config.xml",
         "views/production_activity_definition.xml",
-        "views/production_operation_template.xml",
+        # "views/production_operation_template.xml",
 
         "views/production_hourmeter_order.xml",
         "views/production_he_performance.xml",

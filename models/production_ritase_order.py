@@ -502,7 +502,7 @@ class ProductionRitaseOrder(models.Model):
 
 class RitaseCounter(models.Model):
 	_name = "production.ritase.counter"
-	_inherits = {'production.operation.template': 'operation_template_id'}
+	# _inherits = {'production.operation.template': 'operation_template_id'}
 	_order = 'driver_id asc ,date asc'
 
 	@api.model
@@ -516,7 +516,6 @@ class RitaseCounter(models.Model):
 	production_config_id = fields.Many2one('production.config', string='Config', default=_default_config)
 
 	ritase_order_id = fields.Many2one("production.ritase.order", string="Ritase", ondelete="cascade" )
-
 	name = fields.Char(compute='_compute_name', store=True)
 	location_id = fields.Many2one(
             'stock.location', 'Location',
