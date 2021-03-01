@@ -214,7 +214,7 @@ class ProductionRitaseOrder(models.Model):
 			
 			return {
 				'domain':{
-					'location_id':[('location_id','=',order.warehouse_id.view_location_id.id )] ,
+					'location_id':[ ('location_id','=',order.warehouse_id.view_location_id.id ) ] ,
 					'location_dest_id':[('location_id','=',order.warehouse_dest_id.view_location_id.id )],
 					'product_id':[('id','in', product_ids.ids )],
 					}

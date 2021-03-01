@@ -100,8 +100,8 @@
                             <field name="fleet_model_swell_factor" />
                             <field name="fleet_model_fill_factor" />
 
-                            <field name="factor_density_ids" editable="bottom" >
-                                <tree string="Densities" editable="bottom" >
+                            <field name="factor_density_ids" options="{'no_create_edit': True}" >
+                                <tree string="Densities" >
                                     <field name="product_id" />
                                     <field name="density" string="Density (Ton/m^3)" />
                                 </tree>

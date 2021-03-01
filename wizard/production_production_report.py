@@ -40,8 +40,8 @@ class ProductionProductionReport(models.TransientModel):
         res[ "product_id" ] = production_config.lot_id.product_id.id
         return res
 
-    start_date = fields.Date('Start Date', required=True, default="2021-01-01" )
-    end_date = fields.Date(string="End Date", required=True, default="2021-01-31")
+    start_date = fields.Date('Start Date', required=True )
+    end_date = fields.Date(string="End Date", required=True )
     
     pit_ids = fields.Many2many('production.pit', 'production_report_pit_rel', 'report_id', 'pit_id', string='Pits' )
 
