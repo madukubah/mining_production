@@ -575,16 +575,16 @@ class RitaseCounter(models.Model):
 	minutes = fields.Float('Minutes', readonly=True, compute="_compute_minutes" )
 	amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 	
-	@api.multi
-	def repair(self):
-		for record in self:	
-			operation = record.operation_template_id
-			_logger.warning( operation.vehicle_id.id )
-			record.update({
-				'vehicle_id' : operation.vehicle_id.id,
-				'driver_id' : operation.driver_id.id,
-			})
-			_logger.warning( record.vehicle_id )
+	# @api.multi
+	# def repair(self):
+	# 	for record in self:	
+	# 		operation = record.operation_template_id
+	# 		_logger.warning( operation.vehicle_id.id )
+	# 		record.update({
+	# 			'vehicle_id' : operation.vehicle_id.id,
+	# 			'driver_id' : operation.driver_id.id,
+	# 		})
+	# 		_logger.warning( record.vehicle_id )
 
 	@api.depends( 'vehicle_id', 'date' )
 	def _compute_name(self):
@@ -661,10 +661,10 @@ class RitaseCounter(models.Model):
 		for record in self:
 			record.driver_id = record.vehicle_id.driver_id
 			
-	@api.depends('log_ids')	
-	def _compute_ritase_count(self):
-		for record in self:
-			record.ritase_count = len( record.log_ids )
+	# @api.depends('log_ids')	
+	# def _compute_ritase_count(self):
+	# 	for record in self:
+	# 		record.ritase_count = len( record.log_ids )
 	
 	@api.depends('ritase_count')	
 	def _compute_amount(self):
