@@ -557,7 +557,9 @@ class RitaseCounter(models.Model):
             'product.uom', 'Product Unit of Measure', 
             required=True,
 			domain=[ ('category_id.name','=',"Mining")  ],
-			related='ritase_order_id.product_uom'
+			related='ritase_order_id.product_uom',
+			store=True,
+			copy=True
 			)
 	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0 )
 	bucket = fields.Integer( string="Buckets", default=0, digits=0 )
@@ -721,7 +723,9 @@ class RitaseLotMove(models.Model):
             'product.uom', 'Product Unit of Measure', 
             # required=True,
 			domain=[ ('category_id.name','=',"Mining")  ],
-			related='ritase_order_id.product_uom'
+			related='ritase_order_id.product_uom',
+			store=True,
+			copy=True
 			)
 	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0 )
 	bucket = fields.Integer( string="Bucket", required=True, default=0, digits=0 )
