@@ -728,7 +728,10 @@ class RitaseLotMove(models.Model):
 			copy=True
 			)
 	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0 )
-	bucket = fields.Integer( string="Bucket", required=True, default=0, digits=0 )
+	# bucket = fields.Integer( string="Bucket", required=True, default=0, digits=0 )
+	bucket = fields.Float('QTY', 
+		default=0,
+		digits=dp.get_precision('Product Unit of Measure') )
 	ton_p_ct = fields.Float('Ton/CT', default=0, related='ritase_order_id.ton_p_ct' )
 	product_uom_qty = fields.Float('QTY', 
 		default=0, 
