@@ -555,7 +555,7 @@ class RitaseCounter(models.Model):
 	product_id = fields.Many2one("product.product", string="Material", related="ritase_order_id.product_id", ondelete="restrict" )
 	product_uom = fields.Many2one(
             'product.uom', 'Product Unit of Measure', 
-            required=True,
+            # required=True,
 			domain=[ ('category_id.name','=',"Mining")  ],
 			related='ritase_order_id.product_uom',
 			store=True,
