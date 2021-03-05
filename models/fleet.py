@@ -93,6 +93,11 @@ class FleetVehicleLogServices(models.Model):
     @api.multi
     def post(self):
         super(FleetVehicleLogServices, self ).post()
+    
+    @api.multi
+    def unlink(self):
+
+        return super(FleetVehicleLogServices, self).unlink()
 
 class FleetVehicleCost(models.Model):
     _inherit = 'fleet.vehicle.cost'

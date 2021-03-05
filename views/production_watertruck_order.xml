@@ -86,6 +86,7 @@
                             <field name="vehicle_id" />
                             <field name="capacity" />
                             <field name="driver_id" />
+                            <field name="ritase_count" />
                         </group>
                         <notebook>
                             <page string="Logs"  >

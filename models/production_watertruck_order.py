@@ -115,7 +115,7 @@ class ProductionWatertruckCounter(models.Model):
         'counter_id' ,
         string='Logs' ,
         copy=True )
-    ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0, compute='_compute_ritase_count' )
+    ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0 )
     amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
