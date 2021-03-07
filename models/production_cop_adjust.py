@@ -33,8 +33,8 @@ class ProductionCopAdjust(models.Model):
         'res.company', 'Company',
         default=lambda self: self.env['res.company']._company_default_get('production.order'),
         required=True)
-    date = fields.Date('Date', help='', default=fields.Datetime.now, states=READONLY_STATES )
-    end_date = fields.Date('Date', help='', default=fields.Datetime.now, states=READONLY_STATES )
+    date = fields.Date('Start Date', help='', default=fields.Datetime.now, states=READONLY_STATES )
+    end_date = fields.Date('End Date', help='', default=fields.Datetime.now, states=READONLY_STATES )
     employee_id	= fields.Many2one('hr.employee', string='Responsible', states=READONLY_STATES )
     production_config_id = fields.Many2one('production.config', string='Production Config', default=_default_config, required=True, states=READONLY_STATES )
 
