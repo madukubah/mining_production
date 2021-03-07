@@ -267,17 +267,18 @@ class ProductionCopAdjust(models.Model):
         LosstimeAccumulation = self.env['production.losstime.accumulation'].sudo()
         for vehicle_id, driver in vehicle_driver_date_dict.items():
             for driver_id, date_obj in driver.items():
-                for date , obj in date_obj.items():
-                    LosstimeAccumulation.create({
-                        'cop_adjust_id' : self.id,
-                        'date' : obj['date'],
-                        'tag_id' : obj['tag_id'],
-                        'vehicle_id' : vehicle_id,
-                        'driver_id' : driver_id,
-                        'losstime_type' : obj['losstime_type'],
-                        'reference' : obj['reference'],
-                        'amount' : obj['amount'],
-                    })
+                if driver_id : 
+                    for date , obj in date_obj.items():
+                        LosstimeAccumulation.create({
+                            'cop_adjust_id' : self.id,
+                            'date' : obj['date'],
+                            'tag_id' : obj['tag_id'],
+                            'vehicle_id' : vehicle_id,
+                            'driver_id' : driver_id,
+                            'losstime_type' : obj['losstime_type'],
+                            'reference' : obj['reference'],
+                            'amount' : obj['amount'],
+                        })
         return
 
 
