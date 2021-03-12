@@ -167,7 +167,7 @@ class ProductionCopAdjust(models.Model):
         product_ids = self.env['product.product'].sudo(  ).search( [ ("id", "in", product_ids ) ] )
 
         ProductionOrder = self.env['production.order'].sudo()
-        production_orders = ProductionOrder.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ) ] )
+        production_orders = ProductionOrder.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "done" ) ] )
         product_qty_dict = {}
         for production_order in production_orders :
             if product_qty_dict.get( production_order.product_id.id , False):
@@ -414,7 +414,7 @@ class ProductionCopAdjust(models.Model):
             debit_amount += move_line[2]["credit"]
 
         #ORE valuation
-        product = production_config.lot_id.product_id
+        product = production_config.main_product_id
         debit_line_vals = {
             'name': self.name,
             'product_id': product.id,
@@ -441,16 +441,18 @@ class ProductionCopAdjust(models.Model):
         product_qty = product.qty_available
         # avoid division by zero
         if product_qty > 0 :
-            amount_unit = product.standard_price
-            not_consumable_cost = self._compute_not_consumable_cost()
-            new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty + self.get_material_qty( except_prduct_id=product.id ) )
-            # new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty )
+            # amount_unit = product.standard_price
+            # not_consumable_cost = self._compute_not_consumable_cost()
+            # other_material_qty = self.get_material_qty( except_prduct_id=product.id )
+            # new_std_price = (( amount_unit * ( product_qty + other_material_qty  ) ) + not_consumable_cost + debit_amount ) / ( product_qty + other_material_qty )
+            # # new_std_price = (( amount_unit * product_qty ) + not_consumable_cost + debit_amount ) / ( product_qty )
+            # product.with_context(force_company=self.company_id.id).sudo().write({ 'standard_price': new_std_price })
+
             # set standart price
             counterpart_account_id = product.property_account_expense_id or product.categ_id.property_account_expense_categ_id
             if not counterpart_account_id :
                 raise UserError(_('Please Set Expenses Account for \'%s\'.') %(product.name,))
-            # product.do_change_standard_price( new_std_price , counterpart_account_id.id )
-            product.with_context(force_company=self.company_id.id).sudo().write({ 'standard_price': new_std_price })
+            self.set_standart_price( product )
 
             # return True
             #TODO : adjust stock ore account value with inventory value
@@ -508,10 +510,26 @@ class ProductionCopAdjust(models.Model):
         credit_value = self.company_id.currency_id.round(valuation_amount * qty)
         return credit_value
 
-    def get_material_qty( self, except_prduct_id ):
+    def set_standart_price( self, product ):
+        self.ensure_one()
+        qty_produced = self.get_produced_material_qty()
+        qty_before_produced = self.get_material_qty() - qty_produced
+
+        inv_val_before_produced = qty_before_produced * product.standard_price
+        cost_produced_materials = self.amount
+        new_std_price = ( inv_val_before_produced + cost_produced_materials ) / ( qty_before_produced + qty_produced )
+        product.with_context(force_company=self.company_id.id).sudo().write({ 'standard_price': new_std_price })
+
+    def get_material_qty( self, except_prduct_id = 0 ):
         self.ensure_one()
         qty = 0
         qty = sum( [ x.qty_available for x in self.production_config_id.product_ids if x.id != except_prduct_id ] )
+        return qty
+
+    def get_produced_material_qty( self):
+        self.ensure_one()
+        qty = 0
+        qty = sum( [ x.product_qty for x in self.produced_items ] )
         return qty
             
     def _account_move_accrued(self):
