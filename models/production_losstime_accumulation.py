@@ -13,7 +13,7 @@ class ProductionLosstimeAccumulation(models.Model):
     name = fields.Char(compute='_compute_name', store=True, string="Name")
     tag_id	= fields.Many2one('production.cop.tag', string='COP Tag', required=True )
     date = fields.Date('Date', help='' )
-    vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True)
+    vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle' )
     driver_id	= fields.Many2one('res.partner', string='Driver', required=True )
     losstime_type = fields.Selection([
 		('slippery', 'Slippery'),

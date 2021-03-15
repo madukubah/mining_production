@@ -190,8 +190,7 @@ class ProductionCopAdjust(models.Model):
         for vehicle_losstime_id in self.vehicle_losstime_ids:
             if vehicle_losstime_id.losstime_type not in ("slippery", "rainy"):
                 continue
-            # vehicle_id = vehicle_losstime_id.vehicle_id.id
-            vehicle_id = 100 #ingnore vehicle_id because its just driver perspective
+            vehicle_id = vehicle_losstime_id.vehicle_id.id
             driver_id = vehicle_losstime_id.driver_id.id
             minimal_cash = 0
             tag_id = False
@@ -230,8 +229,7 @@ class ProductionCopAdjust(models.Model):
                 vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ temp['date'] ] = temp
         
         for rit_id in self.rit_ids:
-            # vehicle_id = rit_id.vehicle_id.id
-            vehicle_id = 100
+            vehicle_id = rit_id.vehicle_id.id
             driver_id = rit_id.driver_id.id
             if vehicle_driver_date_dict.get( vehicle_id , False):
                 if vehicle_driver_date_dict[ vehicle_id ].get( driver_id , False):
@@ -243,8 +241,7 @@ class ProductionCopAdjust(models.Model):
                         vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ rit_id.date ]['reference'] += ','+rit_id.ritase_order_id.name
         
         for hourmeter_id in self.hourmeter_ids:
-            # vehicle_id = hourmeter_id.vehicle_id.id
-            vehicle_id = 100
+            vehicle_id = hourmeter_id.vehicle_id.id
             driver_id = hourmeter_id.driver_id.id
             if vehicle_driver_date_dict.get( vehicle_id , False):
                 if vehicle_driver_date_dict[ vehicle_id ].get( driver_id , False):
@@ -256,8 +253,7 @@ class ProductionCopAdjust(models.Model):
                         vehicle_driver_date_dict[ vehicle_id ][ driver_id ][ hourmeter_id.date ]['reference'] += ','+hourmeter_id.hourmeter_order_id.name
 
         for watertruck_id in self.watertruck_ids:
-            # vehicle_id = watertruck_id.vehicle_id.id
-            vehicle_id = 100
+            vehicle_id = watertruck_id.vehicle_id.id
             driver_id = watertruck_id.driver_id.id
             if vehicle_driver_date_dict.get( vehicle_id , False):
                 if vehicle_driver_date_dict[ vehicle_id ].get( driver_id , False):
@@ -277,8 +273,7 @@ class ProductionCopAdjust(models.Model):
                             'cop_adjust_id' : self.id,
                             'date' : obj['date'],
                             'tag_id' : obj['tag_id'],
-                            # 'vehicle_id' : vehicle_id,
-                            # 'vehicle_id' : False,
+                            'vehicle_id' : vehicle_id,
                             'driver_id' : driver_id,
                             'losstime_type' : obj['losstime_type'],
                             'reference' : obj['reference'],
