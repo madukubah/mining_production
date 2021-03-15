@@ -343,7 +343,7 @@ class ProductionCopAdjust(models.Model):
             journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation( product )
             credit_value = self._prepare_credit_product_cost( product, obj['qty'], product.standard_price)
             cost = obj['price_unit'] * obj['qty']
-            if( credit_value != cost ) :
+            if( round( credit_value, 3 ) != round( cost, 3 ) ) :
                 raise UserError(_('Cost Amount Didn`t match [%s]. on servise %s but cost is %s ') % (product.name, str( cost ), str( credit_value ) ) )
             if move_lines_dict.get( acc_src , False):
                 move_lines_dict[ acc_src ][2]['credit'] += credit_value
