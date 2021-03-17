@@ -329,8 +329,8 @@ class ProductionRitaseOrder(models.Model):
 	@api.multi
 	def check_qty( self ):
 		for order in self:
-			if order.product_uom_qty == 0 :
-				raise UserError(_('%s quantities is 0 Please check it, Something may wrong') % ( order.name ))
+			# if order.product_uom_qty == 0 :
+			# 	raise UserError(_('%s quantities is 0 Please check it, Something may wrong') % ( order.name ))
 			lot_qty_dict = {}
 			if order.product_id.tracking != 'none' :
 				for lot_move_id in order.lot_move_ids:
@@ -729,7 +729,7 @@ class RitaseLotMove(models.Model):
 			)
 	ritase_count = fields.Integer( string="Ritase Count", required=True, default=0, digits=0 )
 	# bucket = fields.Integer( string="Bucket", required=True, default=0, digits=0 )
-	bucket = fields.Float('QTY', 
+	bucket = fields.Float('Bucket', 
 		default=0,
 		digits=dp.get_precision('Product Unit of Measure') )
 	ton_p_ct = fields.Float('Ton/CT', default=0, related='ritase_order_id.ton_p_ct' )
