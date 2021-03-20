@@ -49,8 +49,8 @@ class ProductionHourmeterOrder(models.Model):
         ('done', 'Done'),
         ], string='Status', readonly=True, copy=False, index=True, track_visibility='onchange', default='draft')
 
-    history_ids = fields.Many2many('production.vehicle.hourmeter.log', 'hourmeter_log_history_rel', 'log_id', 'history_id', string='Histories', readonly=True )
-    losstime_ids = fields.Many2many('fleet.vehicle.losstime', 'hourmeter_log_losstime_rel', 'log_id', 'losstime_id', string='Losstime', readonly=True )
+    history_ids = fields.Many2many('production.vehicle.hourmeter.log', 'hourmeter_log_history_rel', 'log_id', 'history_id', string='Histories' )
+    losstime_ids = fields.Many2many('fleet.vehicle.losstime', 'hourmeter_log_losstime_rel', 'log_id', 'losstime_id', string='Losstime' )
 
 
     @api.onchange('vehicle_id', 'date')	
