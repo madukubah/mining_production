@@ -58,7 +58,7 @@ class ProductionHourmeterOrder(models.Model):
         # self.ensure_one()
         for order in self:
             HourmeterLog = self.env['production.vehicle.hourmeter.log'].sudo()
-            hourmeter_logs = HourmeterLog.search( [ ("vehicle_id", "=", order.vehicle_id.id ), ("date", "<=", order.date ) ], limit=3, order="end_datetime desc" )
+            hourmeter_logs = HourmeterLog.search( [ ("vehicle_id", "=", order.vehicle_id.id ), ("date", "<=", order.date ), ("id", "not in", order.vehicle_hourmeter_log_ids.ids ) ], limit=3, order="end_datetime desc" )
             order.write({
                 'history_ids': [( 6, 0, hourmeter_logs.ids )],
             })
