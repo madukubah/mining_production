@@ -398,7 +398,7 @@ class ProductionCopAdjust(models.Model):
                 break
 
         if not location_id :
-            raise UserError(_('No enough Quantity for product %s in any location to be move with qty %s ') % (product.name, qty))
+            raise UserError(_('No enough Quantity for product [%s] %s in any location to be move with qty %s ') % (product.default_code, product.name, qty))
 
         move = self.env['stock.move'].create({
             'name': self.name,
