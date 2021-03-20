@@ -49,20 +49,30 @@ class ProductionHourmeterOrder(models.Model):
         ('done', 'Done'),
         ], string='Status', readonly=True, copy=False, index=True, track_visibility='onchange', default='draft')
 
-    history_ids = fields.Many2many('production.vehicle.hourmeter.log', 'hourmeter_log_history_rel2', 'hourmeter_id', 'history_id', string='Histories' )
-    losstime_ids = fields.Many2many('fleet.vehicle.losstime', 'hourmeter_log_losstime_rel2', 'hourmeter_id', 'losstime_id', string='Losstime' )
+    history_ids = fields.Many2many('production.vehicle.hourmeter.log', 'hourmeter_log_history_rel2', 'hourmeter_id', 'history_id', string='Histories', copy=False, readonly=True )
+    losstime_ids = fields.Many2many('fleet.vehicle.losstime', 'hourmeter_log_losstime_rel2', 'hourmeter_id', 'losstime_id', string='Losstime', copy=False, readonly=True )
+    last_hourmeter = fields.Float('Last Hourmeter', default=0 )
 
-
-    @api.onchange('vehicle_id', 'date')	
-    def _set_history(self):
+    @api.multi
+    def action_history(self):
+        # self.ensure_one()
         for order in self:
             HourmeterLog = self.env['production.vehicle.hourmeter.log'].sudo()
-            hourmeter_logs = HourmeterLog.search( [ ("vehicle_id", "=", order.vehicle_id.id ), ("date", "<=", order.date ) ], limit=5, order="end_datetime desc" )
-            order.history_ids = hourmeter_logs.ids
-
+            hourmeter_logs = HourmeterLog.search( [ ("vehicle_id", "=", order.vehicle_id.id ), ("date", "<=", order.date ) ], limit=3, order="end_datetime desc" )
+            order.write({
+                'history_ids': [( 6, 0, hourmeter_logs.ids )],
+            })
             VehicleLosstime = self.env['fleet.vehicle.losstime'].sudo()
-            vehicle_losstimes = VehicleLosstime.search( [ ("vehicle_id", "=", order.vehicle_id.id ), ("date", "<=", order.date ) ], limit=5, order="end_datetime desc" )
-            order.losstime_ids = vehicle_losstimes.ids
+            vehicle_losstimes = VehicleLosstime.search( [ ("vehicle_id", "=", order.vehicle_id.id ), ("date", "<=", order.date ) ], limit=3, order="end_datetime desc" )
+            order.write({
+                'losstime_ids': [( 6, 0, vehicle_losstimes.ids )],
+            })
+            if hourmeter_logs:
+                order.last_hourmeter = hourmeter_logs[0].end
+            
+            if vehicle_losstimes:
+                order.last_hourmeter = max(order.last_hourmeter, vehicle_losstimes[0].end )
+            
 
     @api.multi
     def unlink(self):

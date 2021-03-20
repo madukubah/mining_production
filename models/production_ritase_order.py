@@ -224,7 +224,7 @@ class ProductionRitaseOrder(models.Model):
 	def create(self, values):
 		seq = self.env['ir.sequence'].next_by_code('ritase')
 		values["name"] = seq
-		_logger.warning( values )
+		# _logger.warning( values )
 		X = values["factor_density_ids"]
 		del values["factor_density_ids"]
 		res = super(ProductionRitaseOrder, self ).create(values)
