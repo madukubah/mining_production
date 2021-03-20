@@ -58,7 +58,6 @@
                         <notebook>
                             <page string="HE Hourmeter"  >
                                 <field name="vehicle_hourmeter_log_ids"  >
-                                    <!-- <tree string="HE Hourmeter" editable="bottom"  > -->
                                     <tree string="HE Hourmeter" >
                                         <field name="hourmeter_order_id" invisible="1" />
                                         <field name="name" invisible="1" />
@@ -75,6 +74,39 @@
                                         <field name="start" />
                                         <field name="end" />
                                         <field name="value" />
+									</tree>
+                                </field >
+                            </page>
+                            <page string="Hourmeter History"  >
+                                <field name="history_ids"  >
+                                    <tree string="Hourmeter History" >
+                                        <field name="shift" />
+                                        <field name="cost_code_id" />
+                                        <field name="location_id" />
+                                        <field name="vehicle_id" />
+                                        <field name="driver_id" string="Operator" />
+                                        <field name="start_datetime" />
+                                        <field name="end_datetime" />
+                                        <field name="hours" />
+                                        <field name="start" />
+                                        <field name="end" />
+                                        <field name="value" />
+									</tree>
+                                </field >
+                            </page>
+                            <page string="Losstime History"  >
+                                <field name="losstime_ids"  >
+                                    <tree string="Losstime History" >
+                                        <field name="shift" />
+                                        <field name="losstime_type" />
+                                        <field name="vehicle_id" />
+                                        <field name="driver_id" />
+                                        <field name="start_datetime" />
+                                        <field name="end_datetime" />
+                                        <field name="hours" />
+                                        <field name="start" />
+                                        <field name="end" />
+                                        <field name="hour" />
 									</tree>
                                 </field >
                             </page>

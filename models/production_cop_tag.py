@@ -131,7 +131,7 @@ class ProductionCopTagLog(models.Model):
                 name = record.date
             elif record.date:
                 name += ' / ' + record.date
-            self.name = name
+            record.name = name
 
     @api.multi
     def post(self):

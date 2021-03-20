@@ -44,6 +44,7 @@
                             <field name="employee_id" />
                             <field name="production_config_id" />
                             <field name="amount" />
+                            <field name="cost_mining_p_ton" />
                         </group>
                         <separator string="Production"/>
                         <field name="produced_items" >

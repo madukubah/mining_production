@@ -46,7 +46,8 @@ class ProductionCopAdjust(models.Model):
     tag_log_ids = fields.One2many('production.cop.tag.log', 'cop_adjust_id', 'COP Tagging', states=READONLY_STATES )
     vehicle_losstime_ids = fields.One2many('fleet.vehicle.losstime', 'cop_adjust_id', 'Vehicle Losstime', states=READONLY_STATES )
     losstime_accumulation_ids = fields.One2many('production.losstime.accumulation', 'cop_adjust_id', 'Losstime Accumulation', states=READONLY_STATES )
-    amount = fields.Float(string='Amount', compute="_compute_amount" )
+    amount = fields.Float(string='Amount (IDR)', compute="_compute_amount", store=True )
+    cost_mining_p_ton = fields.Float(string='Cost Mining / Ton', compute="_compute_cost_p_ton", store=True )
 
     sum_rit = fields.Float(string='Ritase Amount', compute="_compute_amount" )
     sum_hm = fields.Float(string='Hourmeter Amount', compute="_compute_amount" )
@@ -301,6 +302,11 @@ class ProductionCopAdjust(models.Model):
 
             record.amount = record.sum_hm + record.sum_rit + record.sum_watertruck + record.sum_cop_tag + record.sum_vehicle_cost + record.sum_losstime_accumulation
 
+    @api.depends( "amount" )
+    def _compute_cost_p_ton(self):
+        for record in self:
+            record.cost_mining_p_ton =  ( record.amount / sum( [ produced_item.product_qty for produced_item in record.produced_items if produced_item.product_id.id == record.production_config_id.main_product_id.id ] ) )
+
     @api.multi
     def _settle_cost(self):
         self.ensure_one()
@@ -518,24 +524,25 @@ class ProductionCopAdjust(models.Model):
 
     def set_standart_price( self, product ):
         self.ensure_one()
-        qty_produced = self.get_produced_material_qty()
-        qty_before_produced = self.get_material_qty() - qty_produced
+        qty_produced = self.get_produced_material_qty( [ product.id ] )
+        qty_before_produced = product.qty_available - qty_produced
 
         inv_val_before_produced = qty_before_produced * product.standard_price
         cost_produced_materials = self.amount
+
         new_std_price = ( inv_val_before_produced + cost_produced_materials ) / ( qty_before_produced + qty_produced )
         product.with_context(force_company=self.company_id.id).sudo().write({ 'standard_price': new_std_price })
 
-    def get_material_qty( self, except_prduct_id = 0 ):
+    def get_material_qty( self, product_ids = [] ):
         self.ensure_one()
         qty = 0
-        qty = sum( [ x.qty_available for x in self.production_config_id.product_ids if x.id != except_prduct_id ] )
+        qty = sum( [ x.qty_available for x in self.production_config_id.product_ids if x.id in product_ids ] )
         return qty
 
-    def get_produced_material_qty( self):
+    def get_produced_material_qty( self, product_ids = [] ):
         self.ensure_one()
         qty = 0
-        qty = sum( [ x.product_qty for x in self.produced_items ] )
+        qty = sum( [ x.product_qty for x in self.produced_items if x.product_id.id in product_ids ] )
         return qty
             
     def _account_move_accrued(self):
