@@ -114,7 +114,6 @@ class ProductionCopAdjust(models.Model):
         self.hourmeter_ids._compute_amount()
         self.watertruck_ids._compute_amount()
         self.tag_log_ids._compute_amount()
-        self.vehicle_losstime_ids._compute_amount()
 
     @api.multi
     def _reload(self):
