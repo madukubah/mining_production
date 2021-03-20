@@ -45,10 +45,10 @@
                         <group>
                             <field name="date" />
                             <field name="shift" invisible="1" />
+                            <field name="vehicle_id" />
                             <field name="location_id" />
                             <field name="employee_id" />
 
-                            <field name="vehicle_id" />
                             <field name="last_hourmeter" />
                             <field name="driver_id" invisible="1" />
 

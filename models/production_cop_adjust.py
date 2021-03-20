@@ -76,6 +76,7 @@ class ProductionCopAdjust(models.Model):
     @api.multi
     def action_settle(self):
         self.ensure_one()
+        self._reload_amount()
         self._settle_cost()
 
     @api.multi
@@ -104,6 +105,17 @@ class ProductionCopAdjust(models.Model):
             raise UserError(_('Unable to cancel order %s as some receptions have already been done.') % (self.name))
         self.write({ 'state' : 'draft' })
     
+    @api.multi
+    def _reload_amount(self):
+        self.ensure_one()
+        self.cost_ids._onchange_product()
+        self.cost_ids._compute_amount()
+        self.rit_ids._compute_amount()
+        self.hourmeter_ids._compute_amount()
+        self.watertruck_ids._compute_amount()
+        self.tag_log_ids._compute_amount()
+        self.vehicle_losstime_ids._compute_amount()
+
     @api.multi
     def _reload(self):
         self.ensure_one()
@@ -286,7 +298,6 @@ class ProductionCopAdjust(models.Model):
                             'amount' : obj['amount'],
                         })
         return
-
 
     @api.depends("rit_ids", "hourmeter_ids", "watertruck_ids", "cost_ids", "tag_log_ids" )
     def _compute_amount(self):
