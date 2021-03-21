@@ -738,6 +738,20 @@ class RitaseLotMove(models.Model):
 		digits=dp.get_precision('Product Unit of Measure'),
 		compute="_compute_qty" )
 
+	state = fields.Selection( [
+        ('draft', 'Draft'), 
+        ('cancel', 'Cancelled'),
+        ('confirm', 'Confirmed'),
+        ('done', 'Done'),
+        ], string='Status', readonly=True, copy=False, store=True, track_visibility='onchange', related='ritase_order_id.state')
+
+	@api.multi
+	def lot_move_all( self ):
+		for record in self:	
+			if 	record.ritase_order_id.state == "draft" :
+				product_qty = record.product_id.with_context({'location' : record.location_id.id, 'lot_id' : record.lot_id.id })
+				record.bucket = product_qty.qty_available / ( record.ton_p_ct * record.ritase_count )
+
 	@api.multi
 	def check_qty( self ):
 		for record in self:		

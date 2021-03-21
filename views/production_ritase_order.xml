@@ -138,11 +138,14 @@
                             <page string="Lot Movements"  >
                                 <field name="lot_move_ids" editable="bottom" >
                                     <tree string="Lot Movements" editable="bottom" >
+                                        <field name="state" invisible="1" />
                                         <field name="lot_id" />
                                         <field name="product_uom" />
                                         <field name="bucket"/>
                                         <field name="ritase_count" sum="Total Rit" />
                                         <field name="product_uom_qty" sum="Total Tonnase" string="Tonnase" />
+                                        <button name="lot_move_all" string="Move All Qty" type="object" icon="fa-list"
+                                            states="draft" />
 									</tree>
                                 </field >
                             </page>
@@ -156,52 +159,6 @@
             </field>
     </record>
 
-    <!-- counter -->
-    <!-- <record id="view_production_ritase_counter_form" model="ir.ui.view">
-            <field name="name">production.ritase.counter.form</field>
-            <field name="model">production.ritase.counter</field>
-            <field name="mode">primary</field>
-            <field eval="7" name="priority"/>
-            <field name="inherit_id" ref="view_production_operation_template_form"/>
-            <field name="arch" type="xml">
-                <form position="attributes">
-                    <attribute name="string">Dump Truck Activity</attribute>
-                </form>
-                <field name="cop_adjust_id" position="after">
-                    <field name="date" />
-                    <field name="shift" />
-                    <field name="location_id" />
-                    <field name="location_dest_id" invisible="1" />
-                    <field name="vehicle_id" invisible="1" />
-                    <field name="driver_id" invisible="1" />
-                    <field name="cost_code_id" />
-                </field>
-                <field name="driver_id" position="after">
-                    <field name="ritase_order_id" invisible="1" />
-                    <field name="product_id" invisible="1" />
-                    <field name="ton_p_ct" invisible="1" />
-                    <field name="product_uom" />
-                    <field name="bucket" />
-                    <field name="product_uom_qty" string="Tonnase" />
-                    <field name="ritase_count" />
-                    <field name="start_datetime" />
-                    <field name="end_datetime" />
-                    <field name="minutes" />
-                </field>
-                <sheet position="inside">
-                    <notebook>
-                        <page string="Logs"  >
-                            <field name="log_ids" >
-                                <tree string="Logs" >
-                                    <field name="datetime" />
-                                    <field name="cost_code_id" />
-                                </tree>
-                            </field >
-                        </page>
-                    </notebook>
-                </sheet>
-            </field>
-    </record> -->
 
     <record id="view_production_ritase_counter_form1" model="ir.ui.view">
         <field name="name">production.ritase.counter.form</field>
