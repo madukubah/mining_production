@@ -288,6 +288,7 @@ class ProductionRitaseOrder(models.Model):
 	def action_confirm( self ):
 		PackOperationLot = self.env['stock.pack.operation.lot'].sudo()
 		for order in self:
+			order._compute_qty()
 			if not order.is_from_pit() :
 				order.check_qty()
 			if order.product_id.tracking != 'none' :
@@ -751,6 +752,8 @@ class RitaseLotMove(models.Model):
 			if 	record.ritase_order_id.state == "draft" :
 				product_qty = record.product_id.with_context({'location' : record.location_id.id, 'lot_id' : record.lot_id.id })
 				record.bucket = product_qty.qty_available / ( record.ton_p_ct * record.ritase_count )
+
+				record.ritase_order_id._compute_qty()
 
 	@api.multi
 	def check_qty( self ):
