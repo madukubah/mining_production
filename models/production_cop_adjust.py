@@ -315,7 +315,8 @@ class ProductionCopAdjust(models.Model):
     @api.depends( "amount" )
     def _compute_cost_p_ton(self):
         for record in self:
-            record.cost_mining_p_ton =  ( record.amount / sum( [ produced_item.product_qty for produced_item in record.produced_items if produced_item.product_id.id == record.production_config_id.main_product_id.id ] ) )
+            if sum( [ produced_item.product_qty for produced_item in record.produced_items if produced_item.product_id.id == record.production_config_id.main_product_id.id ] ) :
+                record.cost_mining_p_ton =  ( record.amount / sum( [ produced_item.product_qty for produced_item in record.produced_items if produced_item.product_id.id == record.production_config_id.main_product_id.id ] ) )
 
     @api.multi
     def _settle_cost(self):
