@@ -9,6 +9,7 @@
             <tree string="COP Adjustment List">
                 <field name="name" />
                 <field name="date" />
+                <field name="end_date" />
                 <field name="employee_id" />
                 <field name="amount" />
                 <field name="state" />
