@@ -717,6 +717,7 @@ class RitaseLotMove(models.Model):
             'stock.location', 'Location',
 			domain=[ ('usage','=',"internal")  ],
 			related='ritase_order_id.location_id',
+			store=True,
             ondelete="restrict" )
 	#calculation
 	product_id = fields.Many2one("product.product", string="Material", related="ritase_order_id.product_id", ondelete="restrict" )
@@ -733,7 +734,7 @@ class RitaseLotMove(models.Model):
 	bucket = fields.Float('Bucket', 
 		default=0,
 		digits=dp.get_precision('Product Unit of Measure') )
-	ton_p_ct = fields.Float('Ton/CT', default=0, related='ritase_order_id.ton_p_ct' )
+	ton_p_ct = fields.Float('Ton/CT', default=0, related='ritase_order_id.ton_p_ct', store=True )
 	product_uom_qty = fields.Float('QTY', 
 		default=0, 
 		digits=dp.get_precision('Product Unit of Measure'),
