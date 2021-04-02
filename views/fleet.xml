@@ -88,6 +88,9 @@
                 <field name="inv_ref" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </field>
+                <field name="amount" position="attributes">
+                    <attribute name="sum">Total</attribute>
+                </field>
             </field>
     </record>
     <!-- FILTER -->
