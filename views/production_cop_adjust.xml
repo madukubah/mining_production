@@ -11,7 +11,7 @@
                 <field name="date" />
                 <field name="end_date" />
                 <field name="employee_id" />
-                <field name="amount" />
+                <field name="amount" sum="Total" />
                 <field name="state" />
             </tree>
         </field>
