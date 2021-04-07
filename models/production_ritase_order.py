@@ -289,8 +289,8 @@ class ProductionRitaseOrder(models.Model):
 		PackOperationLot = self.env['stock.pack.operation.lot'].sudo()
 		for order in self:
 			order._compute_qty()
-			if not order.is_from_pit() :
-				order.check_qty()
+			# if not order.is_from_pit() :
+				# order.check_qty()
 			if order.product_id.tracking != 'none' :
 				if not order.production_config_id.enable_default_lot :
 					lot_ids = [ lot_move_id.lot_id.id for lot_move_id in order.lot_move_ids ]
@@ -356,7 +356,7 @@ class ProductionRitaseOrder(models.Model):
 		for order in self:
 			if order.is_from_pit() :
 				raise UserError(_('Unable to Done order %s with PIT origin. Please do this action in Production Order') % (order.name))
-			order.check_qty()
+			# order.check_qty()
 
 			picking_ids = order.picking_ids.filtered(lambda x: x.state not in ('done','cancel'))
 			picking_ids.do_new_transfer()
