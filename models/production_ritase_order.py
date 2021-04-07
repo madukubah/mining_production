@@ -280,6 +280,16 @@ class ProductionRitaseOrder(models.Model):
 		for order in self:
 			ProductionPit = self.env['production.pit'].sudo()
 			production_pits = ProductionPit.search([ ( "location_id", "=", order.location_id.id ) ])
+			# if production_pits and ( not order.production_order_id ):
+			if production_pits :
+				return True
+		return False
+
+	@api.multi
+	def is_to_barge( self ):
+		for order in self:
+			ProductionPit = self.env['production.pit'].sudo()
+			production_pits = ProductionPit.search([ ( "location_id", "=", order.location_id.id ) ])
 			if production_pits and ( not order.production_order_id ):
 				return True
 		return False
@@ -355,7 +365,9 @@ class ProductionRitaseOrder(models.Model):
 	def action_done( self ):
 		for order in self:
 			if order.is_from_pit() :
-				raise UserError(_('Unable to Done order %s with PIT origin. Please do this action in Production Order') % (order.name))
+				order.check_qty()
+				if not order.production_order_id :
+					raise UserError(_('Unable to Done order %s with PIT origin. Please do this action in Production Order') % (order.name))
 			# order.check_qty()
 
 			picking_ids = order.picking_ids.filtered(lambda x: x.state not in ('done','cancel'))
