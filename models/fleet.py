@@ -161,6 +161,8 @@ class FleetVehicleCost(models.Model):
                     'name' : record.vehicle_id.name + ' / ' + record.cost_subtype_id.tag_id.name + ' / ' + record.date,
                     'date' : record.date,
                     'tag_id' : record.cost_subtype_id.tag_id.id,
+                    'vehicle_id' : record.vehicle_id.id,
+                    'product_id' : record.product_id.id,
                     'product_uom_qty' : record.product_uom_qty,
                     'price_unit' : record.price_unit,
                     'amount' : record.amount,

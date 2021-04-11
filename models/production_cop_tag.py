@@ -69,13 +69,12 @@ class ProductionCopTagLog(models.Model):
             ondelete="restrict", states=READONLY_STATES )
     date = fields.Date('Date', help='',default=fields.Datetime.now,required=True, states=READONLY_STATES )
     tag_id	= fields.Many2one('production.cop.tag', string='Tag',required=True, states=READONLY_STATES )
-
+    vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', readonly=True )
     product_id = fields.Many2one(
         'product.product', 'Product',
         domain=[('type', 'in', ['product', 'consu'])], 
         ondelete="cascade",
         )
-
     product_uom_qty = fields.Integer( string="Quantity", required=True, default=1)
     price_unit = fields.Float( string="Price Unit", required=True, default=1)
     amount = fields.Float( string='Amount', compute="_compute_amount", required=True,states=READONLY_STATES )
