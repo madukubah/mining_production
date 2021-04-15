@@ -15,7 +15,6 @@ class FleetVehicleModel(models.Model):
         'vehicle_model_id',
         string='Productivity Factors',
         copy=True )
-
     
 
 class FleetServiceType(models.Model):
@@ -51,6 +50,7 @@ class FleetVehicleLogServices(models.Model):
     product_id = fields.Many2one(
         'product.product', 'Product',
         related='cost_id.product_id',
+        store=True,
         ondelete="cascade",
         domain=[('type', 'in', ['product', 'consu'])], )
 
@@ -123,7 +123,7 @@ class FleetVehicleCost(models.Model):
 
     product_uom_qty = fields.Integer( string="Quantity", default=1)
     price_unit = fields.Float( string='Price Unit', default=0 )
-    amount = fields.Float('Total Price', compute="_compute_amount")
+    amount = fields.Float('Total Price', compute="_compute_amount", store = True )
     state = fields.Selection([('draft', 'Unposted'), ('posted', 'Posted')], string='Status',
       required=True, readonly=True, copy=False, default='draft' )
     

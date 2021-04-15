@@ -137,6 +137,13 @@
         <!-- <field name="domain">[('id', 'in', [10, 11, 12] )]</field> -->
     </record>
 
+    <record model="ir.actions.act_window" id="production_vehicle_hourmeter_log_action">
+        <field name="name">Hourmeter Log</field>
+        <field name="res_model">production.vehicle.hourmeter.log</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
     <menuitem id="mining_production_top" name="Production" sequence="2" web_icon="mining_production,static/description/icon.png" />
         
         <menuitem id="production" name="Production" sequence="1" 
@@ -205,6 +212,13 @@
                 parent="mining_hourmeter_menu" 
                 action="production_he_performance_action"
                 sequence= "2"
+                />
+            <menuitem name="Hourmeter Log"
+                id="production_vehicle_hourmeter_log"
+                parent="mining_hourmeter_menu" 
+                action="production_vehicle_hourmeter_log_action"
+                groups="production_group_manager"
+                sequence= "3"
                 />
 
         <menuitem name="Water Truck"

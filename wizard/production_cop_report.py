@@ -108,7 +108,6 @@ class ProductionCopReport(models.TransientModel):
             ]
             tag_log_dict[ tag_name ]["total_amount"] += tag_log.amount
 
-
         final_dict = {}
         final_dict["vehicle_cost"] = stype_vehicle_cost_dict
         final_dict["tag_log"] = tag_log_dict

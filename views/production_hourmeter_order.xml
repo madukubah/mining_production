@@ -10,12 +10,8 @@
             <tree string="Hourmeter List">
                 <field name="name" />
                 <field name="date" />
-                <!-- <field name="shift" /> -->
-                <!-- <field name="location_id" /> -->
                 <field name="employee_id" />
                 <field name="vehicle_id" />
-                <!-- <field name="driver_id" /> -->
-                <!-- <field name="value" /> -->
                 <field name="state" />
             </tree>
         </field>
@@ -72,7 +68,7 @@
                                         <field name="hours" />
                                         <field name="start" />
                                         <field name="end" />
-                                        <field name="value" />
+                                        <field name="value" sum="Total"  />
 									</tree>
                                 </field >
                             </page>
@@ -89,7 +85,7 @@
                                         <field name="hours" />
                                         <field name="start" />
                                         <field name="end" />
-                                        <field name="value" />
+                                        <field name="value" sum="Total"  />
 									</tree>
                                 </field >
                             </page>
@@ -105,7 +101,7 @@
                                         <field name="hours" />
                                         <field name="start" />
                                         <field name="end" />
-                                        <field name="hour" />
+                                        <field name="hour" sum="Total"  />
 									</tree>
                                 </field >
                             </page>
@@ -117,6 +113,29 @@
                     </div>
                 </form>
             </field>
+    </record>
+
+
+    <record id="production_vehicle_hourmeter_log_list" model="ir.ui.view">
+        <field name="name">production.vehicle.hourmeter.log.list</field>
+        <field name="model">production.vehicle.hourmeter.log</field>
+        <field name="type">tree</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="Hourmeter Log List">
+                <field name="shift" />
+                <field name="cost_code_id" />
+                <field name="location_id" />
+                <field name="vehicle_id" />
+                <field name="driver_id" string="Operator" />
+                <field name="start_datetime" />
+                <field name="end_datetime" />
+                <field name="hours" />
+                <field name="start" />
+                <field name="end" />
+                <field name="value" sum="Total" />
+            </tree>
+        </field>
     </record>
 
     <record id="view_production_vehicle_hourmeter_log_form1" model="ir.ui.view">

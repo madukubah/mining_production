@@ -59,7 +59,7 @@ class ProductionRitaseOrder(models.Model):
 	READONLY_STATES = {
         'draft': [('readonly', False)] ,
         'confirm': [('readonly', True)] ,
-        'done': [('readonly', True)] ,
+        'done': [('readonly', False)] ,
         'cancel': [('readonly', True)] ,
     }
 
@@ -585,7 +585,7 @@ class RitaseCounter(models.Model):
 	# logs
 	start_datetime = fields.Datetime('Start Date Time', help='',  default=fields.Datetime.now, store=True )
 	end_datetime = fields.Datetime('End Date Time', help='' , store=True)
-	minutes = fields.Float('Minutes', readonly=True, compute="_compute_minutes" )
+	minutes = fields.Float('Minutes', readonly=True, compute="_compute_minutes", store=True )
 	amount = fields.Float(string='Amount', compute="_compute_amount", store=True )
 	
 	# @api.multi
@@ -636,7 +636,7 @@ class RitaseCounter(models.Model):
 			record.start_datetime = record.date
 			record.end_datetime = record.date
 
-	@api.onchange('start_datetime', 'end_datetime')
+	@api.depends('start_datetime', 'end_datetime')
 	def _compute_minutes(self):
 		for record in self:
 			if record.start_datetime and record.end_datetime :

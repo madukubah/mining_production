@@ -7,6 +7,8 @@ from odoo.exceptions import UserError
 
 class CostCode(models.Model):
     _name = "production.cost.code"
+    # _order = 'code asc'
+    
     
     name = fields.Char(string="Name", size=100 , required=True )
     code = fields.Char(string="Code", size=10 , required=True )
