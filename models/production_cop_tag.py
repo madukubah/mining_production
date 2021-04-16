@@ -3,6 +3,7 @@
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from odoo.addons import decimal_precision as dp
 import time
 import logging
 _logger = logging.getLogger(__name__)
@@ -75,7 +76,7 @@ class ProductionCopTagLog(models.Model):
         domain=[('type', 'in', ['product', 'consu'])], 
         ondelete="cascade",
         )
-    product_uom_qty = fields.Integer( string="Quantity", required=True, default=1)
+    product_uom_qty = fields.Float( string="Quantity", required=True, default=1.0, digits=dp.get_precision('Product Unit of Measure') )
     price_unit = fields.Float( string="Price Unit", required=True, default=1)
     amount = fields.Float( string='Amount', compute="_compute_amount", required=True,states=READONLY_STATES, store=True )
     remarks = fields.Char( string='Remarks', states=READONLY_STATES )

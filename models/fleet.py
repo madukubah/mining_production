@@ -96,8 +96,10 @@ class FleetVehicleLogServices(models.Model):
     
     @api.multi
     def unlink(self):
-
-        return super(FleetVehicleLogServices, self).unlink()
+        cost_id = self.cost_id.id
+        result = super(FleetVehicleLogServices, self).unlink()
+        self.env['fleet.vehicle.cost'].search( [ ( "id", "=", cost_id ) ] ).unlink()
+        return result
 
 class FleetVehicleCost(models.Model):
     _inherit = 'fleet.vehicle.cost'

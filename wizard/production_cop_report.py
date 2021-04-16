@@ -36,9 +36,9 @@ class ProductionCopReport(models.TransientModel):
 
         tag_ids = [ x for x in tag_ids if x not in stag_ids ]
         if self.product_ids.ids :
-            vehicle_costs = self.env['fleet.vehicle.log.services'].search( [ ( "date", ">=", self.start_date ), ( "date", "<=", self.end_date ), ( "cost_subtype_id", "in", service_types.ids ), ( "product_id", "in", self.product_ids.ids )  ], order="date asc" )
+            vehicle_costs = self.env['fleet.vehicle.log.services'].search( [ ( "date", ">=", self.start_date ), ( "date", "<=", self.end_date ), ( "cost_subtype_id", "in", service_types.ids ), ( "state", "=", "posted" ), ( "product_id", "in", self.product_ids.ids )  ], order="date asc" )
         else :
-            vehicle_costs = self.env['fleet.vehicle.log.services'].search( [ ( "date", ">=", self.start_date ), ( "date", "<=", self.end_date ), ( "cost_subtype_id", "in", service_types.ids ) ], order="date asc" )
+            vehicle_costs = self.env['fleet.vehicle.log.services'].search( [ ( "date", ">=", self.start_date ), ( "date", "<=", self.end_date ), ( "cost_subtype_id", "in", service_types.ids ), ( "state", "=", "posted" ) ], order="date asc" )
 
         for vehicle_cost in vehicle_costs:
             stype = vehicle_cost.cost_subtype_id.name
@@ -80,7 +80,6 @@ class ProductionCopReport(models.TransientModel):
                 }
 
             stype_vehicle_cost_dict[ stype ]["total_amount"] += vehicle_cost.amount
-            
 
         cop_tags = self.env['production.cop.tag'].search([ ( 'id', 'in', tag_ids ) ])
         tag_log_dict = {}
@@ -91,9 +90,9 @@ class ProductionCopReport(models.TransientModel):
             }
         
         if self.product_ids.ids :
-            tag_logs = self.env['production.cop.tag.log'].search( [ ( "date", ">=", self.start_date ), ( "date", "<=", self.end_date ), ( "tag_id", "in", tag_ids ), ( "product_id", "in", self.product_ids.ids )  ], order="date asc" )
+            tag_logs = self.env['production.cop.tag.log'].search( [ ( "date", ">=", self.start_date ), ( "date", "<=", self.end_date ), ( "tag_id", "in", tag_ids ), ( "state", "=", "posted" ), ( "product_id", "in", self.product_ids.ids )  ], order="date asc" )
         else:
-            tag_logs = self.env['production.cop.tag.log'].search( [ ( "date", ">=", self.start_date ), ( "date", "<=", self.end_date ), ( "tag_id", "in", tag_ids )  ], order="date asc" )
+            tag_logs = self.env['production.cop.tag.log'].search( [ ( "date", ">=", self.start_date ), ( "date", "<=", self.end_date ), ( "tag_id", "in", tag_ids ), ( "state", "=", "posted" )  ], order="date asc" )
 
         for tag_log in tag_logs:
             tag_name = tag_log.tag_id.name
