@@ -29,6 +29,7 @@ class ProductionConfig( models.Model ):
     enable_default_lot = fields.Boolean(
         'Enable Default Lot', default=True )
     main_product_id = fields.Many2one('product.product', string='Main Materials', related="lot_id.product_id" )
+    waste_product_ids = fields.Many2many('product.product', 'production_config_waste_product_rel', 'config_id', 'product_id', string='Waste Materials' )
     product_ids = fields.Many2many('product.product', 'production_config_product_rel', 'config_id', 'product_id', string='Materials' )
     other_product_ids = fields.Many2many('product.product', 'production_config_other_product_rel', 'config_id', 'product_id', string='Other Materials' )
     # accounting

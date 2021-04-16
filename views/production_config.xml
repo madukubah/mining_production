@@ -22,9 +22,10 @@
                         <field name="journal_type" invisible="1" />
                         <field name="lot_id" />
                         <field name="main_product_id" />
-                        <field name="enable_default_lot" />
+                        <field name="waste_product_ids" widget="many2many_tags" />
                         <field name="product_ids" widget="many2many_tags" />
                         <field name="other_product_ids" widget="many2many_tags" />
+                        <field name="enable_default_lot" />
                     </group>
                     <group name="accounting" string="Accounting" >
                         <field name="cop_journal_id" string="COP Journal" />
