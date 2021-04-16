@@ -256,7 +256,6 @@ class ProductionVehicleHourmeterLog(models.Model):
         for record in self:
             if record.state != 'posted' and record.cop_adjust_id :
                 self.env['production.cop.tag.log'].sudo().create({
-                        # 'cop_adjust_id' : record.cop_adjust_id.id,
                         'name' :   'HM / ' + record.date,
                         'date' : record.date,
                         'location_id' : record.location_id.id,
@@ -264,6 +263,7 @@ class ProductionVehicleHourmeterLog(models.Model):
                         'product_uom_qty' : record.value,
                         'price_unit' : record.production_config_id.hm_price_unit, # TODO : change it programable
                         'amount' : record.amount,
+                        'remarks' : record.driver_id.name + " [" + record.vehicle_id.name + "]",
                         'state' : 'posted',
                         'from_cop_adjust' : True,
                     })
