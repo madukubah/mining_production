@@ -41,7 +41,8 @@ class FleetServiceType(models.Model):
                 record.inventory_account_id = category.property_stock_valuation_account_id
         
 class FleetVehicleLogServices(models.Model):
-    _inherit = 'fleet.vehicle.log.services'
+    _name = 'fleet.vehicle.log.services'
+    _inherit = [ 'fleet.vehicle.log.services', 'mail.thread', 'ir.needaction_mixin' ]
     _order = 'date desc'
 
     cop_adjust_id	= fields.Many2one('production.cop.adjust', string='COP Adjust', copy=False)
