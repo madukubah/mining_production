@@ -78,7 +78,7 @@ class ProductionCopTagLog(models.Model):
         )
     product_uom_qty = fields.Float( string="Quantity", required=True, default=1.0, digits=dp.get_precision('Product Unit of Measure') )
     price_unit = fields.Float( string="Price Unit", required=True, default=1)
-    amount = fields.Float( string='Amount', compute="_compute_amount", required=True,states=READONLY_STATES, store=True )
+    amount = fields.Float( string='Amount', compute="_compute_amount", default=0, states=READONLY_STATES, store=True )
     remarks = fields.Char( string='Remarks', states=READONLY_STATES )
 
     from_cop_adjust	=  fields.Boolean(string="Is From COP Adjust" ,default=False )
