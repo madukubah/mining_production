@@ -121,9 +121,8 @@ class ProductionCopAdjust(models.Model):
         if ( self.state in ('confirm', 'done' ) ) :
             return True
         VehicleCost = self.env['fleet.vehicle.cost'].sudo()
-        vehicle_costs = VehicleCost.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
-        # vehicle_costs = VehicleCost.search( [ ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
-        # vehicle_costs_ids = [ vehicle_cost.id for vehicle_cost in vehicle_costs if vehicle_cost.cost_subtype_id.is_consumable ]
+        # vehicle_costs = VehicleCost.search( [ ( "date", ">=", self.date ), ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
+        vehicle_costs = VehicleCost.search( [ ( "date", "<=", self.end_date ), ( "state", "=", "draft" ) ] )
         #Refresh Price
         vehicle_costs._onchange_product()
         vehicle_costs._compute_amount()
