@@ -54,6 +54,24 @@ class FleetVehicleLogServices(models.Model):
         store=True,
         ondelete="cascade",
         domain=[('type', 'in', ['product', 'consu'])], )
+    is_available = fields.Boolean( string="Is Available", readonly=True, default=True, compute="_set_is_available" )
+
+    @api.depends("product_id", "product_uom_qty", "date", "state" )
+    def _set_is_available(self):
+        for record in self:
+            if( record.state == 'posted' ):
+                record.is_available = True
+            else :
+                qty_available = record.product_id.with_context({'to_date': record.date }).qty_available
+                services = self.env['fleet.vehicle.log.services'].search( [ ( "date", "<=", self.date ), ( "state", "=", "draft" ), ( "product_id", "=", record.product_id.id ) ] )
+                _sum = sum( [ x.product_uom_qty  for x in services ] )
+                _sum += record.product_uom_qty
+                _logger.warning( _sum )
+                _logger.warning( qty_available )
+                if _sum > qty_available : 
+                    record.is_available = False
+                else:
+                    record.is_available = True
 
     @api.onchange('cost_subtype_id')	
     def _domain_product(self):

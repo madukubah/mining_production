@@ -247,8 +247,9 @@
         
         <menuitem id="production_stock" name="Stock" sequence="6" 
                 parent="mining_production_top"
+                groups="production_group_user"
                 />
-                <menuitem name="Location"
+                <menuitem name="Stockyard"
                     id="production_location"
                     parent="production_stock"
                     action="action_production_location"

@@ -580,7 +580,9 @@ class RitaseCounter(models.Model):
 	product_uom_qty = fields.Float('QTY', 
 		default=0, 
 		digits=dp.get_precision('Product Unit of Measure'),
-		compute="_compute_qty" )
+		compute="_compute_qty",
+		store=True
+		 )
 
 	# logs
 	start_datetime = fields.Datetime('Start Date Time', help='',  default=fields.Datetime.now, store=True )
@@ -749,7 +751,9 @@ class RitaseLotMove(models.Model):
 	product_uom_qty = fields.Float('QTY', 
 		default=0, 
 		digits=dp.get_precision('Product Unit of Measure'),
-		compute="_compute_qty" )
+		compute="_compute_qty",
+		store=True
+		 )
 
 	state = fields.Selection( [
         ('draft', 'Draft'), 

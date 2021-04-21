@@ -69,6 +69,9 @@
                 <xpath expr="//sheet" position="before">
                     <header>
                         <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                        <span class="label label-danger" 
+                            attrs="{'invisible': [ ('is_available', '=', True) ] }"
+                            >Product Not Available with this Quantity</span>
                     </header>
                 </xpath>
                 <xpath expr="//sheet" position="after">
@@ -78,6 +81,7 @@
                     </div>
                 </xpath>
                 <field name="cost_subtype_id" position="after">
+                    <field name="is_available" invisible="1" />
                     <field name="product_id" />
                     <field name="product_uom_qty" />
                     <field name="price_unit" />
