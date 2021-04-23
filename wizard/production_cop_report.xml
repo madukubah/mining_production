@@ -41,9 +41,10 @@
         </record>
 
         <menuitem id="menu_production_cop_report_wizard"
-                  name="COP Report"
-                  action="action_production_cop_report_wizard"
-                  parent="mining_production_report"
-                  sequence="1"/>
+                    name="COP Report"
+                    action="action_production_cop_report_wizard"
+                    parent="mining_production_report"
+                    groups="production_group_user"
+                    sequence="1"/>
     </data>
 </odoo>

@@ -38,6 +38,7 @@
                   name="Ritase Report"
                   action="action_production_ritase_report_wizard"
                   parent="mining_production_report"
+                groups="production_group_user"
                   sequence="2"/>
     </data>
 </odoo>

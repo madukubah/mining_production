@@ -44,6 +44,7 @@
                   name="HE Report"
                   action="action_production_he_hourmeter_report_wizard"
                   parent="report_production_heading"
+                groups="production_group_user"
                   sequence="2"/>
     </data>
 </odoo>

@@ -38,6 +38,7 @@
                   name="Water Truck Report"
                   action="action_production_watertruck_report_wizard"
                   parent="mining_production_report"
+                groups="production_group_user"
                   sequence="2"/>
     </data>
 </odoo>

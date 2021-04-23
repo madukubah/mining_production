@@ -44,6 +44,7 @@
                   name="DT Timesheet Report"
                   action="action_production_dt_timesheet_report_wizard"
                   parent="report_production_heading"
+                groups="production_group_user"
                   sequence="3"/>
     </data>
 </odoo>

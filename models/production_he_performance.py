@@ -36,7 +36,7 @@ class ProductionHEPerformance(models.Model):
 	effective_utilization = fields.Float('Effective Utilization (%)', readonly=True, default=0, compute="_compute_performance" )
 
 	state = fields.Selection([
-        ('draft', 'Draft'), 
+        ('draft', 'Draft'),
         ('cancel', 'Cancelled'),
         ('confirm', 'Confirmed'),
         ('done', 'Done'),

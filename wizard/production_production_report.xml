@@ -43,6 +43,7 @@
                   name="Production Report"
                   action="action_production_production_report_wizard"
                   parent="report_production_heading"
+                groups="production_group_user"
                   sequence="3"/>
     </data>
 </odoo>
