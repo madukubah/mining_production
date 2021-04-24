@@ -59,7 +59,7 @@ class FleetVehicleLogServices(models.Model):
     @api.depends("product_id", "product_uom_qty", "date", "state" )
     def _set_is_available(self):
         for record in self:
-            if( record.state == 'posted' ):
+            if( record.state == 'posted' or not record.product_id ):
                 record.is_available = True
             else :
                 qty_available = record.product_id.with_context({'to_date': record.date }).qty_available
@@ -187,6 +187,7 @@ class FleetVehicleCost(models.Model):
                     'product_uom_qty' : record.product_uom_qty,
                     'price_unit' : record.price_unit,
                     'amount' : record.amount,
+                    'remarks' : record.vehicle_id.name,
                     'state' : 'posted',
                     'from_cop_adjust' : True,
                 })

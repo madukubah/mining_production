@@ -316,6 +316,7 @@
                 />
 
         <menuitem id="mining_production_seed" name="Seed" sequence="100" 
-                parent="mining_production_top" groups="production_group_manager"/>
+                parent="mining_production_top" 
+                />
             
 </odoo>
