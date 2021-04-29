@@ -117,7 +117,7 @@ class ProductionRitaseOrder(models.Model):
 	pile_vehicle_ids = fields.Many2many('fleet.vehicle', 'ritase_order_pile_vehicle_rel', 'ritase_order_id', 'vehicle_id', 'Pile Unit', copy=False, states=READONLY_STATES)
 	bucket = fields.Integer( string="Buckets", default=0, digits=0, states=READONLY_STATES)
 	# factor
-	factor_productivity_id = fields.Many2one('production.fleet.factor.productivity', string='Productivity Factor', copy=False, readonly=True, states=READONLY_STATES)
+	factor_productivity_id = fields.Many2one('production.fleet.factor.productivity', string='Productivity Factor', copy=True, readonly=True, states=READONLY_STATES)
 	fleet_model_capacity = fields.Float('Capacity', required=True, default=0, compute='_compute_factors', readonly=True, store=True )
 	fleet_model_swell_factor = fields.Float('Swell Factor', required=True, default=0, compute='_compute_factors', readonly=True, store=True )
 	fleet_model_fill_factor = fields.Float('Fill Factor', required=True, default=0, compute='_compute_factors', readonly=True,  store=True )
