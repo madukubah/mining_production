@@ -2,38 +2,62 @@
 <odoo>
     <template id="production_production_temp">
         <t t-call="report.external_layout">
-            <div class="page" style="font-size: 8px !important;" >
+            <div class="page" style="font-size: 8px !important; font-family: Rubik;" >
                 <div class="oe_structure">
-                    <!-- <t t-foreach="data.keys()" t-as="vehicle_name" > -->
-                        <div style="page-break-before: always;" >
+                        <div>
                             <style>
                                 table, th, td {
-                                    border: 1px solid black;
+                                    border: 1px solid #ddd;
+                                    border-collapse: collapse;
                                 }
                                 th {
                                     background-color: #f2f2f2;
                                     font-size: 10px !important;
+                                    
+                                }
+                                td {
+                                    font-size: 8px !important;
+                                    
                                 }
                             </style>
+                            <div class="row">
+                                <center>
+                                    <b>
+                                        <h4>PRODUCTION REPORT</h4>
+                                        PERIODE
+                                    </b>
+                                </center>
+                                <center>
+                                    <b>
+                                        <span t-esc="datetime.datetime.strptime(start_date, '%Y-%m-%d').strftime('%d/%m/%Y')"/>
+                                        To
+                                        <span t-esc="datetime.datetime.strptime(end_date, '%Y-%m-%d').strftime('%d/%m/%Y')"/>
+                                    </b>
+                                </center>
+                            </div>
+                            <br/>
+                            <u><b>SUMMARY BY PIT</b></u>
+                            <br/>
+                            <br/>
                             <table style="text-align: center; width: 100%; " >
                                 <tbody>
                                     <tr>
-                                        <th rowspan="3" class="text-center">Date</th>
-                                        <th colspan="6" class="text-center" t-foreach="pit_product_dict.keys()" t-as="pit_name">
-                                            <span t-esc="pit_name"/>
-                                        </th>
-                                        <t t-foreach="product_uom_dict.keys()" t-as="product_name">
-                                            <th rowspan="2" colspan="2" class="text-center" >
-                                                Total <span t-esc="product_name"/>
+                                        <th rowspan="3" class="text-center" style="vertical-align:middle;">DATE</th>
+                                        <t t-if="len_product_uom_dict == 8">
+                                            <th colspan="8" class="text-center" t-foreach="pit_product_dict.keys()" t-as="pit_name">       
+                                                <span t-esc="pit_name"/>
+                                            </th>                                 
+                                        </t>
+                                        <t t-else="">
+                                            <th colspan="6" class="text-center" style="width:auto;" t-foreach="pit_product_dict.keys()" t-as="pit_name">                                        
+                                                <span t-esc="pit_name"/>
                                             </th>
                                         </t>
-                                        <th rowspan="3" class="text-center">SR</th>
-                                        <th rowspan="2" colspan="2" class="text-center">Losstime</th>
                                     </tr>
                                     <tr>
                                         <t t-foreach="pit_product_dict.keys()" t-as="pit_name" >
                                             <t t-foreach="pit_product_dict[pit_name]['products'].keys()" t-as="product_name">
-                                                <th colspan="2" class="text-center" >
+                                                <th colspan="2" class="text-center" style="vertical-align:middle; text-transform: uppercase;">
                                                     <span t-esc="product_name"/>
                                                 </th>
                                             </t>
@@ -42,38 +66,99 @@
                                     <tr>
                                         <t t-foreach="pit_product_dict.keys()" t-as="pit_name" >
                                             <t t-foreach="pit_product_dict[pit_name]['products'].keys()" t-as="product_name">
-                                                <th class="text-center" t-foreach="pit_product_dict[pit_name]['products'][product_name].keys()" t-as="product_uom">
+                                                <th class="text-center" style="vertical-align:middle; text-transform: uppercase;" t-foreach="pit_product_dict[pit_name]['products'][product_name].keys()" t-as="product_uom">
                                                     <span t-esc="product_uom"/>
                                                 </th>
                                             </t>
                                         </t>
-                                        <t t-foreach="product_uom_dict.keys()" t-as="product_name">
-                                            <th class="text-center" t-foreach="product_uom_dict[product_name].keys()" t-as="product_uom">
-                                                <span t-esc="product_uom"/>
-                                            </th>
-                                        </t>
-                                        <th class="text-center" >
-                                            <span t-esc="'Rainy'"/>
-                                        </th>
-                                        <th class="text-center" >
-                                            <span t-esc="'Slippery'"/>
-                                        </th>
                                     </tr>
 
                                     <tr t-foreach="dates" t-as="date" >
                                         <td class="text-center">
-                                            <span t-esc="date"/>
+                                            <span t-esc="datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%d/%m/%Y')"/>
                                         </td>
                                         <t t-foreach="pit_product_dict.keys()" t-as="pit_name" >
                                             <t t-foreach="pit_product_dict[pit_name]['products'].keys()" t-as="product_name">
-                                                <td class="text-center" t-foreach="pit_product_dict[pit_name]['products'][product_name].keys()" t-as="product_uom">
-                                                    <span t-esc="data[date][pit_name][product_name][product_uom]"/>
+                                                <td class="text-right" style="padding-right: 3px; vertical-align:middle;" t-foreach="pit_product_dict[pit_name]['products'][product_name].keys()" t-as="product_uom">
+                                                    <span t-esc="'{0:,.2f}'.format(data[date][pit_name][product_name][product_uom])"/>
                                                 </td>
                                             </t>
                                         </t>
+                                    </tr>
+                                    <tr style="font-weight: bold; background-color: #f2f2f2;" >
+                                        <td>TOTAL BY PIT</td>
+                                        <t t-foreach="pit_product_dict.keys()" t-as="pit_name" >
+                                            <t t-foreach="pit_product_dict[pit_name]['products'].keys()" t-as="product_name">
+                                                <td class="text-right" style="padding-right: 3px; vertical-align:middle;" t-foreach="pit_product_dict[pit_name]['products'][product_name].keys()" t-as="product_uom">
+                                                    <span t-esc="'{0:,.2f}'.format(pit_product_dict[pit_name]['products'][product_name][product_uom])"/>
+                                                </td>
+                                            </t>
+                                        </t>
+                                    </tr>
+                                    <tr style="font-weight: bold; background-color: #f2f2f2;">
+                                        <td>SR BY PIT</td>
+                                        <t t-if="len_product_uom_dict == 8">
+                                            <td colspan="8" class="text-center" t-foreach="pit_product_dict.keys()" t-as="pit_name">       
+                                                <span t-esc="pit_product_dict[pit_name]['stripping_ratio']"/>
+                                            </td>                                 
+                                        </t>
+                                        <t t-else="">
+                                            <td colspan="6" class="text-center" style="width:auto;" t-foreach="pit_product_dict.keys()" t-as="pit_name">                                        
+                                                <span t-esc="pit_product_dict[pit_name]['stripping_ratio']"/>
+                                            </td>
+                                        </t>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <br/>
+                            <br/>
+                            <u><b>SUMMARY ALL PIT</b></u>
+                            <br/>
+                            <br/>
+                            <table style="text-align: center; width: 65%; ">
+                                <tbody>
+                                    <tr>
+                                        <th rowspan="3" class="text-center" style="vertical-align:middle;">DATE</th>
+                                        <t t-if="len_product_uom_dict == 8">
+                                            <th colspan="8" class="text-center" style="vertical-align:middle;">
+                                                TOTAL ALL PIT
+                                            </th>                                 
+                                        </t>
+                                        <t t-else="">
+                                            <th colspan="6" class="text-center" sstyle="vertical-align:middle;">
+                                                TOTAL ALL PIT
+                                            </th> 
+                                        </t>
+                                        <th rowspan="3" class="text-center" style="vertical-align:middle;">SR</th>
+                                        <th rowspan="2" colspan="2" class="text-center" style="vertical-align:middle;">LOSSTIME<br/>(HOURS)</th>
+                                    </tr>
+                                    <tr>
                                         <t t-foreach="product_uom_dict.keys()" t-as="product_name">
-                                            <td class="text-center" t-foreach="product_uom_dict[product_name].keys()" t-as="product_uom">
-                                                <b><span t-esc="data[date][product_name][product_uom]"/></b>
+                                            <th colspan="2" class="text-center" style="vertical-align:middle;">
+                                                <span t-esc="product_name"/>
+                                            </th>
+                                        </t>
+                                    </tr>
+                                    <tr>
+                                        <t t-foreach="product_uom_dict.keys()" t-as="product_name">
+                                            <th class="text-center" style="vertical-align:middle; text-transform: uppercase;"  t-foreach="product_uom_dict[product_name].keys()" t-as="product_uom">
+                                                <span t-esc="product_uom"/>
+                                            </th>
+                                        </t>
+                                        <th class="text-center" >
+                                            <span t-esc="'RAINY'"/>
+                                        </th>
+                                        <th class="text-center" >
+                                            <span t-esc="'SLIPPERY'"/>
+                                        </th>
+                                    </tr>
+                                    <tr t-foreach="dates" t-as="date" >
+                                        <td class="text-center">
+                                            <span t-esc="datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%d/%m/%Y')"/>
+                                        </td>
+                                        <t t-foreach="product_uom_dict.keys()" t-as="product_name">
+                                            <td class="text-right" style="padding-right: 3px; vertical-align:middle;" t-foreach="product_uom_dict[product_name].keys()" t-as="product_uom">
+                                                <span t-esc="'{0:,.2f}'.format(data[date][product_name][product_uom])"/>
                                             </td>
                                         </t>
                                         <td class="text-center">
@@ -86,18 +171,11 @@
                                             <span t-esc="data[date]['losstime']['slippery']"/>
                                         </td>
                                     </tr>
-                                    <tr style="font-weight: bold;background-color: yellow;" >
-                                        <td></td>
-                                        <t t-foreach="pit_product_dict.keys()" t-as="pit_name" >
-                                            <t t-foreach="pit_product_dict[pit_name]['products'].keys()" t-as="product_name">
-                                                <td class="text-center" t-foreach="pit_product_dict[pit_name]['products'][product_name].keys()" t-as="product_uom">
-                                                    <span t-esc="pit_product_dict[pit_name]['products'][product_name][product_uom]"/>
-                                                </td>
-                                            </t>
-                                        </t>
+                                    <tr style="font-weight: bold; background-color: #f2f2f2;" >
+                                        <td>TOTAL</td>
                                         <t t-foreach="product_uom_dict.keys()" t-as="product_name">
-                                            <td class="text-center" t-foreach="product_uom_dict[product_name].keys()" t-as="product_uom">
-                                                <span t-esc="product_uom_dict[product_name][product_uom]"/>
+                                            <td class="text-right" style="padding-right: 3px; vertical-align:middle;" t-foreach="product_uom_dict[product_name].keys()" t-as="product_uom">
+                                                <span t-esc="'{0:,.2f}'.format(product_uom_dict[product_name][product_uom])"/>
                                             </td>
                                         </t>
                                         <td class="text-center">
@@ -112,46 +190,7 @@
                                     </tr>
                                 </tbody>
                             </table>
-                            <br/>
-                            <table width="20%">
-                                <tbody>
-                                    <tr>
-                                        <th class="text-center" >PIT</th>
-                                        <t t-foreach="product_uom_dict.keys()" t-as="product_name">
-                                            <th class="text-center" >
-                                                <span t-esc="product_name"/>
-                                            </th>
-                                        </t>
-                                        <th class="text-center" >SR</th>
-                                    </tr>
-                                    <tr t-foreach="pit_product_dict.keys()" t-as="pit_name" >
-                                        <td class="text-center">
-                                            <span t-esc="pit_name"/>
-                                        </td>
-                                        <t t-foreach="product_uom_dict.keys()" t-as="product_name">
-                                            <td class="text-center" >
-                                                <span t-esc="pit_product_dict[pit_name]['products'][product_name]['wmt']"/>
-                                            </td>
-                                        </t>
-                                        <td class="text-center" >
-                                            <span t-esc="pit_product_dict[pit_name]['stripping_ratio']"/>
-                                        </td>
-                                    </tr>
-                                    <tr style="font-weight: bold;background-color: yellow;" >
-                                        <td></td>
-                                        <t t-foreach="product_uom_dict.keys()" t-as="product_name">
-                                            <td class="text-center" >
-                                                <span t-esc="product_uom_dict[product_name]['wmt']"/>
-                                            </td>
-                                        </t>
-                                        <td class="text-center">
-                                            <span t-esc="data['stripping_ratio']"/>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
-                    <!-- </t> -->
                 </div>
             </div>
         </t>

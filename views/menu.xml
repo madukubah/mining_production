@@ -318,5 +318,53 @@
         <menuitem id="mining_production_seed" name="Seed" sequence="100" 
                 parent="mining_production_top" 
                 />
+
+        <!-- new menu in hr -->
+        <menuitem
+            id="menu_ritase_in_hr"
+            name="Ritase"
+            parent="hr.menu_hr_root"
+            groups="hr.group_hr_user,base.group_user"
+            sequence="97"/>
+            
+            <menuitem name="Ritase"
+                id="mining_ritase_in_hr"
+                parent="menu_ritase_in_hr" 
+                action="action_ritase_order"
+                groups="hr.group_hr_user,base.group_user"
+                sequence= "1"
+                />
+
+            <menuitem name="Water Truck"
+                id="mining_watertruck_in_hr"
+                parent="menu_ritase_in_hr" 
+                action="action_watertruck_order"
+                groups="hr.group_hr_user,base.group_user"
+                sequence= "4"
+                />
+            <menuitem name="Report"
+                id="report_ritase_in_hr"
+                sequence="5" 
+                parent="menu_ritase_in_hr"
+                />
+                <menuitem id="menu_production_ritase_report_wizard_in_hr"
+                    name="Ritase Report"
+                    action="action_production_ritase_report_wizard"
+                    parent="report_ritase_in_hr"
+                    groups="hr.group_hr_user,base.group_user"
+                    sequence="2"/>
+                <menuitem id="menu_production_hourmeter_report_wizard_in_hr"
+                    name="Hourmeter Report"
+                    action="action_production_hourmeter_report_wizard"
+                    parent="report_ritase_in_hr"
+                    groups="hr.group_hr_user,base.group_user"
+                    sequence="2"/>
+                <menuitem id="menu_production_watertruck_report_wizard_in_hr"
+                    name="Water Truck Report"
+                    action="action_production_watertruck_report_wizard"
+                    parent="report_ritase_in_hr"
+                    groups="hr.group_hr_user,base.group_user"
+                    sequence="2"/>
+
             
 </odoo>

@@ -25,5 +25,6 @@ from . import production_hourmeter_temp
 from . import production_watertruck_temp
 
 from . import production_he_hourmeter_temp
+from . import production_keep_safe_temp
 from . import production_dt_timesheet_temp
 from . import production_production_temp

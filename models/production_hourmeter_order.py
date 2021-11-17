@@ -270,3 +270,14 @@ class ProductionVehicleHourmeterLog(models.Model):
                 record.write({'state' : 'posted' })
             else :
                 raise UserError(_('Hourmeter Error') )
+
+    @api.multi
+    def write(self, vals):
+        res = super(ProductionVehicleHourmeterLog, self).write(vals)
+        if 'start_datetime' in vals or 'end_datetime' in vals:
+            start = datetime.datetime.strptime(self.start_datetime, '%Y-%m-%d %H:%M:%S')
+            ends = datetime.datetime.strptime(self.end_datetime, '%Y-%m-%d %H:%M:%S')
+            diff = relativedelta(ends, start)
+            self.write({
+                'hours': float(diff.hours)+(float(diff.minutes)/100)
+            })

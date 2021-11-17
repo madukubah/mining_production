@@ -8,8 +8,8 @@ import datetime
 from dateutil.relativedelta import relativedelta
 _logger = logging.getLogger(__name__)
 
-class ProductionHEHourmeterReport(models.TransientModel):
-    _name = 'production.he.hourmeter.report'
+class ProductionKeepSafeReport(models.TransientModel):
+    _name = 'production.keep.safe.report'
 
     @api.model
     def _default_config(self):
@@ -34,7 +34,7 @@ class ProductionHEHourmeterReport(models.TransientModel):
     tag_id = fields.Many2one('fleet.vehicle.tag', string='Tag', default=_default_tag )
     vehicle_state_id = fields.Many2one('fleet.vehicle.state', string='Vehicle State' )
     is_all = fields.Boolean(string="All Vehicle", Default=False )
-    vehicle_ids = fields.Many2many('fleet.vehicle', 'he_hourmeter_report_vehicle_rel', 'report_id', 'vehicle_id', string='Vehicles' )
+    vehicle_ids = fields.Many2many('fleet.vehicle', 'keep_safe_report_vehicle_rel', 'report_id', 'vehicle_id', string='Vehicles' )
 
     @api.onchange('is_all')
     def action_reload(self):
@@ -75,6 +75,7 @@ class ProductionHEHourmeterReport(models.TransientModel):
                     "no_operator" : 0,
                     "total_standby" : 0,
                     "remark_losstime" : "",
+                    "shift_1_remarks" : "-",
                     "shift_2_start" : 0,
                     "shift_2_end" : 0,
                     "shift_2_value" : 0,
@@ -137,27 +138,10 @@ class ProductionHEHourmeterReport(models.TransientModel):
             if vehicle_date_dict.get( vehicle_name , False):
                 date = vehicle_losstime.date
                 if vehicle_date_dict[ vehicle_name ].get( date , False):
-                    if vehicle_losstime.losstime_type == "breakdown" :
-                        vehicle_date_dict[ vehicle_name ][ date ][ "breakdown" ] += vehicle_losstime.hours
-                    if vehicle_losstime.losstime_type == "slippery" :
-                        vehicle_date_dict[ vehicle_name ][ date ][ "slippery" ] += vehicle_losstime.hours
-                    if vehicle_losstime.losstime_type == "rainy" :
-                        vehicle_date_dict[ vehicle_name ][ date ][ "rainy" ] += vehicle_losstime.hours
-                    if vehicle_losstime.losstime_type == "no_operator" :
-                        vehicle_date_dict[ vehicle_name ][ date ][ "no_operator" ] += vehicle_losstime.hours
-                    if vehicle_losstime.losstime_type == "no_instruction" :
-                        vehicle_date_dict[ vehicle_name ][ date ][ "no_instruction" ] += vehicle_losstime.hours
                     vehicle_date_dict[ vehicle_name ][ date ][ "total_standby" ] += vehicle_losstime.hours
                     if vehicle_losstime.remarks is not False:
                         vehicle_date_dict[ vehicle_name ][ date ][ "remark_losstime" ] += str( vehicle_losstime.remarks ) + ", "
-        # fuels
-        # vehicle_log_fuels = self.env['fleet.vehicle.log.fuel'].sudo().search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'vehicle_id', 'in', self.vehicle_ids.ids ) ], order="vehicle_id asc, date asc")
-        # for vehicle_log_fuel in vehicle_log_fuels: 
-        #     vehicle_name = vehicle_log_fuel.vehicle_id.name
-        #     if vehicle_date_dict.get( vehicle_name , False):
-        #         date = vehicle_log_fuel.date
-        #         if vehicle_date_dict[ vehicle_name ].get( date , False):
-        #             vehicle_date_dict[ vehicle_name ][ date ][ "fuel_consumption" ] += vehicle_log_fuel.liter
+        
         _fuel_product_ids = set( [ x.product_id.id for x in self.production_config_id.refuel_service_type_ids  ] ) 
         _fuel_product_ids = list(_fuel_product_ids) 
         vehicle_costs = self.env['fleet.vehicle.cost'].sudo().search([ ( 'date', '>=', self.start_date ), ( 'date', '<=', self.end_date ), ( 'vehicle_id', 'in', self.vehicle_ids.ids ), ( 'product_id', 'in', _fuel_product_ids ) ], order="vehicle_id asc, date asc")
@@ -165,6 +149,7 @@ class ProductionHEHourmeterReport(models.TransientModel):
             vehicle_name = vehicle_cost.vehicle_id.name
             if vehicle_date_dict.get( vehicle_name , False):
                 date = vehicle_cost.date
+                _logger.warning( vehicle_date_dict[ vehicle_name ][ date ][ 'total_standby' ] )
                 if vehicle_date_dict[ vehicle_name ].get( date , False):
                     vehicle_date_dict[ vehicle_name ][ date ][ "fuel_consumption" ] += vehicle_cost.product_uom_qty
 
@@ -204,11 +189,11 @@ class ProductionHEHourmeterReport(models.TransientModel):
 
         datas = {
             'ids': self.ids,
-            'model': 'production.he.hourmeter.report',
+            'model': 'production.keep.safe.report',
             'form': vehicle_date_dict,
             'start_date': self.start_date,
             'end_date': self.end_date,
             'dates': dates,
         }
         # _logger.warning( vehicle_date_dict )
-        return self.env['report'].with_context( landscape=True ).get_action(self,'mining_production.production_he_hourmeter_temp', data=datas)
+        return self.env['report'].with_context( landscape=True ).get_action(self,'mining_production.production_keep_safe_temp', data=datas)

@@ -24,8 +24,8 @@ from odoo import api, fields, models
 
 _logger = logging.getLogger(__name__)
 
-class ReportProductionProductionTemp(models.AbstractModel):
-    _name = 'report.mining_production.production_production_temp'
+class ReportProductionKeepSafeTemp(models.AbstractModel):
+    _name = 'report.mining_production.production_keep_safe_temp'
 
     @api.model
     def render_html(self, docids, data=None):
@@ -33,15 +33,10 @@ class ReportProductionProductionTemp(models.AbstractModel):
             'doc_ids': data.get('ids'),
             'doc_model': data.get('model'),
             'data': data['form'],
-            'pit_product_dict': data['pit_product_dict'],
-            'product_uom_dict': data['product_uom_dict'],
-            'len_product_uom_dict': data['len_product_uom_dict'],
             'start_date': data['start_date'],
             'end_date': data['end_date'],
             'dates': data['dates'],
         }
         # print "===================docargs",docargs
-        # _logger.warning( "docargs" )
         # _logger.warning( docargs )
-        
-        return self.env['report'].render('mining_production.production_production_temp', docargs)
+        return self.env['report'].render('mining_production.production_keep_safe_temp', docargs)

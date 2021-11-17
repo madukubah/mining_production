@@ -65,7 +65,7 @@
                                         <field name="driver_id" string="Operator" />
                                         <field name="start_datetime" />
                                         <field name="end_datetime" />
-                                        <field name="hours" />
+                                        <field name="hours" sum="Total"/>
                                         <field name="start" />
                                         <field name="end" />
                                         <field name="value" sum="Total"  />

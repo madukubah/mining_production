@@ -203,6 +203,7 @@ class ProductionProductionReport(models.TransientModel):
             'dates': dates,
             'pit_product_dict': pit_product_dict,
             "product_uom_dict" : product_uom_dict,
+            'len_product_uom_dict': len(product_uom_dict)*2,
         }
-        # _logger.warning( datas )
+        _logger.warning( datas['len_product_uom_dict'] )
         return self.env['report'].with_context( landscape=True ).get_action(self,'mining_production.production_production_temp', data=datas)

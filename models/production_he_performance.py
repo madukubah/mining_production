@@ -100,7 +100,7 @@ class ProductionHEPerformance(models.Model):
 			record.update({
 				'vehicle_losstime_ids': [( 6, 0, losstimes.ids )],
 			})
-			record.breakdown = sum( [ x.hour for x in losstimes if(x.losstime_type == "breakdown") ] )
-			record.standby = sum( [ x.hour for x in losstimes if(x.losstime_type != "breakdown") ] )
+			record.breakdown = sum( [ x.hours for x in losstimes if(x.losstime_type == "breakdown") ] )
+			record.standby = sum( [ x.hours for x in losstimes if(x.losstime_type != "breakdown") ] )
 
 

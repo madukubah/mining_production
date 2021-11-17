@@ -79,6 +79,7 @@ class ProductionWatertruckCounter(models.Model):
     WATERTRUCK_PRICE = {
         '6000': 7000 ,
         '8000': 10000 ,
+	'10000': 12000,
         '16000': 21000 ,
     }
 
@@ -104,6 +105,7 @@ class ProductionWatertruckCounter(models.Model):
     capacity = fields.Selection([
         ( "6000" , '6000 L'),
         ( "8000" , '8000 L'),
+        ( "10000" , '10000 L'),
         ( "16000" , '16000 L'),
         ], string='Capacity', index=True, required=True, default="6000" )
         

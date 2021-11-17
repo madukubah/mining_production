@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="production_he_hourmeter_temp">
+    <template id="production_keep_safe_temp">
         <t t-call="report.external_layout">
-            <div class="page" style="font-size: 8px !important;" >
+            <div class="page" style="font-size: 8px !important; font-family: Rubik;" >
                 <div class="oe_structure">
+                    <center style="font-size: 18px !important;" >
+                        <b>
+                            <h2>HOUR METER ALAT BERAT</h2>
+                        </b>
+                    </center>
                     <t t-foreach="data.keys()" t-as="vehicle_name" >
-                        <div style="page-break-before: always;" >
+                        <!-- <div style="page-break-before: always;" > -->
                             <div class="row">
                                 <center>
                                     <b>
@@ -35,8 +40,7 @@
                                         <th rowspan="2" class="text-center">Tanggal</th>
                                         <th colspan="3" class="text-center">Shift 1</th>
                                         <th rowspan="2" class="text-center">Operator</th>
-                                        <th colspan="6" class="text-center">Losstime</th>
-                                        <th rowspan="2" class="text-center">Remarks</th>
+                                        <th rowspan="2" class="text-center">Keterangan</th>
                                         <th colspan="3" class="text-center">Shift 2</th>
                                         <th rowspan="2" class="text-center">Operator</th>
                                         <th rowspan="2" class="text-center">Keterangan</th>
@@ -52,24 +56,6 @@
                                         </td>
                                         <td class="text-center">
                                             Jumlah
-                                        </td>
-                                        <td class="text-center">
-                                            Breakdown
-                                        </td>
-                                        <td class="text-center">
-                                            No Instruction
-                                        </td>
-                                        <td class="text-center">
-                                            Rainy
-                                        </td>
-                                        <td class="text-center">
-                                            Slippery
-                                        </td>
-                                        <td class="text-center">
-                                            No Operator
-                                        </td>
-                                        <td class="text-center">
-                                            Standby Total
                                         </td>
                                         <td class="text-center">
                                             Awal
@@ -109,33 +95,16 @@
                                         <td class="text-center">
                                             <span t-esc="data[vehicle_name][_date]['shift_1_operator']"/>
                                         </td>
-                                        <td class="text-center">
-                                            <span t-esc="data[vehicle_name][_date]['breakdown']"/>
-                                            <t t-set="breakdown_sum" t-value="breakdown_sum + data[vehicle_name][_date]['breakdown']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="data[vehicle_name][_date]['no_instruction']"/>
-                                            <t t-set="no_instruction_sum" t-value="no_instruction_sum + data[vehicle_name][_date]['no_instruction']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="data[vehicle_name][_date]['rainy']"/>
-                                            <t t-set="rainy_sum" t-value="rainy_sum + data[vehicle_name][_date]['rainy']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="data[vehicle_name][_date]['slippery']"/>
-                                            <t t-set="slippery_sum" t-value="slippery_sum + data[vehicle_name][_date]['slippery']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="data[vehicle_name][_date]['no_operator']"/>
-                                            <t t-set="no_operator_sum" t-value="no_operator_sum + data[vehicle_name][_date]['no_operator']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="data[vehicle_name][_date]['total_standby']"/>
-                                            <t t-set="total_standby_sum" t-value="total_standby_sum + data[vehicle_name][_date]['total_standby']"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="data[vehicle_name][_date]['remark_losstime']"/>
-                                        </td>
+                                        <t t-if="data[vehicle_name][_date]['total_standby'] == 8">
+                                            <td class="text-center">
+                                                <span t-esc="data[vehicle_name][_date]['remark_losstime']"/>
+                                            </td>
+                                        </t>
+                                        <t t-else="">
+                                            <td class="text-center">
+                                                <span t-esc="data[vehicle_name][_date]['shift_1_remarks']"/>
+                                            </td>
+                                        </t>
                                         <td class="text-center">
                                             <span t-esc="data[vehicle_name][_date]['shift_2_start']"/>
                                         </td>
@@ -172,24 +141,6 @@
                                             <span t-esc="shift_1_hm"/>
                                         </td>
                                         <td class="text-center">
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="breakdown_sum"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="no_instruction_sum"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="rainy_sum"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="slippery_sum"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="no_operator_sum"/>
-                                        </td>
-                                        <td class="text-center">
-                                            <span t-esc="total_standby_sum"/>
                                         </td>
                                         <td class="text-center">
                                         </td>
@@ -282,7 +233,8 @@
                                     </tr>
                                 </table>
                             </center>
-                        </div>
+                        <!-- </div> -->
+                        <br/><br/><br/><br/>
                     </t>
                 </div>
             </div>
