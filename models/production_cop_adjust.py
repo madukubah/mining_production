@@ -423,6 +423,7 @@ class ProductionCopAdjust(models.Model):
         
         move.action_confirm()
         move.action_done()
+        move.write({'date': self.end_date })
         return move
 
     def _account_entry_move_ore(self, move_lines ):
